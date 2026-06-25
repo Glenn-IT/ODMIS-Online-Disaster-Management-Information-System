@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Relief Operations — ODMIS Admin</title>
+
+  <!-- Bootstrap 5 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <!-- ODMIS Styles -->
+  <link rel="stylesheet" href="../assets/css/style.css" />
+
+  <style>
+    /* ── Filter bar ── */
+    .filter-bar {
+      background: #fff;
+      border-radius: var(--card-border-radius);
+      box-shadow: var(--card-shadow);
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.25rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: flex-end;
+    }
+    .filter-bar .filter-group {
+      display: flex; flex-direction: column;
+      gap: 0.25rem; min-width: 140px; flex: 1;
+    }
+    .filter-bar .filter-label {
+      font-size: 0.7rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.4px; color: var(--color-gray);
+    }
+    .filter-bar .search-group { flex: 2; min-width: 220px; }
+
+    /* ── Summary stat cards ── */
+    .stat-mini-card {
+      background: #fff;
+      border-radius: var(--card-border-radius);
+      box-shadow: var(--card-shadow);
+      padding: 1rem 1.25rem;
+      display: flex; align-items: center; gap: 1rem;
+    }
+    .stat-mini-icon {
+      width: 44px; height: 44px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.25rem; flex-shrink: 0;
+    }
+    .stat-mini-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; color: var(--color-gray); }
+    .stat-mini-value { font-size: 1.5rem; font-weight: 800; color: var(--color-primary); line-height: 1.1; }
+
+    /* ── Table action buttons ── */
+    .btn-action {
+      width: 30px; height: 30px; padding: 0;
+      display: inline-flex; align-items: center; justify-content: center;
+      border-radius: 6px; font-size: 0.8rem; border: none; cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .btn-view   { background: #d1ecf1; color: #0c5460; }
+    .btn-view:hover   { background: #2980b9; color: #fff; }
+    .btn-edit   { background: #fff3cd; color: #856404; }
+    .btn-edit:hover   { background: #f39c12; color: #fff; }
+    .btn-delete { background: #f8d7da; color: #721c24; }
+    .btn-delete:hover { background: #c0392b; color: #fff; }
+
+    /* ── Record count badge ── */
+    .record-count {
+      background: var(--color-primary); color: #fff;
+      font-size: 0.7rem; font-weight: 700;
+      padding: 2px 9px; border-radius: 20px; vertical-align: middle;
+    }
+
+    /* ── View modal detail rows ── */
+    .view-field-label {
+      font-size: var(--font-size-xs); font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.4px;
+      color: var(--color-gray); min-width: 150px;
+    }
+    .view-field-value { font-size: var(--font-size-sm); color: var(--color-dark-gray); }
+
+    /* ── Results bar ── */
+    .results-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem;
+      font-size: var(--font-size-xs); color: var(--color-gray);
+    }
+
+    /* ── Batch Number chip ── */
+    .batch-id-chip {
+      font-family: monospace; font-weight: 700; color: var(--color-primary);
+      font-size: var(--font-size-sm); background: rgba(26,58,107,0.07);
+      padding: 2px 8px; border-radius: 4px; border: 1px solid rgba(26,58,107,0.15);
+    }
+
+    /* ── Status badges (relief) ── */
+    .badge-pending    { background: #fff3cd; color: #856404; border: 1px solid #ffc107; }
+    .badge-progress   { background: #cfe2ff; color: #084298; border: 1px solid #b6d4fe; }
+    .badge-completed  { background: #d1e7dd; color: #0a3622; border: 1px solid #a3cfbb; }
+
+    /* ── Pagination ── */
+    .odmis-pagination { display: flex; gap: 4px; align-items: center; }
+    .odmis-pagination button {
+      width: 32px; height: 32px; border: 1px solid var(--color-mid-gray);
+      background: #fff; border-radius: 6px; font-size: var(--font-size-xs);
+      font-weight: 600; cursor: pointer; color: var(--color-dark-gray); transition: all 0.15s;
+    }
+    .odmis-pagination button:hover:not(:disabled) { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+    .odmis-pagination button.active { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+    .odmis-pagination button:disabled { opacity: 0.4; cursor: default; }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════
+     MOBILE GUARD
+══════════════════════════════════════════════════════════ -->
+<div id="mobileGuard">
+  <div class="text-center text-white p-4">
+    <i class="fas fa-desktop mobile-guard-icon"></i>
+    <h4 class="mobile-guard-title">Desktop Required</h4>
+    <p class="mobile-guard-subtitle">This system is optimized for desktop devices (minimum 1366 px width). Please switch to a desktop or laptop computer.</p>
+    <span class="mobile-guard-badge"><i class="fas fa-expand-arrows-alt me-1"></i>Min. 1366 px</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SIDEBAR
+══════════════════════════════════════════════════════════ -->
+<div id="sidebar">
+  <div class="sidebar-logo-area">
+    <div class="sidebar-logo-placeholder">
+      <i class="fas fa-shield-alt"></i>
+    </div>
+    <div class="sidebar-brand-text">
+      <span class="brand-title">ODMIS</span>
+      <span class="brand-subtitle">Disaster Management</span>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <ul class="list-unstyled mb-0">
+      <li class="sidebar-nav-item">
+        <a href="dashboard.html" class="sidebar-nav-link" data-page="dashboard">
+          <i class="fas fa-tachometer-alt nav-icon"></i>
+          <span class="nav-label">Dashboard</span>
+        </a>
+      </li>
+      <li class="sidebar-nav-item">
+        <a href="incidents.html" class="sidebar-nav-link" data-page="incidents">
+          <i class="fas fa-exclamation-triangle nav-icon"></i>
+          <span class="nav-label">Incidents</span>
+        </a>
+      </li>
+      <li class="sidebar-nav-item">
+        <a href="evacuation.html" class="sidebar-nav-link" data-page="evacuation">
+          <i class="fas fa-house-damage nav-icon"></i>
+          <span class="nav-label">Evacuation Centers</span>
+        </a>
+      </li>
+      <li class="sidebar-nav-item">
+        <a href="residents.html" class="sidebar-nav-link" data-page="residents">
+          <i class="fas fa-users nav-icon"></i>
+          <span class="nav-label">Residents</span>
+        </a>
+      </li>
+      <li class="sidebar-nav-item">
+        <a href="relief.html" class="sidebar-nav-link active" data-page="relief">
+          <i class="fas fa-box-open nav-icon"></i>
+          <span class="nav-label">Relief Operations</span>
+        </a>
+      </li>
+      <li class="sidebar-nav-item">
+        <a href="reports.html" class="sidebar-nav-link" data-page="reports">
+          <i class="fas fa-chart-bar nav-icon"></i>
+          <span class="nav-label">Reports</span>
+        </a>
+      </li>
+      <li class="sidebar-nav-item">
+        <a href="settings.html" class="sidebar-nav-link" data-page="settings">
+          <i class="fas fa-cog nav-icon"></i>
+          <span class="nav-label">Settings</span>
+        </a>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="sidebar-user-avatar" id="sidebarUserAvatar">A</div>
+    <div class="sidebar-user-info">
+      <span class="sidebar-user-name" id="sidebarUserName">Admin</span>
+      <span class="sidebar-user-role" id="sidebarUserRole">Administrator</span>
+    </div>
+  </div>
+</div>
+
+<div id="sidebarOverlay"></div>
+
+<!-- ══════════════════════════════════════════════════════════
+     TOP NAVBAR
+══════════════════════════════════════════════════════════ -->
+<nav id="topNavbar">
+  <button class="navbar-hamburger" id="sidebarToggle" title="Toggle Sidebar">
+    <i class="fas fa-bars"></i>
+  </button>
+
+  <h1 class="navbar-page-title">Relief Operations</h1>
+
+  <div class="navbar-right">
+    <button class="navbar-icon-btn position-relative" title="Notifications">
+      <i class="fas fa-bell"></i>
+      <span class="notification-count" id="notificationCount">0</span>
+    </button>
+
+    <div class="navbar-divider"></div>
+
+    <div class="dropdown">
+      <div class="navbar-user dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false">
+        <div class="navbar-avatar" id="navbarAvatar">A</div>
+        <span class="navbar-user-name" id="navbarUsername">Admin</span>
+        <i class="fas fa-chevron-down ms-1" style="font-size:0.65rem; color:var(--color-gray);"></i>
+      </div>
+      <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="min-width:180px; font-size:var(--font-size-sm);">
+        <li>
+          <a class="dropdown-item" href="settings.html">
+            <i class="fas fa-cog me-2 text-muted"></i>Settings
+          </a>
+        </li>
+        <li><hr class="dropdown-divider my-1"></li>
+        <li>
+          <a class="dropdown-item text-danger" href="#" data-action="logout">
+            <i class="fas fa-sign-out-alt me-2"></i>Logout
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════════
+     MAIN CONTENT
+══════════════════════════════════════════════════════════ -->
+<main id="mainContent">
+
+  <!-- Page Header -->
+  <div class="page-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div>
+      <h1 class="mb-1">
+        <i class="fas fa-box-open me-2" style="color:var(--color-accent);"></i>
+        Relief Operations
+      </h1>
+      <p class="page-subtitle mb-0">Manage and track all relief distribution batches across barangays.</p>
+    </div>
+    <button class="btn btn-primary" id="btnAddRelief">
+      <i class="fas fa-plus me-2"></i>Add Relief Batch
+    </button>
+  </div>
+
+  <!-- ── SUMMARY CARDS ── -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="stat-mini-card">
+        <div class="stat-mini-icon" style="background:rgba(26,58,107,0.1); color:var(--color-primary);">
+          <i class="fas fa-boxes"></i>
+        </div>
+        <div>
+          <div class="stat-mini-label">Total Batches</div>
+          <div class="stat-mini-value" id="statTotal">0</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stat-mini-card">
+        <div class="stat-mini-icon" style="background:rgba(255,193,7,0.15); color:#856404;">
+          <i class="fas fa-clock"></i>
+        </div>
+        <div>
+          <div class="stat-mini-label">Pending</div>
+          <div class="stat-mini-value" id="statPending">0</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stat-mini-card">
+        <div class="stat-mini-icon" style="background:rgba(13,110,253,0.12); color:#084298;">
+          <i class="fas fa-spinner"></i>
+        </div>
+        <div>
+          <div class="stat-mini-label">In Progress</div>
+          <div class="stat-mini-value" id="statInProgress">0</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stat-mini-card">
+        <div class="stat-mini-icon" style="background:rgba(25,135,84,0.12); color:#0a3622;">
+          <i class="fas fa-check-circle"></i>
+        </div>
+        <div>
+          <div class="stat-mini-label">Completed</div>
+          <div class="stat-mini-value" id="statCompleted">0</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── FILTER BAR ── -->
+  <div class="filter-bar">
+    <div class="filter-group search-group">
+      <span class="filter-label"><i class="fas fa-search me-1"></i>Search</span>
+      <div class="search-wrapper">
+        <i class="fas fa-search search-icon"></i>
+        <input type="text" id="filterSearch" class="form-control form-control-sm"
+               placeholder="Search by batch number, barangay, type, distributed by…" />
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <span class="filter-label"><i class="fas fa-map-pin me-1"></i>Barangay</span>
+      <select id="filterBarangay" class="form-select form-select-sm">
+        <option value="">All Barangays</option>
+        <option value="Minanga">Minanga</option>
+        <option value="Lubo">Lubo</option>
+        <option value="Sto. Niño">Sto. Niño</option>
+        <option value="Poblacion">Poblacion</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <span class="filter-label"><i class="fas fa-box me-1"></i>Relief Type</span>
+      <select id="filterType" class="form-select form-select-sm">
+        <option value="">All Types</option>
+        <option value="Food Pack">Food Pack</option>
+        <option value="Water">Water</option>
+        <option value="Medicine">Medicine</option>
+        <option value="Clothing">Clothing</option>
+        <option value="Shelter Materials">Shelter Materials</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <span class="filter-label"><i class="fas fa-toggle-on me-1"></i>Status</span>
+      <select id="filterStatus" class="form-select form-select-sm">
+        <option value="">All Statuses</option>
+        <option value="Pending">Pending</option>
+        <option value="In Progress">In Progress</option>
+        <option value="Completed">Completed</option>
+      </select>
+    </div>
+
+    <div class="filter-group" style="flex:0; min-width:auto;">
+      <span class="filter-label">&nbsp;</span>
+      <button class="btn btn-outline-secondary btn-sm" id="btnResetFilters" title="Clear all filters">
+        <i class="fas fa-times me-1"></i>Clear
+      </button>
+    </div>
+  </div>
+
+  <!-- ── TABLE CARD ── -->
+  <div class="content-card">
+    <div class="content-card-header">
+      <h5 class="mb-0" style="color:var(--color-primary); font-weight:700;">
+        <i class="fas fa-list me-2" style="color:var(--color-accent);"></i>
+        Relief Batch Records
+        <span class="record-count ms-2" id="recordCount">0</span>
+      </h5>
+      <div class="d-flex align-items-center gap-2">
+        <button class="btn btn-outline-primary btn-sm no-print" onclick="window.print()">
+          <i class="fas fa-print me-1"></i>Print
+        </button>
+      </div>
+    </div>
+
+    <div class="content-card-body p-0">
+      <div class="px-3 pt-3 pb-1 results-bar">
+        <span id="resultsInfo">Showing all records</span>
+        <div class="d-flex align-items-center gap-2">
+          <label class="mb-0" style="font-size:0.75rem; color:var(--color-gray);">Per page:</label>
+          <select id="perPageSelect" class="form-select form-select-sm" style="width:70px;">
+            <option value="10" selected>10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="table-wrapper">
+        <table class="table table-hover mb-0" id="reliefTable">
+          <thead>
+            <tr>
+              <th>Batch Number</th>
+              <th>Date</th>
+              <th>Barangay</th>
+              <th>Relief Type</th>
+              <th>Quantity</th>
+              <th>Unit</th>
+              <th>Distributed By</th>
+              <th>Status</th>
+              <th class="text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="reliefTableBody">
+            <!-- populated by JS -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Empty state -->
+      <div id="emptyState" class="text-center py-5" style="display:none!important;">
+        <i class="fas fa-box-open fa-3x mb-3" style="color:var(--color-mid-gray);"></i>
+        <h6 style="color:var(--color-gray);">No relief batches found</h6>
+        <p class="text-muted small mb-3">Try adjusting your search or add a new relief batch.</p>
+        <button class="btn btn-primary btn-sm" id="btnAddReliefEmpty">
+          <i class="fas fa-plus me-1"></i>Add Relief Batch
+        </button>
+      </div>
+
+      <!-- Pagination -->
+      <div class="d-flex align-items-center justify-content-between px-3 py-3 border-top" id="paginationBar">
+        <span id="paginationInfo" style="font-size:var(--font-size-xs); color:var(--color-gray);"></span>
+        <div class="odmis-pagination" id="paginationControls"></div>
+      </div>
+    </div>
+  </div>
+
+</main><!-- /mainContent -->
+
+
+<!-- ══════════════════════════════════════════════════════════
+     LOGOUT MODAL
+══════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="logoutModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title"><i class="fas fa-sign-out-alt me-2"></i>Confirm Logout</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-center py-4">
+        <p class="mb-0">Are you sure you want to logout?</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-danger btn-sm" id="confirmLogoutBtn">Logout</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     ADD / EDIT MODAL  (#reliefModal)
+══════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="reliefModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header" style="background:var(--color-primary); color:#fff;">
+        <h5 class="modal-title" id="reliefModalTitle">
+          <i class="fas fa-plus-circle me-2"></i>Add Relief Batch
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="reliefForm" novalidate>
+          <input type="hidden" id="reliefId" />
+
+          <div class="row g-3">
+            <!-- Batch Number -->
+            <div class="col-md-6">
+              <label class="form-label fw-semibold" for="fBatchNumber">
+                Batch Number <span class="text-danger">*</span>
+              </label>
+              <input type="text" class="form-control" id="fBatchNumber" placeholder="e.g. BATCH-001" required readonly />
+              <div class="form-text text-muted">Auto-generated.</div>
+            </div>
+
+            <!-- Date -->
+            <div class="col-md-6">
+              <label class="form-label fw-semibold" for="fDate">
+                Date <span class="text-danger">*</span>
+              </label>
+              <input type="date" class="form-control" id="fDate" required />
+              <div class="invalid-feedback">Date is required.</div>
+            </div>
+
+            <!-- Barangay -->
+            <div class="col-md-6">
+              <label class="form-label fw-semibold" for="fBarangay">
+                Barangay <span class="text-danger">*</span>
+              </label>
+              <select class="form-select" id="fBarangay" required>
+                <option value="">Select Barangay</option>
+                <option value="Minanga">Minanga</option>
+                <option value="Lubo">Lubo</option>
+                <option value="Sto. Niño">Sto. Niño</option>
+                <option value="Poblacion">Poblacion</option>
+              </select>
+              <div class="invalid-feedback">Please select a barangay.</div>
+            </div>
+
+            <!-- Relief Type -->
+            <div class="col-md-6">
+              <label class="form-label fw-semibold" for="fReliefType">
+                Relief Type <span class="text-danger">*</span>
+              </label>
+              <select class="form-select" id="fReliefType" required>
+                <option value="">Select Type</option>
+                <option value="Food Pack">Food Pack</option>
+                <option value="Water">Water</option>
+                <option value="Medicine">Medicine</option>
+                <option value="Clothing">Clothing</option>
+                <option value="Shelter Materials">Shelter Materials</option>
+                <option value="Other">Other</option>
+              </select>
+              <div class="invalid-feedback">Please select a relief type.</div>
+            </div>
+
+            <!-- Quantity -->
+            <div class="col-md-4">
+              <label class="form-label fw-semibold" for="fQuantity">
+                Quantity <span class="text-danger">*</span>
+              </label>
+              <input type="number" class="form-control" id="fQuantity" min="1" placeholder="e.g. 200" required />
+              <div class="invalid-feedback">Quantity must be at least 1.</div>
+            </div>
+
+            <!-- Unit -->
+            <div class="col-md-4">
+              <label class="form-label fw-semibold" for="fUnit">
+                Unit <span class="text-danger">*</span>
+              </label>
+              <input type="text" class="form-control" id="fUnit" placeholder="e.g. pieces / boxes / sacks / liters" required list="unitSuggestions" />
+              <datalist id="unitSuggestions">
+                <option value="pieces">
+                <option value="boxes">
+                <option value="sacks">
+                <option value="liters">
+                <option value="packs">
+                <option value="sets">
+              </datalist>
+              <div class="invalid-feedback">Unit is required.</div>
+            </div>
+
+            <!-- Status -->
+            <div class="col-md-4">
+              <label class="form-label fw-semibold" for="fStatus">Status</label>
+              <select class="form-select" id="fStatus">
+                <option value="Pending">Pending</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Completed">Completed</option>
+              </select>
+            </div>
+
+            <!-- Distributed By -->
+            <div class="col-md-6">
+              <label class="form-label fw-semibold" for="fDistributedBy">Distributed By</label>
+              <input type="text" class="form-control" id="fDistributedBy" placeholder="e.g. NDRRMC / Barangay Council" />
+            </div>
+
+            <!-- Notes -->
+            <div class="col-md-6">
+              <label class="form-label fw-semibold" for="fNotes">Notes</label>
+              <textarea class="form-control" id="fNotes" rows="2" placeholder="Additional notes or remarks…"></textarea>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <i class="fas fa-times me-1"></i>Cancel
+        </button>
+        <button type="button" class="btn btn-primary" id="btnSaveRelief">
+          <i class="fas fa-save me-1"></i>Save Batch
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     VIEW MODAL  (#viewReliefModal)
+══════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="viewReliefModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header" style="background:var(--color-primary); color:#fff;">
+        <h5 class="modal-title">
+          <i class="fas fa-eye me-2"></i>Relief Batch Details
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+
+        <!-- Header strip -->
+        <div class="d-flex align-items-center gap-3 mb-4 p-3 rounded-2" style="background:rgba(26,58,107,0.06);">
+          <div style="width:52px;height:52px;border-radius:12px;background:var(--color-primary);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="fas fa-box-open fa-lg text-white"></i>
+          </div>
+          <div>
+            <h5 class="mb-0 fw-bold" id="vBatchNumber" style="color:var(--color-primary);"></h5>
+            <small class="text-muted" id="vBatchDate"></small>
+          </div>
+          <div class="ms-auto">
+            <span id="vStatusBadge" class="badge fs-6 border"></span>
+          </div>
+        </div>
+
+        <!-- Fields grid -->
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="view-field-label">Barangay</div>
+            <div class="view-field-value mt-1" id="vBarangay">—</div>
+          </div>
+          <div class="col-md-6">
+            <div class="view-field-label">Relief Type</div>
+            <div class="view-field-value mt-1" id="vReliefType">—</div>
+          </div>
+          <div class="col-md-4">
+            <div class="view-field-label">Quantity</div>
+            <div class="view-field-value mt-1 fw-bold" id="vQuantity">—</div>
+          </div>
+          <div class="col-md-4">
+            <div class="view-field-label">Unit</div>
+            <div class="view-field-value mt-1" id="vUnit">—</div>
+          </div>
+          <div class="col-md-4">
+            <div class="view-field-label">Distributed By</div>
+            <div class="view-field-value mt-1" id="vDistributedBy">—</div>
+          </div>
+          <div class="col-12">
+            <div class="view-field-label">Notes</div>
+            <div class="view-field-value mt-1" id="vNotes" style="white-space:pre-wrap;">—</div>
+          </div>
+          <div class="col-md-6">
+            <div class="view-field-label">Date Added</div>
+            <div class="view-field-value mt-1" id="vCreatedAt">—</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-warning text-dark" id="btnViewToEdit">
+          <i class="fas fa-edit me-1"></i>Edit
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     DELETE CONFIRM MODAL  (#deleteReliefModal)
+══════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="deleteReliefModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title"><i class="fas fa-trash-alt me-2"></i>Delete Batch</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-center py-4">
+        <i class="fas fa-exclamation-circle fa-2x text-danger mb-3"></i>
+        <p class="mb-1">Are you sure you want to delete batch</p>
+        <p class="fw-bold mb-0" id="deleteTargetBatch">this batch</p>
+        <p class="text-muted small mt-2 mb-0">This action cannot be undone.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-danger btn-sm" id="confirmDeleteBtn">
+          <i class="fas fa-trash-alt me-1"></i>Delete
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     TOAST NOTIFICATION
+══════════════════════════════════════════════════════════ -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index:9999;">
+  <div id="odmisToast" class="toast align-items-center text-white border-0" role="alert" aria-live="assertive">
+    <div class="d-flex">
+      <div class="toast-body" id="toastMessage">Action completed.</div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════
+     SCRIPTS
+══════════════════════════════════════════════════════════ -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/js/mock-data.js"></script>
+<script src="../assets/js/auth.js"></script>
+<script src="../assets/js/app.js"></script>
+
+<script>
+/* ============================================================
+   RELIEF OPERATIONS — Page Logic
+   LocalStorage key: odmis_relief_operations
+============================================================ */
+
+// ── State ──────────────────────────────────────────────────
+let allBatches       = [];
+let filteredBatches  = [];
+let currentPage      = 1;
+let perPage          = 10;
+let deleteTargetId   = null;
+let viewTargetId     = null;
+
+// ── Bootstrap modal instances ─────────────────────────────
+let reliefModalInst, viewModalInst, deleteModalInst, logoutModalInst;
+
+// ── Toast helper ──────────────────────────────────────────
+function showToast(message, type = 'success') {
+  const el = document.getElementById('odmisToast');
+  el.className = 'toast align-items-center text-white border-0';
+  const bg = { success:'bg-success', danger:'bg-danger', warning:'bg-warning text-dark', info:'bg-info' }[type] || 'bg-success';
+  el.classList.add(...bg.split(' '));
+  document.getElementById('toastMessage').textContent = message;
+  bootstrap.Toast.getOrCreateInstance(el, { delay: 3000 }).show();
+}
+
+// ── LocalStorage helpers ──────────────────────────────────
+function getBatches() {
+  try { return JSON.parse(localStorage.getItem('odmis_relief_operations')) || []; }
+  catch(e) { return []; }
+}
+function setBatches(data) {
+  localStorage.setItem('odmis_relief_operations', JSON.stringify(data));
+}
+
+// ── ID / Batch Number generator ────────────────────────────
+function generateBatchNumber() {
+  const batches = getBatches();
+  if (!batches.length) return 'BATCH-001';
+  const nums = batches.map(b => {
+    const m = b.batchNumber && b.batchNumber.match(/BATCH-(\d+)/i);
+    return m ? parseInt(m[1], 10) : 0;
+  });
+  return 'BATCH-' + String(Math.max(...nums) + 1).padStart(3, '0');
+}
+
+// ── HTML escaping ─────────────────────────────────────────
+function escHtml(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Status badge ───────────────────────────────────────────
+function statusBadge(status) {
+  switch ((status || '').toLowerCase()) {
+    case 'pending':     return '<span class="badge badge-pending">Pending</span>';
+    case 'in progress': return '<span class="badge badge-progress">In Progress</span>';
+    case 'completed':   return '<span class="badge badge-completed">Completed</span>';
+    default:            return `<span class="badge bg-secondary">${escHtml(status)}</span>`;
+  }
+}
+
+// ── Load & render ─────────────────────────────────────────
+function loadBatches() {
+  allBatches = getBatches();
+  filterBatches();
+  renderSummary();
+}
+
+function filterBatches() {
+  const search    = (document.getElementById('filterSearch').value || '').toLowerCase().trim();
+  const barangay  = document.getElementById('filterBarangay').value;
+  const type      = document.getElementById('filterType').value;
+  const statusVal = document.getElementById('filterStatus').value;
+
+  filteredBatches = allBatches.filter(b => {
+    const matchSearch = !search ||
+      (b.batchNumber   && b.batchNumber.toLowerCase().includes(search)) ||
+      (b.barangay      && b.barangay.toLowerCase().includes(search)) ||
+      (b.reliefType    && b.reliefType.toLowerCase().includes(search)) ||
+      (b.distributedBy && b.distributedBy.toLowerCase().includes(search)) ||
+      (b.notes         && b.notes.toLowerCase().includes(search));
+    const matchBrgy   = !barangay  || b.barangay  === barangay;
+    const matchType   = !type      || b.reliefType === type;
+    const matchStatus = !statusVal || b.status     === statusVal;
+    return matchSearch && matchBrgy && matchType && matchStatus;
+  });
+
+  currentPage = 1;
+  renderTable();
+}
+
+function renderTable() {
+  const tbody  = document.getElementById('reliefTableBody');
+  const empty  = document.getElementById('emptyState');
+  const pagBar = document.getElementById('paginationBar');
+  const total  = filteredBatches.length;
+  const start  = (currentPage - 1) * perPage;
+  const slice  = filteredBatches.slice(start, start + perPage);
+
+  document.getElementById('recordCount').textContent = total;
+  document.getElementById('resultsInfo').textContent =
+    total === 0 ? 'No records found'
+    : `Showing ${start + 1}–${Math.min(start + perPage, total)} of ${total} records`;
+
+  if (total === 0) {
+    tbody.innerHTML = '';
+    empty.style.removeProperty('display');
+    pagBar.style.display = 'none';
+    return;
+  }
+
+  empty.style.setProperty('display', 'none', 'important');
+  pagBar.style.display = 'flex';
+
+  tbody.innerHTML = slice.map(b => `
+    <tr>
+      <td><span class="batch-id-chip">${escHtml(b.batchNumber)}</span></td>
+      <td>${escHtml(b.date || '—')}</td>
+      <td>${escHtml(b.barangay || '—')}</td>
+      <td>
+        <span class="badge bg-light text-dark border">
+          <i class="fas fa-box me-1" style="color:var(--color-accent);"></i>${escHtml(b.reliefType || '—')}
+        </span>
+      </td>
+      <td class="text-center fw-semibold">${b.quantity != null ? b.quantity : '—'}</td>
+      <td>${escHtml(b.unit || '—')}</td>
+      <td>${escHtml(b.distributedBy || '—')}</td>
+      <td>${statusBadge(b.status)}</td>
+      <td class="text-center" style="white-space:nowrap;">
+        <button class="btn-action btn-view me-1" title="View" onclick="viewBatch('${b.id}')">
+          <i class="fas fa-eye"></i>
+        </button>
+        <button class="btn-action btn-edit me-1" title="Edit" onclick="editBatch('${b.id}')">
+          <i class="fas fa-edit"></i>
+        </button>
+        <button class="btn-action btn-delete" title="Delete" onclick="deleteBatch('${b.id}')">
+          <i class="fas fa-trash-alt"></i>
+        </button>
+      </td>
+    </tr>`).join('');
+
+  renderPagination(total);
+}
+
+function renderPagination(total) {
+  const totalPages = Math.ceil(total / perPage) || 1;
+  document.getElementById('paginationInfo').textContent = `Page ${currentPage} of ${totalPages}`;
+  const ctrl = document.getElementById('paginationControls');
+
+  let html = `<button ${currentPage === 1 ? 'disabled' : ''} onclick="goPage(${currentPage - 1})">
+                <i class="fas fa-chevron-left"></i></button>`;
+  for (let i = 1; i <= totalPages; i++) {
+    if (totalPages > 7 && i > 2 && i < totalPages - 1 && Math.abs(i - currentPage) > 1) {
+      if (i === 3 || i === totalPages - 2) html += `<button disabled>…</button>`;
+      continue;
+    }
+    html += `<button class="${i === currentPage ? 'active' : ''}" onclick="goPage(${i})">${i}</button>`;
+  }
+  html += `<button ${currentPage === totalPages ? 'disabled' : ''} onclick="goPage(${currentPage + 1})">
+             <i class="fas fa-chevron-right"></i></button>`;
+  ctrl.innerHTML = html;
+}
+
+function goPage(p) { currentPage = p; renderTable(); }
+
+function renderSummary() {
+  const batches = getBatches();
+  document.getElementById('statTotal').textContent      = batches.length;
+  document.getElementById('statPending').textContent    = batches.filter(b => b.status === 'Pending').length;
+  document.getElementById('statInProgress').textContent = batches.filter(b => b.status === 'In Progress').length;
+  document.getElementById('statCompleted').textContent  = batches.filter(b => b.status === 'Completed').length;
+}
+
+// ── Open Add modal ─────────────────────────────────────────
+function openAddModal() {
+  document.getElementById('reliefModalTitle').innerHTML =
+    '<i class="fas fa-plus-circle me-2"></i>Add Relief Batch';
+  document.getElementById('reliefId').value     = '';
+  document.getElementById('reliefForm').reset();
+  document.getElementById('reliefForm').classList.remove('was-validated');
+  // auto batch number
+  document.getElementById('fBatchNumber').value = generateBatchNumber();
+  // default date = today
+  document.getElementById('fDate').value = new Date().toISOString().split('T')[0];
+  reliefModalInst.show();
+}
+
+// ── Edit batch ─────────────────────────────────────────────
+function editBatch(id) {
+  const b = getBatches().find(x => x.id === id);
+  if (!b) return;
+  document.getElementById('reliefModalTitle').innerHTML =
+    '<i class="fas fa-edit me-2"></i>Edit Relief Batch';
+  document.getElementById('reliefId').value          = b.id;
+  document.getElementById('fBatchNumber').value      = b.batchNumber || '';
+  document.getElementById('fDate').value             = b.date || '';
+  document.getElementById('fBarangay').value         = b.barangay || '';
+  document.getElementById('fReliefType').value       = b.reliefType || '';
+  document.getElementById('fQuantity').value         = b.quantity != null ? b.quantity : '';
+  document.getElementById('fUnit').value             = b.unit || '';
+  document.getElementById('fStatus').value           = b.status || 'Pending';
+  document.getElementById('fDistributedBy').value   = b.distributedBy || '';
+  document.getElementById('fNotes').value            = b.notes || '';
+  document.getElementById('reliefForm').classList.remove('was-validated');
+  reliefModalInst.show();
+}
+
+// ── Save batch ─────────────────────────────────────────────
+function saveBatch() {
+  const form = document.getElementById('reliefForm');
+  form.classList.add('was-validated');
+  if (!form.checkValidity()) return;
+
+  const id           = document.getElementById('reliefId').value.trim();
+  const batchNumber  = document.getElementById('fBatchNumber').value.trim();
+  const date         = document.getElementById('fDate').value;
+  const barangay     = document.getElementById('fBarangay').value;
+  const reliefType   = document.getElementById('fReliefType').value;
+  const quantity     = parseInt(document.getElementById('fQuantity').value, 10);
+  const unit         = document.getElementById('fUnit').value.trim();
+  const status       = document.getElementById('fStatus').value;
+  const distributedBy = document.getElementById('fDistributedBy').value.trim();
+  const notes        = document.getElementById('fNotes').value.trim();
+
+  const batches = getBatches();
+
+  if (id) {
+    const idx = batches.findIndex(b => b.id === id);
+    if (idx > -1) {
+      batches[idx] = { ...batches[idx], batchNumber, date, barangay, reliefType,
+        quantity, unit, status, distributedBy, notes };
+      setBatches(batches);
+      showToast('Relief batch updated successfully.', 'success');
+    }
+  } else {
+    const newBatch = {
+      id: 'RELIEF-' + Date.now(),
+      batchNumber, date, barangay, reliefType,
+      quantity, unit, status, distributedBy, notes,
+      createdAt: new Date().toISOString().split('T')[0]
+    };
+    batches.push(newBatch);
+    setBatches(batches);
+    showToast('Relief batch added successfully.', 'success');
+  }
+
+  reliefModalInst.hide();
+  loadBatches();
+}
+
+// ── View batch ─────────────────────────────────────────────
+function viewBatch(id) {
+  const b = getBatches().find(x => x.id === id);
+  if (!b) return;
+  viewTargetId = id;
+
+  document.getElementById('vBatchNumber').textContent   = b.batchNumber || '—';
+  document.getElementById('vBatchDate').textContent     = b.date ? `Date: ${b.date}` : '';
+  document.getElementById('vBarangay').textContent      = b.barangay || '—';
+  document.getElementById('vReliefType').textContent    = b.reliefType || '—';
+  document.getElementById('vQuantity').textContent      = b.quantity != null ? b.quantity : '—';
+  document.getElementById('vUnit').textContent          = b.unit || '—';
+  document.getElementById('vDistributedBy').textContent = b.distributedBy || '—';
+  document.getElementById('vNotes').textContent         = b.notes || '—';
+  document.getElementById('vCreatedAt').textContent     = b.createdAt || '—';
+
+  const badge = document.getElementById('vStatusBadge');
+  switch ((b.status || '').toLowerCase()) {
+    case 'pending':
+      badge.className = 'badge fs-6 border badge-pending';
+      badge.textContent = 'Pending'; break;
+    case 'in progress':
+      badge.className = 'badge fs-6 border badge-progress';
+      badge.textContent = 'In Progress'; break;
+    case 'completed':
+      badge.className = 'badge fs-6 border badge-completed';
+      badge.textContent = 'Completed'; break;
+    default:
+      badge.className = 'badge fs-6 bg-secondary';
+      badge.textContent = b.status || '—';
+  }
+
+  viewModalInst.show();
+}
+
+// ── Delete batch ───────────────────────────────────────────
+function deleteBatch(id) {
+  const b = getBatches().find(x => x.id === id);
+  if (!b) return;
+  deleteTargetId = id;
+  document.getElementById('deleteTargetBatch').textContent = `"${b.batchNumber}"`;
+  deleteModalInst.show();
+}
+
+function confirmDelete() {
+  if (!deleteTargetId) return;
+  const batches = getBatches().filter(b => b.id !== deleteTargetId);
+  setBatches(batches);
+  deleteTargetId = null;
+  deleteModalInst.hide();
+  showToast('Relief batch deleted.', 'danger');
+  loadBatches();
+}
+
+// ── DOMContentLoaded ──────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  if (typeof initMockData === 'function') initMockData();
+  if (typeof Auth !== 'undefined') {
+    Auth.requireAdmin();
+    const session = Auth.getSession();
+    if (session) {
+      const initLetter = session.fullName ? session.fullName[0].toUpperCase() : 'A';
+      document.getElementById('sidebarUserAvatar').textContent = initLetter;
+      document.getElementById('sidebarUserName').textContent   = session.fullName || session.username;
+      document.getElementById('navbarAvatar').textContent      = initLetter;
+      document.getElementById('navbarUsername').textContent    = session.username;
+    }
+  }
+
+  // Modal instances
+  reliefModalInst = new bootstrap.Modal(document.getElementById('reliefModal'));
+  viewModalInst   = new bootstrap.Modal(document.getElementById('viewReliefModal'));
+  deleteModalInst = new bootstrap.Modal(document.getElementById('deleteReliefModal'));
+  logoutModalInst = new bootstrap.Modal(document.getElementById('logoutModal'));
+
+  // Sidebar toggle
+  document.getElementById('sidebarToggle').addEventListener('click', () => {
+    document.body.classList.toggle('sidebar-collapsed');
+  });
+  document.getElementById('sidebarOverlay')?.addEventListener('click', () => {
+    document.body.classList.remove('sidebar-collapsed');
+  });
+
+  // Logout
+  document.getElementById('confirmLogoutBtn').addEventListener('click', () => {
+    if (typeof Auth !== 'undefined') Auth.logout();
+  });
+  document.querySelectorAll('[data-action="logout"]').forEach(el => {
+    el.addEventListener('click', e => { e.preventDefault(); logoutModalInst.show(); });
+  });
+
+  // Mobile guard
+  function checkMobile() {
+    const guard = document.getElementById('mobileGuard');
+    if (guard) {
+      if (window.innerWidth < 1366) guard.classList.add('show');
+      else guard.classList.remove('show');
+    }
+  }
+  checkMobile();
+  window.addEventListener('resize', checkMobile);
+
+  // Add Batch buttons
+  document.getElementById('btnAddRelief').addEventListener('click', openAddModal);
+  document.getElementById('btnAddReliefEmpty')?.addEventListener('click', openAddModal);
+
+  // Save
+  document.getElementById('btnSaveRelief').addEventListener('click', saveBatch);
+
+  // "Edit" from View modal
+  document.getElementById('btnViewToEdit').addEventListener('click', () => {
+    const id = viewTargetId;
+    viewModalInst.hide();
+    document.getElementById('viewReliefModal').addEventListener('hidden.bs.modal', () => {
+      if (id) editBatch(id);
+    }, { once: true });
+  });
+
+  // Delete confirm
+  document.getElementById('confirmDeleteBtn').addEventListener('click', confirmDelete);
+
+  // Filters
+  document.getElementById('filterSearch').addEventListener('input', filterBatches);
+  document.getElementById('filterBarangay').addEventListener('change', filterBatches);
+  document.getElementById('filterType').addEventListener('change', filterBatches);
+  document.getElementById('filterStatus').addEventListener('change', filterBatches);
+  document.getElementById('btnResetFilters').addEventListener('click', () => {
+    document.getElementById('filterSearch').value   = '';
+    document.getElementById('filterBarangay').value = '';
+    document.getElementById('filterType').value     = '';
+    document.getElementById('filterStatus').value   = '';
+    filterBatches();
+  });
+
+  // Per-page
+  document.getElementById('perPageSelect').addEventListener('change', e => {
+    perPage = parseInt(e.target.value, 10);
+    currentPage = 1;
+    renderTable();
+  });
+
+  // Initial load
+  loadBatches();
+});
+</script>
+</body>
+</html>
