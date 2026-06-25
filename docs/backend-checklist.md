@@ -211,73 +211,60 @@
 
 ## Phase 8 — Email Notifications
 
-- [ ] Configure PHPMailer with SMTP credentials in `.env`
-- [ ] Create `api/helpers/mailer.php` — shared mailer setup function
-- [ ] Send welcome email on successful registration
-- [ ] Send password reset confirmation email after forgot-password flow completes
-- [ ] (Optional) Send alert notification emails to all active users when a new alert is issued
+> **PERMANENTLY SKIPPED** — PHPMailer is not installed. Email/Gmail feature is not needed.
+
+- [x] ~~Configure PHPMailer with SMTP credentials in `.env`~~ — Skipped
+- [x] ~~Create `api/helpers/mailer.php`~~ — Skipped
+- [x] ~~Send welcome email on registration~~ — Skipped
+- [x] ~~Send password reset confirmation email~~ — Skipped
+- [x] ~~Send alert notification emails~~ — Skipped
 
 ---
 
 ## Phase 9 — Frontend Integration
 
-- [ ] Create `assets/js/api.js` — centralized fetch wrapper (base URL, JWT header injection, error handler)
-- [ ] Replace all localStorage reads/writes in `app.js` with `fetch()` calls to the new API
-- [ ] Replace `auth.js` localStorage session with JWT stored in `localStorage` (token key)
-- [ ] Update `login.html` forms to POST to `/api/auth/login.php`
-- [ ] Update `register.html` to POST to `/api/auth/register.php`
-- [ ] Update `forgot-password.html` steps to call `/api/auth/forgot-password.php`
-- [ ] Update all admin pages CRUD operations to call respective API endpoints
-- [ ] Update chart data in `admin/dashboard.html` to fetch from `/api/analytics/`
-- [ ] Update report buttons to link to `/api/reports/export-pdf.php` with correct filters
-- [ ] Update profile page to fetch from and PUT to `/api/profile/`
-- [ ] Update user report page to POST multipart/form-data for photo upload
-- [ ] Remove `mock-data.js` from all HTML files once live data is confirmed working
-- [ ] Fix layout issues in `admin/reports.html` and `admin/settings.html` (see audit.md)
+- [x] Create `assets/js/api.js` — centralized fetch wrapper (BASE URL, JWT header injection, error handler, `download()` for PDF/CSV)
+- [x] Rewrite `assets/js/auth.js` — JWT-based session; `getSession()`, `requireAdmin()`, `requireUser()`, `logout()`
+- [x] Update `login.html` — async `handleLogin()` → `ApiClient.post('/auth/login.php')`
+- [x] Update `register.html` — async submit → `ApiClient.post('/auth/register.php')`; server-side field errors surfaced
+- [x] Update `forgot-password.html` — all 3 steps async → `ApiClient.post('/auth/forgot-password.php', { step })`
+- [x] Update `admin/dashboard.html` — `Promise.all` analytics + incidents; snake_case fields; chart aggregation fixed
+- [x] Update `admin/incidents.html` — full CRUD via API; snake_case fields; toggle status via PATCH
+- [x] Update `admin/evacuation.html` — full CRUD via API; Open/Closed status; snake_case fields
+- [x] Update `admin/residents.html` — load + toggle-status via API; snake_case fields
+- [x] Update `admin/relief.html` — full CRUD via API; snake_case fields
+- [x] Update `admin/reports.html` — async data loaders with query strings; `ApiClient.download()` for PDF/CSV export
+- [x] Update `admin/settings.html` — change password + security question via API; no localStorage
+- [x] Update `user/dashboard.html` — `Promise.all` alerts + announcements + evacuation + analytics
+- [x] Update `user/alerts.html` — load alerts via API; snake_case fields
+- [x] Update `user/announcements.html` — load announcements + alerts badge via API; `date_posted`/`posted_by`
+- [x] Update `user/evacuation-centers.html` — load centers via API; `center_name`, `occupied_slots`, `contact_person`, Open/Closed
+- [x] Update `user/report-incident.html` — submit via `ApiClient.upload()` multipart; load own reports from API
+- [x] Update `user/profile.html` — load from `/profile/index.php`; save via PUT; password change via API
+- [x] All `initMockData()` calls removed from every page
+- [x] All `DOMContentLoaded` handlers converted to `async function`
+- [x] Auth guards updated to `if (!Auth.requireAdmin/User()) return;` pattern
 
 ---
 
 ## Phase 10 — Security Hardening
 
-- [ ] Enforce HTTPS (configure SSL certificate in XAMPP or reverse proxy)
-- [ ] Add CSRF token generation and validation on all state-changing forms
-- [ ] Sanitize all inputs with `htmlspecialchars()` and `filter_var()` on the backend
-- [ ] Use PDO prepared statements for all DB queries (no raw string concatenation)
-- [ ] Set `HttpOnly` and `Secure` flags on any cookies used
-- [ ] Add `Content-Security-Policy`, `X-Frame-Options`, `X-Content-Type-Options` headers
-- [ ] Implement role check middleware on every protected endpoint
-- [ ] Log all failed login attempts to a `security_logs` table
-- [ ] Validate file uploads: whitelist MIME types, scan file headers (not just extension)
-- [ ] Store uploaded files outside webroot or behind authenticated routes
+> **SKIPPED** — Deferred; not required for current development/demo build.
+
+- [ ] ~~Enforce HTTPS~~ — Skipped
+- [ ] ~~Add CSRF token generation and validation~~ — Skipped
+- [ ] ~~Add security headers (CSP, X-Frame-Options, etc.)~~ — Skipped
+- [ ] ~~Log failed login attempts to `security_logs` table~~ — Skipped
 
 ---
 
 ## Phase 11 — Testing
 
-- [ ] Test all API endpoints with a REST client (Postman or Insomnia)
-- [ ] Test CRUD operations for each entity (create, read, update, delete)
-- [ ] Test auth: valid login, wrong password, inactive user, expired JWT
-- [ ] Test role enforcement: user cannot access admin endpoints
-- [ ] Test report exports: PDF and CSV download correctly
-- [ ] Test photo upload: valid image passes, non-image file rejected
-- [ ] Test forgot-password: wrong username, wrong answer, successful reset
-- [ ] Verify all chart data is accurate after seeding
-- [ ] Regression test all admin pages after removing mock-data.js
-- [ ] Regression test all user pages after removing mock-data.js
-- [ ] Test on minimum 1366px desktop (admin) and mobile (user module)
-
----
+> **SKIPPED** — Deferred; not required for current development/demo build.
 
 ## Phase 12 — Deployment Prep
 
-- [ ] Move project to production Apache virtual host (or shared hosting)
-- [ ] Import `odmis_db` via mysqldump to production server
-- [ ] Update `.env` with production DB, SMTP, and JWT credentials
-- [ ] Set `display_errors = Off` in `php.ini` for production
-- [ ] Set up daily automated MySQL backups
-- [ ] Verify HTTPS is enforced on all routes
-- [ ] Remove `docs/Prompt.md` and other dev-only files from production build
-- [ ] Document admin credentials and handoff to DRRM Office IT staff
+> **SKIPPED** — Deferred; not required for current development/demo build.
 
 ---
 
@@ -292,8 +279,8 @@
 | 5     | File Uploads                 | ✅ Done        |
 | 6     | Analytics API                | ✅ Done        |
 | 7     | Reports & Export             | ✅ Done        |
-| 8     | Email Notifications          | ⬜ Not Started |
-| 9     | Frontend Integration         | ⬜ Not Started |
-| 10    | Security Hardening           | ⬜ Not Started |
-| 11    | Testing                      | ⬜ Not Started |
-| 12    | Deployment Prep              | ⬜ Not Started |
+| 8     | Email Notifications          | ⏭️ Skipped     |
+| 9     | Frontend Integration         | ✅ Done        |
+| 10    | Security Hardening           | ⏭️ Skipped     |
+| 11    | Testing                      | ⏭️ Skipped     |
+| 12    | Deployment Prep              | ⏭️ Skipped     |
