@@ -390,6 +390,7 @@
 ══════════════════════════════════════════════════════════ -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="../assets/js/api.js"></script>
 <script src="../assets/js/auth.js"></script>
 <script src="../assets/js/app.js"></script>
 
@@ -461,22 +462,24 @@
   }
 
   // ── Data loading ─────────────────────────────────────────
-  function loadData() {
-    var users     = JSON.parse(localStorage.getItem('odmis_users')  || '[]');
-    var incidents = JSON.parse(localStorage.getItem('odmis_incidents') || '[]');
-    return { users: users, incidents: incidents };
+  async function loadData() {
+    var results = await Promise.all([
+      ApiClient.get('/analytics/summary.php'),
+      ApiClient.get('/incidents/index.php')
+    ]);
+    return { summary: results[0].data, incidents: results[1].data };
   }
 
   // ── Populate summary cards ────────────────────────────────
-  function populateCards(users, incidents) {
-    var residents = users.filter(function(u){ return u.role === 'user'; }).length;
-    var total     = incidents.length;
-    var active    = incidents.filter(function(i){ return i.status === 'Active'; }).length;
-    var resolved  = incidents.filter(function(i){ return i.status === 'Resolved'; }).length;
+  function populateCards(summary, incidents) {
+    var residents = summary.total_residents   || 0;
+    var active    = summary.active_incidents  || 0;
+    var resolved  = summary.resolved_incidents || 0;
+    var total     = active + resolved;
 
-    document.getElementById('cardResidents').textContent        = residents;
-    document.getElementById('cardTotalIncidents').textContent   = total;
-    document.getElementById('cardActiveIncidents').textContent  = active;
+    document.getElementById('cardResidents').textContent         = residents;
+    document.getElementById('cardTotalIncidents').textContent    = total;
+    document.getElementById('cardActiveIncidents').textContent   = active;
     document.getElementById('cardResolvedIncidents').textContent = resolved;
 
     // Dynamic trend chip for active incidents
@@ -501,7 +504,7 @@
   function renderDisasterTypesChart(incidents) {
     var counts = {};
     incidents.forEach(function(inc) {
-      var t = inc.disasterType || inc.type || 'Other';
+      var t = inc.disaster_type || inc.disasterType || 'Other';
       counts[t] = (counts[t] || 0) + 1;
     });
     var labels = Object.keys(counts);
@@ -556,7 +559,7 @@
       var d = new Date(now.getFullYear(), now.getMonth() - i, 1);
       labels.push(monthNames[d.getMonth()] + ' ' + d.getFullYear());
       var count = incidents.filter(function(inc) {
-        var dt = new Date(inc.date || inc.dateTime || inc.createdAt || '');
+        var dt = new Date(inc.incident_date || inc.date || inc.created_at || '');
         return dt.getFullYear() === d.getFullYear() && dt.getMonth() === d.getMonth();
       }).length;
       data.push(count);
@@ -666,7 +669,7 @@
   function renderYearChart(incidents) {
     var counts = {};
     incidents.forEach(function(inc) {
-      var dt = new Date(inc.date || inc.dateTime || inc.createdAt || '');
+      var dt = new Date(inc.incident_date || inc.date || inc.created_at || '');
       if (!isNaN(dt.getTime())) {
         var yr = String(dt.getFullYear());
         counts[yr] = (counts[yr] || 0) + 1;
@@ -725,7 +728,7 @@
     var tbody  = document.getElementById('recentIncidentsBody');
     var empty  = document.getElementById('recentEmptyState');
     var sorted = incidents.slice().sort(function(a, b) {
-      return new Date(b.date || b.createdAt || 0) - new Date(a.date || a.createdAt || 0);
+      return new Date(b.incident_date || b.created_at || 0) - new Date(a.incident_date || a.created_at || 0);
     });
     var recent = sorted.slice(0, 5);
 
@@ -738,14 +741,14 @@
 
     var rows = recent.map(function(inc) {
       return '<tr>' +
-        '<td><code class="text-primary fw-600">' + esc(inc.id) + '</code></td>' +
+        '<td><code class="text-primary fw-600">' + esc(inc.incident_code || inc.id) + '</code></td>' +
         '<td>' +
-          '<span class="badge-type"><i class="fas fa-bolt me-1"></i>' + esc(inc.disasterType || inc.type || '—') + '</span>' +
+          '<span class="badge-type"><i class="fas fa-bolt me-1"></i>' + esc(inc.disaster_type || '—') + '</span>' +
         '</td>' +
         '<td class="fw-600">' + esc(inc.title || '—') + '</td>' +
-        '<td><i class="fas fa-map-marker-alt text-muted me-1"></i>' + esc(inc.location || inc.barangay || '—') + '</td>' +
-        '<td class="text-muted">' + formatDateShort(inc.date || inc.createdAt) + '</td>' +
-        '<td>' + severityBadge(inc.severity || inc.severityLevel) + '</td>' +
+        '<td><i class="fas fa-map-marker-alt text-muted me-1"></i>' + esc(inc.barangay || inc.location || '—') + '</td>' +
+        '<td class="text-muted">' + formatDateShort(inc.incident_date || inc.created_at) + '</td>' +
+        '<td>' + severityBadge(inc.severity) + '</td>' +
         '<td>' + statusBadge(inc.status) + '</td>' +
       '</tr>';
     });
@@ -763,37 +766,26 @@
   }
 
   // ── Boot ─────────────────────────────────────────────────
-  document.addEventListener('DOMContentLoaded', function () {
-    // 1. Seed mock data (safe — skips if already seeded)
-    if (typeof initMockData === 'function') initMockData();
+  document.addEventListener('DOMContentLoaded', async function () {
+    if (!Auth.requireAdmin()) return;
 
-    // 2. Auth guard — redirects if not admin
-    if (typeof Auth !== 'undefined') {
-      if (!Auth.requireAdmin()) return;
-    }
-
-    // 3. Init shared App behaviours (sidebar, navbar, logout, mobile guard, active nav)
     if (typeof App !== 'undefined') {
       App.initPage({ page: 'dashboard', adminPage: true, requireAdmin: true });
     }
 
-    // 4. Set date display
     setDashDate();
 
-    // 5. Load data
-    var data = loadData();
-
-    // 6. Summary cards
-    populateCards(data.users, data.incidents);
-
-    // 7. Charts
-    renderDisasterTypesChart(data.incidents);
-    renderMonthlyChart(data.incidents);
-    renderBarangayChart(data.incidents);
-    renderYearChart(data.incidents);
-
-    // 8. Recent incidents table
-    renderRecentTable(data.incidents);
+    try {
+      var data = await loadData();
+      populateCards(data.summary, data.incidents);
+      renderDisasterTypesChart(data.incidents);
+      renderMonthlyChart(data.incidents);
+      renderBarangayChart(data.incidents);
+      renderYearChart(data.incidents);
+      renderRecentTable(data.incidents);
+    } catch (err) {
+      console.error('Dashboard load error:', err.message);
+    }
   });
 
 })();

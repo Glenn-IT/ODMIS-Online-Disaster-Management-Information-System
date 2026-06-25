@@ -361,6 +361,7 @@
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/js/api.js"></script>
   <script src="assets/js/auth.js"></script>
 
   <script>
@@ -401,21 +402,13 @@
     function checkStrength(pw) {
       const bar   = document.getElementById('strengthBar');
       const label = document.getElementById('strengthLabel');
-
-      if (!pw) {
-        bar.style.width = '0';
-        bar.className   = 'strength-bar';
-        label.textContent = '';
-        return;
-      }
-
+      if (!pw) { bar.style.width = '0'; bar.className = 'strength-bar'; label.textContent = ''; return; }
       let score = 0;
       if (pw.length >= 6)  score++;
       if (pw.length >= 10) score++;
       if (/[A-Z]/.test(pw)) score++;
       if (/[0-9]/.test(pw)) score++;
       if (/[^A-Za-z0-9]/.test(pw)) score++;
-
       const levels = [
         { pct: '20%', cls: 'strength-weak',   txt: 'strength-label text-weak',   label: 'Weak' },
         { pct: '40%', cls: 'strength-weak',   txt: 'strength-label text-weak',   label: 'Weak' },
@@ -423,26 +416,17 @@
         { pct: '80%', cls: 'strength-good',   txt: 'strength-label text-good',   label: 'Good' },
         { pct: '100%',cls: 'strength-strong', txt: 'strength-label text-strong', label: 'Strong' }
       ];
-
       const lvl = levels[Math.min(score, 4)];
-      bar.style.width = lvl.pct;
-      bar.className   = 'strength-bar ' + lvl.cls;
-      label.className = lvl.txt;
-      label.textContent = 'Strength: ' + lvl.label;
+      bar.style.width = lvl.pct; bar.className = 'strength-bar ' + lvl.cls;
+      label.className = lvl.txt; label.textContent = 'Strength: ' + lvl.label;
     }
 
     // ── Field error helpers ──────────────────────────────────────
     function setError(inputId, errId, message) {
       const input = document.getElementById(inputId);
       const err   = document.getElementById(errId);
-      input.classList.add('is-invalid');
-      if (err) { err.textContent = message; err.style.display = 'block'; }
-    }
-    function clearError(inputId, errId) {
-      const input = document.getElementById(inputId);
-      const err   = document.getElementById(errId);
-      input.classList.remove('is-invalid');
-      if (err) { err.style.display = 'none'; }
+      if (input) input.classList.add('is-invalid');
+      if (err)   { err.textContent = message; err.style.display = 'block'; }
     }
     function clearAllErrors() {
       ['regFullName','regUsername','regEmail','regContact','regDob','regAddress',
@@ -450,126 +434,79 @@
         const el = document.getElementById(id);
         if (el) el.classList.remove('is-invalid');
       });
-      document.querySelectorAll('.invalid-feedback').forEach(function (el) {
-        el.style.display = 'none';
-      });
+      document.querySelectorAll('.invalid-feedback').forEach(function (el) { el.style.display = 'none'; });
     }
 
     // ── Validate ──────────────────────────────────────────────────
     function validate() {
       clearAllErrors();
-      let valid = true;
+      let valid    = true;
+      const fullName  = document.getElementById('regFullName').value.trim();
+      const username  = document.getElementById('regUsername').value.trim();
+      const email     = document.getElementById('regEmail').value.trim();
+      const contact   = document.getElementById('regContact').value.trim();
+      const dob       = document.getElementById('regDob').value;
+      const address   = document.getElementById('regAddress').value.trim();
+      const password  = document.getElementById('regPassword').value;
+      const confirmPw = document.getElementById('regConfirmPassword').value;
+      const secQ      = document.getElementById('regSecQuestion').value;
+      const secA      = document.getElementById('regSecAnswer').value.trim();
 
-      const fullName   = document.getElementById('regFullName').value.trim();
-      const username   = document.getElementById('regUsername').value.trim();
-      const email      = document.getElementById('regEmail').value.trim();
-      const contact    = document.getElementById('regContact').value.trim();
-      const dob        = document.getElementById('regDob').value;
-      const address    = document.getElementById('regAddress').value.trim();
-      const password   = document.getElementById('regPassword').value;
-      const confirmPw  = document.getElementById('regConfirmPassword').value;
-      const secQ       = document.getElementById('regSecQuestion').value;
-      const secA       = document.getElementById('regSecAnswer').value.trim();
-
-      if (!fullName) { setError('regFullName', 'errFullName', 'Full name is required.'); valid = false; }
-      if (!username) {
-        setError('regUsername', 'errUsername', 'Username is required.'); valid = false;
-      } else if (username.length < 3) {
-        setError('regUsername', 'errUsername', 'Username must be at least 3 characters.'); valid = false;
-      }
-      if (!email) {
-        setError('regEmail', 'errEmail', 'Email address is required.'); valid = false;
-      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        setError('regEmail', 'errEmail', 'Please enter a valid email address.'); valid = false;
-      }
-      if (!contact) {
-        setError('regContact', 'errContact', 'Contact number is required.'); valid = false;
-      } else if (!/^09\d{9}$/.test(contact)) {
-        setError('regContact', 'errContact', 'Enter a valid PH mobile number (09XXXXXXXXX).'); valid = false;
-      }
-      if (!dob)     { setError('regDob', 'errDob', 'Date of birth is required.'); valid = false; }
-      if (!address) { setError('regAddress', 'errAddress', 'Address is required.'); valid = false; }
-      if (!password) {
-        setError('regPassword', 'errPassword', 'Password is required.'); valid = false;
-      } else if (password.length < 6) {
-        setError('regPassword', 'errPassword', 'Password must be at least 6 characters.'); valid = false;
-      }
-      if (!confirmPw) {
-        setError('regConfirmPassword', 'errConfirmPassword', 'Please confirm your password.'); valid = false;
-      } else if (password && confirmPw !== password) {
-        setError('regConfirmPassword', 'errConfirmPassword', 'Passwords do not match.'); valid = false;
-      }
-      if (!secQ) { setError('regSecQuestion', 'errSecQuestion', 'Please select a security question.'); valid = false; }
-      if (!secA) { setError('regSecAnswer',   'errSecAnswer',   'Security answer is required.'); valid = false; }
-
+      if (!fullName) { setError('regFullName','errFullName','Full name is required.'); valid = false; }
+      if (!username) { setError('regUsername','errUsername','Username is required.'); valid = false; }
+      else if (username.length < 3) { setError('regUsername','errUsername','Username must be at least 3 characters.'); valid = false; }
+      if (!email) { setError('regEmail','errEmail','Email address is required.'); valid = false; }
+      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setError('regEmail','errEmail','Please enter a valid email address.'); valid = false; }
+      if (!contact) { setError('regContact','errContact','Contact number is required.'); valid = false; }
+      else if (!/^09\d{9}$/.test(contact)) { setError('regContact','errContact','Enter a valid PH mobile number (09XXXXXXXXX).'); valid = false; }
+      if (!dob) { setError('regDob','errDob','Date of birth is required.'); valid = false; }
+      if (!address) { setError('regAddress','errAddress','Address is required.'); valid = false; }
+      if (!password) { setError('regPassword','errPassword','Password is required.'); valid = false; }
+      else if (password.length < 6) { setError('regPassword','errPassword','Password must be at least 6 characters.'); valid = false; }
+      if (!confirmPw) { setError('regConfirmPassword','errConfirmPassword','Please confirm your password.'); valid = false; }
+      else if (password && confirmPw !== password) { setError('regConfirmPassword','errConfirmPassword','Passwords do not match.'); valid = false; }
+      if (!secQ) { setError('regSecQuestion','errSecQuestion','Please select a security question.'); valid = false; }
+      if (!secA) { setError('regSecAnswer','errSecAnswer','Security answer is required.'); valid = false; }
       return valid;
     }
 
-    // ── Check username uniqueness ─────────────────────────────────
-    function isUsernameTaken(username) {
-      try {
-        const users = JSON.parse(localStorage.getItem('odmis_users') || '[]');
-        return users.some(function (u) {
-          return u.username.toLowerCase() === username.trim().toLowerCase();
-        });
-      } catch (e) { return false; }
-    }
-    function isEmailTaken(email) {
-      try {
-        const users = JSON.parse(localStorage.getItem('odmis_users') || '[]');
-        return users.some(function (u) {
-          return u.email.toLowerCase() === email.trim().toLowerCase();
-        });
-      } catch (e) { return false; }
-    }
-
     // ── Submit handler ────────────────────────────────────────────
-    document.getElementById('registerForm').addEventListener('submit', function (e) {
+    document.getElementById('registerForm').addEventListener('submit', async function (e) {
       e.preventDefault();
-
       if (!validate()) return;
-
-      const username = document.getElementById('regUsername').value.trim();
-      const email    = document.getElementById('regEmail').value.trim();
-
-      if (isUsernameTaken(username)) {
-        setError('regUsername', 'errUsername', 'Username is already taken. Please choose another.');
-        return;
-      }
-      if (isEmailTaken(email)) {
-        setError('regEmail', 'errEmail', 'An account with this email already exists.');
-        return;
-      }
 
       const btn = document.getElementById('regSubmit');
       btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creating account…';
       btn.disabled  = true;
 
-      setTimeout(function () {
-        const result = Auth.register({
-          fullName        : document.getElementById('regFullName').value.trim(),
-          username        : username,
-          email           : email,
-          password        : document.getElementById('regPassword').value,
-          contactNumber   : document.getElementById('regContact').value.trim(),
-          dateOfBirth     : document.getElementById('regDob').value,
-          address         : document.getElementById('regAddress').value.trim(),
-          securityQuestion: document.getElementById('regSecQuestion').value,
-          securityAnswer  : document.getElementById('regSecAnswer').value.trim()
+      try {
+        await ApiClient.post('/auth/register.php', {
+          full_name        : document.getElementById('regFullName').value.trim(),
+          username         : document.getElementById('regUsername').value.trim(),
+          email            : document.getElementById('regEmail').value.trim(),
+          password         : document.getElementById('regPassword').value,
+          contact_number   : document.getElementById('regContact').value.trim(),
+          date_of_birth    : document.getElementById('regDob').value,
+          address          : document.getElementById('regAddress').value.trim(),
+          security_question: document.getElementById('regSecQuestion').value,
+          security_answer  : document.getElementById('regSecAnswer').value.trim()
         });
 
+        showToast('Account created successfully! Redirecting to login…', 'success');
+        setTimeout(function () { window.location.href = 'login.html'; }, 2000);
+      } catch (err) {
+        // Surface server-side field errors if present
+        if (err.errors) {
+          Object.entries(err.errors).forEach(function([field, msg]) {
+            const map = { username: 'errUsername', email: 'errEmail' };
+            if (map[field]) setError('reg' + field.charAt(0).toUpperCase() + field.slice(1), map[field], msg);
+          });
+        }
+        showToast(err.message || 'Registration failed.', 'error');
+      } finally {
         btn.innerHTML = '<i class="fas fa-user-plus me-2"></i>Create Account';
         btn.disabled  = false;
-
-        if (result.success) {
-          showToast('Account created successfully! Redirecting to login…', 'success');
-          setTimeout(function () {
-            window.location.href = 'login.html';
-          }, 2000);
-        } else {
-          showToast(result.message, 'error');
-        }
-      }, 500);
+      }
     });
   </script>
 </body>

@@ -268,12 +268,12 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/js/api.js"></script>
 <script src="../assets/js/auth.js"></script>
 <script src="../assets/js/app.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-  initMockData();
-  Auth.requireUser();
+document.addEventListener('DOMContentLoaded', async function () {
+  if (!Auth.requireUser()) return;
 
   let session = Auth.getSession();
   if (!session) return;
@@ -286,54 +286,66 @@ document.addEventListener('DOMContentLoaded', function () {
     new bootstrap.Toast(el, { delay: 3500 }).show();
   }
 
-  // ── Load user from localStorage ────────────────────────────
-  function getUser() {
-    const users = JSON.parse(localStorage.getItem('odmis_users') || '[]');
-    return users.find(u => u.id === session.id) || null;
-  }
-
   // ── Populate UI ────────────────────────────────────────────
+  let _profileData = {};
+
   function populateUI(user) {
     if (!user) return;
-    const initial = (user.fullName || user.username || 'U')[0].toUpperCase();
+    const initial = (user.full_name || user.fullName || user.username || 'U')[0].toUpperCase();
 
-    // Sidebar / Navbar
-    document.getElementById('sidebarAvatar').textContent = initial;
-    document.getElementById('sidebarName').textContent = user.fullName || user.username;
-    document.getElementById('navAvatar').textContent = initial;
-    document.getElementById('navUsername').textContent = user.username;
+    const els = {
+      sidebarAvatar:    initial,
+      sidebarName:      user.full_name || user.fullName || user.username,
+      navAvatar:        initial,
+      navUsername:      user.username,
+      profileAvatarLg:  initial,
+      profileFullName:  user.full_name || user.fullName || '—',
+      profileUsername:  '@' + user.username,
+    };
+    Object.entries(els).forEach(([id, val]) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = val;
+    });
 
-    // Profile card
-    document.getElementById('profileAvatarLg').textContent = initial;
-    document.getElementById('profileFullName').textContent = user.fullName || '—';
-    document.getElementById('profileUsername').textContent = '@' + user.username;
-    document.getElementById('profileMemberSince').textContent = user.createdAt
-      ? new Date(user.createdAt).toLocaleDateString('en-PH', { year: 'numeric', month: 'long' })
+    const since = user.created_at || user.createdAt;
+    const sinceEl = document.getElementById('profileMemberSince');
+    if (sinceEl) sinceEl.textContent = since
+      ? new Date(since).toLocaleDateString('en-PH', { year: 'numeric', month: 'long' })
       : '—';
 
-    // Info fields
-    document.getElementById('infoFullName').textContent = user.fullName || '—';
+    document.getElementById('infoFullName').textContent = user.full_name || user.fullName || '—';
     document.getElementById('infoUsername').textContent = user.username || '—';
     document.getElementById('infoEmail').textContent    = user.email    || '—';
-    document.getElementById('infoContact').textContent  = user.contactNumber || '—';
-    document.getElementById('infoDob').textContent      = user.dateOfBirth
-      ? new Date(user.dateOfBirth + 'T00:00:00').toLocaleDateString('en-PH', { year:'numeric', month:'long', day:'numeric' })
+    document.getElementById('infoContact').textContent  = user.contact_number || user.contactNumber || '—';
+    document.getElementById('infoDob').textContent      = (user.date_of_birth || user.dateOfBirth)
+      ? new Date((user.date_of_birth || user.dateOfBirth) + 'T00:00:00').toLocaleDateString('en-PH', { year:'numeric', month:'long', day:'numeric' })
       : '—';
     document.getElementById('infoAddress').textContent  = user.address  || '—';
   }
 
-  function populateStats() {
-    const reports = JSON.parse(localStorage.getItem('odmis_user_reports') || '[]');
-    const alerts  = JSON.parse(localStorage.getItem('odmis_alerts') || '[]');
-    document.getElementById('statReports').textContent = reports.filter(r => r.userId === session.id).length;
-    document.getElementById('statAlerts').textContent  = alerts.filter(a => a.status !== 'Resolved').length;
-    document.getElementById('notifBadge').textContent  = alerts.filter(a => a.status !== 'Resolved').length;
+  // ── Load profile from API ──────────────────────────────────
+  async function loadProfile() {
+    try {
+      const [profileRes, reportRes, alertRes] = await Promise.all([
+        ApiClient.get('/profile/index.php'),
+        ApiClient.get('/user-reports/index.php'),
+        ApiClient.get('/alerts/index.php')
+      ]);
+      _profileData = profileRes.data || {};
+      populateUI(_profileData);
+
+      const myReports  = Array.isArray(reportRes.data) ? reportRes.data : [];
+      const activeAlerts = (Array.isArray(alertRes.data) ? alertRes.data : []).filter(a => a.status !== 'Resolved');
+      document.getElementById('statReports').textContent = myReports.length;
+      document.getElementById('statAlerts').textContent  = activeAlerts.length;
+      document.getElementById('notifBadge').textContent  = activeAlerts.length;
+    } catch (err) {
+      console.error('Profile load error:', err.message);
+      populateUI(session);
+    }
   }
 
-  // Init
-  const user = getUser();
-  populateUI(user || session);
-  populateStats();
+  await loadProfile();
 
   // Sidebar/navbar toggle/logout
   document.getElementById('sidebarToggle').addEventListener('click', () => document.body.classList.toggle('sidebar-collapsed'));
@@ -358,66 +370,54 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // ── Edit Profile Modal: pre-fill ──────────────────────────
   document.getElementById('editProfileModal').addEventListener('show.bs.modal', function () {
-    const u = getUser() || session;
-    document.getElementById('editUsername').value = u.username || '';
-    document.getElementById('editFullName').value = u.fullName || '';
+    const u = _profileData;
+    document.getElementById('editUsername').value = u.username || session.username || '';
+    document.getElementById('editFullName').value = u.full_name || u.fullName || '';
     document.getElementById('editEmail').value    = u.email    || '';
-    document.getElementById('editContact').value  = u.contactNumber || '';
-    document.getElementById('editDob').value      = u.dateOfBirth   || '';
+    document.getElementById('editContact').value  = u.contact_number || u.contactNumber || '';
+    document.getElementById('editDob').value      = u.date_of_birth  || u.dateOfBirth   || '';
     document.getElementById('editAddress').value  = u.address  || '';
     document.getElementById('editProfileForm').classList.remove('was-validated');
   });
 
   // ── Save Profile ───────────────────────────────────────────
-  document.getElementById('saveProfileBtn').addEventListener('click', function () {
+  document.getElementById('saveProfileBtn').addEventListener('click', async function () {
     const form = document.getElementById('editProfileForm');
     form.classList.add('was-validated');
     if (!form.checkValidity()) return;
 
     const updates = {
-      fullName      : document.getElementById('editFullName').value.trim(),
-      email         : document.getElementById('editEmail').value.trim(),
-      contactNumber : document.getElementById('editContact').value.trim(),
-      dateOfBirth   : document.getElementById('editDob').value,
-      address       : document.getElementById('editAddress').value.trim()
+      full_name      : document.getElementById('editFullName').value.trim(),
+      email          : document.getElementById('editEmail').value.trim(),
+      contact_number : document.getElementById('editContact').value.trim(),
+      date_of_birth  : document.getElementById('editDob').value,
+      address        : document.getElementById('editAddress').value.trim()
     };
 
-    const result = Auth.updateProfile(session.username, updates);
-    if (result.success) {
-      session = Auth.getSession(); // refresh
-      const updatedUser = getUser();
-      populateUI(updatedUser || session);
+    this.disabled = true;
+    try {
+      const res = await ApiClient.put('/profile/update.php', updates);
+      _profileData = { ..._profileData, ...updates };
+      populateUI(_profileData);
       bootstrap.Modal.getInstance(document.getElementById('editProfileModal')).hide();
       showToast('Profile updated successfully!', 'success');
-    } else {
-      showToast(result.message || 'Failed to update profile.', 'danger');
+    } catch (err) {
+      showToast(err.message || 'Failed to update profile.', 'danger');
+    } finally {
+      this.disabled = false;
     }
   });
 
   // ── Change Password ────────────────────────────────────────
-  document.getElementById('changePasswordForm').addEventListener('submit', function (e) {
+  document.getElementById('changePasswordForm').addEventListener('submit', async function (e) {
     e.preventDefault();
     this.classList.add('was-validated');
 
-    const currentPwd = document.getElementById('currentPassword').value;
-    const newPwd     = document.getElementById('newPassword').value;
-    const confirmPwd = document.getElementById('confirmPassword').value;
-
-    // Validate current password
-    const users = JSON.parse(localStorage.getItem('odmis_users') || '[]');
-    const userRecord = users.find(u => u.id === session.id);
+    const currentPwd    = document.getElementById('currentPassword').value;
+    const newPwd        = document.getElementById('newPassword').value;
+    const confirmPwd    = document.getElementById('confirmPassword').value;
     const currentPwdInput = document.getElementById('currentPassword');
     const confirmPwdInput = document.getElementById('confirmPassword');
-
-    if (!userRecord || userRecord.password !== currentPwd) {
-      currentPwdInput.setCustomValidity('incorrect');
-      currentPwdInput.classList.add('is-invalid');
-      document.getElementById('currentPwdError').textContent = 'Current password is incorrect.';
-      return;
-    } else {
-      currentPwdInput.setCustomValidity('');
-      currentPwdInput.classList.remove('is-invalid');
-    }
 
     if (newPwd !== confirmPwd) {
       confirmPwdInput.setCustomValidity('mismatch');
@@ -428,16 +428,21 @@ document.addEventListener('DOMContentLoaded', function () {
       confirmPwdInput.setCustomValidity('');
       confirmPwdInput.classList.remove('is-invalid');
     }
-
     if (newPwd.length < 6) return;
 
-    const result = Auth.updatePassword(session.username, newPwd);
-    if (result.success) {
+    const btn = this.querySelector('[type="submit"]');
+    if (btn) btn.disabled = true;
+    try {
+      await ApiClient.put('/profile/change-password.php', { current_password: currentPwd, new_password: newPwd });
       showToast('Password changed successfully!', 'success');
       this.reset();
       this.classList.remove('was-validated');
-    } else {
-      showToast(result.message || 'Failed to change password.', 'danger');
+    } catch (err) {
+      currentPwdInput.setCustomValidity('incorrect');
+      currentPwdInput.classList.add('is-invalid');
+      document.getElementById('currentPwdError').textContent = err.message || 'Current password is incorrect.';
+    } finally {
+      if (btn) btn.disabled = false;
     }
   });
 

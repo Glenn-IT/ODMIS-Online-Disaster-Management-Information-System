@@ -223,21 +223,26 @@
 
 <!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/js/api.js"></script>
 <script src="../assets/js/auth.js"></script>
 <script src="../assets/js/app.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-  initMockData();
-  Auth.requireUser();
+document.addEventListener('DOMContentLoaded', async function () {
+  if (!Auth.requireUser()) return;
 
   const session = Auth.getSession();
   if (session) {
     const initial = (session.fullName || session.username || 'U')[0].toUpperCase();
-    document.getElementById('sidebarAvatar').textContent = initial;
-    document.getElementById('sidebarName').textContent = session.fullName || session.username;
-    document.getElementById('navAvatar').textContent = initial;
-    document.getElementById('navUsername').textContent = session.username;
-    document.getElementById('welcomeName').textContent = session.fullName || session.username;
+    const sa = document.getElementById('sidebarAvatar');
+    const sn = document.getElementById('sidebarName');
+    const na = document.getElementById('navAvatar');
+    const nu = document.getElementById('navUsername');
+    const wn = document.getElementById('welcomeName');
+    if (sa) sa.textContent = initial;
+    if (sn) sn.textContent = session.fullName || session.username;
+    if (na) na.textContent = initial;
+    if (nu) nu.textContent = session.username;
+    if (wn) wn.textContent = session.fullName || session.username;
   }
 
   document.getElementById('sidebarToggle').addEventListener('click', () => {
@@ -249,16 +254,23 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   // ── Load data ──────────────────────────────────────────────
-  const userReports    = JSON.parse(localStorage.getItem('odmis_user_reports')  || '[]');
-  const alerts         = JSON.parse(localStorage.getItem('odmis_alerts')         || '[]');
-  const evacuationCtrs = JSON.parse(localStorage.getItem('odmis_evacuation_centers') || '[]');
-  const announcements  = JSON.parse(localStorage.getItem('odmis_announcements') || '[]');
+  let alerts = [], announcements = [], evacuationCtrs = [], summary = {};
+  try {
+    const [aRes, annRes, evacRes, sumRes] = await Promise.all([
+      ApiClient.get('/alerts/index.php'),
+      ApiClient.get('/announcements/index.php'),
+      ApiClient.get('/evacuation/index.php'),
+      ApiClient.get('/analytics/summary.php')
+    ]);
+    alerts        = Array.isArray(aRes.data)    ? aRes.data    : [];
+    announcements = Array.isArray(annRes.data)  ? annRes.data  : [];
+    evacuationCtrs= Array.isArray(evacRes.data) ? evacRes.data : [];
+    summary       = sumRes.data || {};
+  } catch (err) { console.error('Dashboard load error:', err.message); }
 
   // ── Stat Cards ─────────────────────────────────────────────
-  const myReports = session ? userReports.filter(r => r.userId === session.id) : [];
-  const activeAlerts = alerts.filter(a => a.severity && a.severity !== 'Safe' && a.status !== 'Resolved');
-
-  document.getElementById('statMyReports').textContent   = myReports.length;
+  const activeAlerts = alerts.filter(a => (a.severity || '').toLowerCase() !== 'safe' && a.status !== 'Resolved');
+  document.getElementById('statMyReports').textContent    = summary.my_reports   || 0;
   document.getElementById('statActiveAlerts').textContent = activeAlerts.length;
   document.getElementById('statEvacCenters').textContent  = evacuationCtrs.length;
   document.getElementById('notifBadge').textContent       = activeAlerts.length;
@@ -271,30 +283,26 @@ document.addEventListener('DOMContentLoaded', function () {
     if (s === 'moderate' || s === 'warning') return 'alert-border-moderate';
     return 'alert-border-safe';
   }
-
   function severityBadgeClass(sev) {
     const s = (sev || '').toLowerCase();
     if (s === 'critical') return 'bg-danger';
-    if (s === 'high')     return 'bg-warning text-dark';
-    if (s === 'moderate') return 'bg-warning text-dark';
-    if (s === 'low')      return 'bg-secondary';
+    if (s === 'high' || s === 'moderate') return 'bg-warning text-dark';
+    if (s === 'low') return 'bg-secondary';
     return 'bg-success';
   }
-
   function alertTypeIcon(type) {
     const t = (type || '').toLowerCase();
-    if (t === 'typhoon')   return 'fa-wind';
-    if (t === 'flood')     return 'fa-water';
+    if (t === 'typhoon')    return 'fa-wind';
+    if (t === 'flood')      return 'fa-water';
     if (t === 'earthquake') return 'fa-mountain';
-    if (t === 'fire')      return 'fa-fire';
-    if (t === 'landslide') return 'fa-mountain';
+    if (t === 'fire')       return 'fa-fire';
+    if (t === 'landslide')  return 'fa-mountain';
     return 'fa-exclamation-triangle';
   }
 
   // ── Alerts section ─────────────────────────────────────────
   const alertsEl = document.getElementById('alertsList');
   const displayAlerts = alerts.filter(a => a.status !== 'Resolved').slice(0, 4);
-
   if (displayAlerts.length === 0) {
     alertsEl.innerHTML = '<div class="text-center text-success py-3"><i class="fas fa-check-circle me-2"></i>No active alerts at this time.</div>';
   } else {
@@ -302,15 +310,15 @@ document.addEventListener('DOMContentLoaded', function () {
       <div class="alert-border-card ${severityBorderClass(a.severity)}">
         <div class="d-flex align-items-start justify-content-between gap-2">
           <div class="d-flex align-items-center gap-2 mb-1">
-            <i class="fas ${alertTypeIcon(a.type)} text-secondary"></i>
+            <i class="fas ${alertTypeIcon(a.disaster_type || a.type)} text-secondary"></i>
             <strong style="font-size:.9rem">${a.title || 'Alert'}</strong>
           </div>
           <span class="badge ${severityBadgeClass(a.severity)} flex-shrink-0">${a.severity || ''}</span>
         </div>
         <p class="mb-1 text-muted" style="font-size:.82rem">${(a.description || '').substring(0, 120)}${(a.description || '').length > 120 ? '...' : ''}</p>
         <div class="d-flex flex-wrap gap-3" style="font-size:.78rem;color:#666">
-          <span><i class="fas fa-map-marker-alt me-1"></i>${(a.affectedAreas || []).join(', ')}</span>
-          <span><i class="fas fa-clock me-1"></i>${a.dateIssued || ''} ${a.timeIssued || ''}</span>
+          <span><i class="fas fa-map-marker-alt me-1"></i>${a.affected_barangays || a.barangay || '—'}</span>
+          <span><i class="fas fa-clock me-1"></i>${a.date_issued || a.created_at || ''}</span>
         </div>
       </div>`).join('');
   }
@@ -323,10 +331,8 @@ document.addEventListener('DOMContentLoaded', function () {
     if (c.includes('training') || c.includes('event'))       return 'bg-success';
     return 'bg-info';
   }
-
   const annEl = document.getElementById('announcementsList');
-  const recentAnns = [...announcements].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 3);
-
+  const recentAnns = [...announcements].sort((a, b) => new Date(b.date_posted || b.created_at) - new Date(a.date_posted || a.created_at)).slice(0, 3);
   if (recentAnns.length === 0) {
     annEl.innerHTML = '<div class="text-center text-muted py-3">No announcements yet.</div>';
   } else {
@@ -336,7 +342,7 @@ document.addEventListener('DOMContentLoaded', function () {
           <div class="card-body">
             <div class="d-flex align-items-start justify-content-between mb-2 gap-2">
               <span class="badge ${annCategoryClass(a.category)}">${a.category || 'General'}</span>
-              <small class="text-muted">${a.date || ''}</small>
+              <small class="text-muted">${a.date_posted || a.created_at || ''}</small>
             </div>
             <h6 class="fw-bold mb-2" style="font-size:.875rem">${a.title || ''}</h6>
             <p class="announcement-excerpt mb-0">${(a.content || '').substring(0, 150)}${(a.content || '').length > 150 ? '...' : ''}</p>

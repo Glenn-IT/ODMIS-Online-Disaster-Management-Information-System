@@ -152,20 +152,24 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/js/api.js"></script>
 <script src="../assets/js/auth.js"></script>
 <script src="../assets/js/app.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-  initMockData();
-  Auth.requireUser();
+document.addEventListener('DOMContentLoaded', async function () {
+  if (!Auth.requireUser()) return;
 
   const session = Auth.getSession();
   if (session) {
     const initial = (session.fullName || session.username || 'U')[0].toUpperCase();
-    document.getElementById('sidebarAvatar').textContent = initial;
-    document.getElementById('sidebarName').textContent = session.fullName || session.username;
-    document.getElementById('navAvatar').textContent = initial;
-    document.getElementById('navUsername').textContent = session.username;
+    const sa = document.getElementById('sidebarAvatar');
+    const sn = document.getElementById('sidebarName');
+    const na = document.getElementById('navAvatar');
+    const nu = document.getElementById('navUsername');
+    if (sa) sa.textContent = initial;
+    if (sn) sn.textContent = session.fullName || session.username;
+    if (na) na.textContent = initial;
+    if (nu) nu.textContent = session.username;
   }
 
   document.getElementById('sidebarToggle').addEventListener('click', () => document.body.classList.toggle('sidebar-collapsed'));
@@ -174,7 +178,12 @@ document.addEventListener('DOMContentLoaded', function () {
     el.addEventListener('click', e => { e.preventDefault(); new bootstrap.Modal(document.getElementById('logoutModal')).show(); });
   });
 
-  const allAlerts = JSON.parse(localStorage.getItem('odmis_alerts') || '[]');
+  let allAlerts = [];
+  try {
+    const res = await ApiClient.get('/alerts/index.php');
+    allAlerts = Array.isArray(res.data) ? res.data : [];
+  } catch (err) { console.error('Alerts load error:', err.message); }
+
   const activeCount = allAlerts.filter(a => a.status !== 'Resolved').length;
   document.getElementById('notifBadge').textContent = activeCount;
 
@@ -190,26 +199,22 @@ document.addEventListener('DOMContentLoaded', function () {
     if (s === 'low')      return 'theme-low';
     return 'theme-safe';
   }
-
   function severityBadge(sev) {
     const s = (sev || '').toLowerCase();
     if (s === 'critical') return 'bg-danger';
-    if (s === 'high')     return 'bg-warning text-dark';
-    if (s === 'moderate') return 'bg-warning text-dark';
-    if (s === 'low')      return 'bg-secondary';
+    if (s === 'high' || s === 'moderate') return 'bg-warning text-dark';
+    if (s === 'low') return 'bg-secondary';
     return 'bg-success';
   }
-
   function alertTypeIcon(type) {
     const t = (type || '').toLowerCase();
-    if (t === 'typhoon')   return 'fa-wind';
-    if (t === 'flood')     return 'fa-water';
+    if (t === 'typhoon')    return 'fa-wind';
+    if (t === 'flood')      return 'fa-water';
     if (t === 'earthquake') return 'fa-mountain';
-    if (t === 'fire')      return 'fa-fire';
-    if (t === 'landslide') return 'fa-mountain';
+    if (t === 'fire')       return 'fa-fire';
+    if (t === 'landslide')  return 'fa-mountain';
     return 'fa-exclamation-triangle';
   }
-
   function statusBadge(status) {
     return status === 'Resolved'
       ? '<span class="badge bg-success">Resolved</span>'
@@ -219,11 +224,11 @@ document.addEventListener('DOMContentLoaded', function () {
   // ── Render ─────────────────────────────────────────────────
   function renderAlerts() {
     let filtered = allAlerts;
-    if (currentType !== 'all')     filtered = filtered.filter(a => a.type === currentType);
+    if (currentType !== 'all')     filtered = filtered.filter(a => (a.disaster_type || a.type) === currentType);
     if (currentSeverity !== 'all') filtered = filtered.filter(a => a.severity === currentSeverity);
 
-    document.getElementById('alertCount').textContent = filtered.length;
-    document.getElementById('criticalCount').textContent = filtered.filter(a => a.severity === 'Critical').length + ' Critical';
+    document.getElementById('alertCount').textContent     = filtered.length;
+    document.getElementById('criticalCount').textContent  = filtered.filter(a => a.severity === 'Critical').length + ' Critical';
 
     const grid = document.getElementById('alertsGrid');
     if (filtered.length === 0) {
@@ -231,13 +236,16 @@ document.addEventListener('DOMContentLoaded', function () {
       return;
     }
 
-    grid.innerHTML = filtered.map(a => `
+    grid.innerHTML = filtered.map(a => {
+      const aType = a.disaster_type || a.type || '';
+      const areas = a.affected_barangays || a.barangay || '—';
+      return `
       <div class="col-md-6">
         <div class="alert-card ${severityTheme(a.severity)}">
           <div class="alert-card-header">
             <div class="d-flex align-items-start justify-content-between gap-2">
               <div class="d-flex align-items-center gap-2">
-                <i class="fas ${alertTypeIcon(a.type)} fa-lg"></i>
+                <i class="fas ${alertTypeIcon(aType)} fa-lg"></i>
                 <strong style="font-size:.9rem;line-height:1.3">${a.title || 'Alert'}</strong>
               </div>
               <span class="badge ${severityBadge(a.severity)} flex-shrink-0">${a.severity}</span>
@@ -246,20 +254,21 @@ document.addEventListener('DOMContentLoaded', function () {
           <div class="alert-card-body">
             <div class="d-flex gap-2 mb-2 flex-wrap">
               ${statusBadge(a.status)}
-              <span class="badge bg-light text-dark">${a.type || ''}</span>
+              <span class="badge bg-light text-dark">${aType}</span>
             </div>
             <p class="mb-2" style="font-size:.875rem;color:#444">${a.description || ''}</p>
             <div style="font-size:.82rem">
               <div class="mb-1"><i class="fas fa-map-marker-alt text-muted me-1"></i><strong>Affected Areas:</strong>
-                ${(a.affectedAreas || []).map(area => `<span class="badge bg-light text-dark me-1">${area}</span>`).join('')}
+                <span class="badge bg-light text-dark me-1">${areas}</span>
               </div>
             </div>
           </div>
           <div class="alert-card-footer text-muted">
-            <i class="fas fa-clock me-1"></i>Issued: ${a.dateIssued || '—'} at ${a.timeIssued || '—'}
+            <i class="fas fa-clock me-1"></i>Issued: ${a.date_issued || a.created_at || '—'}
           </div>
         </div>
-      </div>`).join('');
+      </div>`;
+    }).join('');
   }
 
   // ── Filter events ──────────────────────────────────────────
@@ -272,7 +281,6 @@ document.addEventListener('DOMContentLoaded', function () {
       renderAlerts();
     });
   });
-
   document.getElementById('severityFilter').addEventListener('change', function () {
     currentSeverity = this.value;
     renderAlerts();

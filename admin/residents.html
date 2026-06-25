@@ -485,13 +485,13 @@
      SCRIPTS
 ══════════════════════════════════════════════════════════ -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/js/api.js"></script>
 <script src="../assets/js/auth.js"></script>
 <script src="../assets/js/app.js"></script>
 
 <script>
 /* ============================================================
    RESIDENTS — Page Logic
-   LocalStorage key: odmis_users  (role === 'user')
 ============================================================ */
 
 // ── State ──────────────────────────────────────────────────
@@ -515,15 +515,6 @@ function showToast(message, type = 'success') {
   bootstrap.Toast.getOrCreateInstance(el, { delay: 3000 }).show();
 }
 
-// ── LocalStorage helpers ──────────────────────────────────
-function getUsers() {
-  try { return JSON.parse(localStorage.getItem('odmis_users')) || []; }
-  catch(e) { return []; }
-}
-function setUsers(data) {
-  localStorage.setItem('odmis_users', JSON.stringify(data));
-}
-
 // ── HTML escaping ─────────────────────────────────────────
 function escHtml(s) {
   if (!s) return '';
@@ -539,8 +530,14 @@ function statusBadge(status) {
 }
 
 // ── Load & render ─────────────────────────────────────────
-function loadResidents() {
-  allResidents = getUsers().filter(u => (u.role || '').toLowerCase() === 'user');
+async function loadResidents() {
+  try {
+    const res = await ApiClient.get('/residents/index.php');
+    allResidents = Array.isArray(res.data) ? res.data : [];
+  } catch (err) {
+    showToast('Failed to load residents: ' + err.message, 'danger');
+    allResidents = [];
+  }
   filterResidents();
 }
 
@@ -550,11 +547,11 @@ function filterResidents() {
 
   filteredResidents = allResidents.filter(u => {
     const matchSearch = !search ||
-      (u.fullName      && u.fullName.toLowerCase().includes(search)) ||
-      (u.username      && u.username.toLowerCase().includes(search)) ||
-      (u.email         && u.email.toLowerCase().includes(search)) ||
-      (u.contactNumber && u.contactNumber.includes(search)) ||
-      (u.address       && u.address.toLowerCase().includes(search));
+      (u.full_name      && u.full_name.toLowerCase().includes(search)) ||
+      (u.username       && u.username.toLowerCase().includes(search)) ||
+      (u.email          && u.email.toLowerCase().includes(search)) ||
+      (u.contact_number && u.contact_number.includes(search)) ||
+      (u.address        && u.address.toLowerCase().includes(search));
     const matchStatus = !statusVal || (u.status || 'Active') === statusVal;
     return matchSearch && matchStatus;
   });
@@ -587,7 +584,7 @@ function renderTable() {
   pagBar.style.display = 'flex';
 
   tbody.innerHTML = slice.map((u, idx) => {
-    const initLetter = u.fullName ? u.fullName[0].toUpperCase() : (u.username ? u.username[0].toUpperCase() : 'U');
+    const initLetter = u.full_name ? u.full_name[0].toUpperCase() : (u.username ? u.username[0].toUpperCase() : 'U');
     const userStatus = u.status || 'Active';
     const isActive   = userStatus.toLowerCase() === 'active';
 
@@ -597,13 +594,13 @@ function renderTable() {
         <td>
           <div class="d-flex align-items-center gap-2">
             <div class="user-avatar-chip">${escHtml(initLetter)}</div>
-            <span class="fw-semibold">${escHtml(u.fullName || '—')}</span>
+            <span class="fw-semibold">${escHtml(u.full_name || '—')}</span>
           </div>
         </td>
         <td><span class="font-monospace text-primary fw-semibold">@${escHtml(u.username)}</span></td>
         <td>${escHtml(u.email || '—')}</td>
-        <td>${escHtml(u.contactNumber || '—')}</td>
-        <td>${escHtml(u.dateOfBirth || u.dob || '—')}</td>
+        <td>${escHtml(u.contact_number || '—')}</td>
+        <td>${escHtml(u.date_of_birth || '—')}</td>
         <td>
           <div style="max-width:200px; white-space:normal; line-height:1.3; font-size:var(--font-size-xs);">
             ${escHtml(u.address || '—')}
@@ -611,12 +608,12 @@ function renderTable() {
         </td>
         <td>${statusBadge(userStatus)}</td>
         <td class="text-center" style="white-space:nowrap;">
-          <button class="btn-action btn-view me-1" title="View Details" onclick="viewResident('${u.id || u.username}')">
+          <button class="btn-action btn-view me-1" title="View Details" onclick="viewResident(${u.id})">
             <i class="fas fa-eye"></i>
           </button>
           <button class="btn-action ${isActive ? 'btn-deactivate' : 'btn-activate'}"
                   title="${isActive ? 'Deactivate' : 'Activate'}"
-                  onclick="promptToggleStatus('${u.id || u.username}')">
+                  onclick="promptToggleStatus(${u.id})">
             <i class="fas ${isActive ? 'fa-user-slash' : 'fa-user-check'}"></i>
           </button>
         </td>
@@ -649,22 +646,22 @@ function goPage(p) { currentPage = p; renderTable(); }
 
 // ── View resident ─────────────────────────────────────────
 function viewResident(id) {
-  const u = findUser(id);
+  const u = allResidents.find(r => r.id === id);
   if (!u) return;
   viewTargetId = id;
 
-  const initLetter = u.fullName ? u.fullName[0].toUpperCase() : (u.username ? u.username[0].toUpperCase() : 'U');
+  const initLetter = u.full_name ? u.full_name[0].toUpperCase() : (u.username ? u.username[0].toUpperCase() : 'U');
   const userStatus = u.status || 'Active';
   const isActive   = userStatus.toLowerCase() === 'active';
 
   document.getElementById('vUserAvatar').textContent   = initLetter;
-  document.getElementById('vFullName').textContent     = u.fullName || '—';
-  document.getElementById('vUsername').textContent     = u.username || '—';
-  document.getElementById('vEmail').textContent        = u.email || '—';
-  document.getElementById('vContact').textContent      = u.contactNumber || '—';
-  document.getElementById('vDob').textContent          = u.dateOfBirth || u.dob || '—';
-  document.getElementById('vAddress').textContent      = u.address || '—';
-  document.getElementById('vCreatedAt').textContent    = u.createdAt || '—';
+  document.getElementById('vFullName').textContent     = u.full_name     || '—';
+  document.getElementById('vUsername').textContent     = u.username      || '—';
+  document.getElementById('vEmail').textContent        = u.email         || '—';
+  document.getElementById('vContact').textContent      = u.contact_number || '—';
+  document.getElementById('vDob').textContent          = u.date_of_birth || '—';
+  document.getElementById('vAddress').textContent      = u.address       || '—';
+  document.getElementById('vCreatedAt').textContent    = u.created_at    || '—';
   document.getElementById('vRole').textContent         = u.role ? (u.role.charAt(0).toUpperCase() + u.role.slice(1)) : 'User';
   document.getElementById('vStatusText').textContent   = userStatus;
 
@@ -672,7 +669,6 @@ function viewResident(id) {
   badge.className  = `badge fs-6 ${isActive ? 'bg-success' : 'bg-danger'}`;
   badge.textContent = userStatus;
 
-  // toggle button in modal
   const toggleBtn = document.getElementById('btnViewToggle');
   if (isActive) {
     toggleBtn.className = 'btn btn-warning text-dark';
@@ -687,7 +683,7 @@ function viewResident(id) {
 
 // ── Toggle status ─────────────────────────────────────────
 function promptToggleStatus(id) {
-  const u = findUser(id);
+  const u = allResidents.find(r => r.id === id);
   if (!u) return;
   toggleTargetId   = id;
   const userStatus = u.status || 'Active';
@@ -702,7 +698,7 @@ function promptToggleStatus(id) {
     `fas fa-user-${isActive ? 'slash' : 'check'} fa-2x mb-3 ${isActive ? 'text-warning' : 'text-success'}`;
   document.getElementById('toggleModalMessage').textContent =
     `Are you sure you want to ${action.toLowerCase()} this resident?`;
-  document.getElementById('toggleTargetName').textContent = u.fullName || u.username;
+  document.getElementById('toggleTargetName').textContent = u.full_name || u.username;
 
   const confirmBtn = document.getElementById('confirmToggleBtn');
   confirmBtn.className = `btn btn-sm ${isActive ? 'btn-warning text-dark' : 'btn-success'}`;
@@ -711,41 +707,38 @@ function promptToggleStatus(id) {
   toggleModalInst.show();
 }
 
-function toggleStatus() {
+async function toggleStatus() {
   if (!toggleTargetId) return;
-  let users = getUsers();
-  const idx = users.findIndex(u => (u.id || u.username) === toggleTargetId);
-  if (idx === -1) return;
-
-  const currentStatus  = users[idx].status || 'Active';
-  const newStatus      = currentStatus.toLowerCase() === 'active' ? 'Inactive' : 'Active';
-  users[idx].status    = newStatus;
-  setUsers(users);
-  toggleTargetId = null;
-  toggleModalInst.hide();
-  showToast(`Resident ${newStatus.toLowerCase() === 'active' ? 'activated' : 'deactivated'} successfully.`,
-             newStatus === 'Active' ? 'success' : 'warning');
-  loadResidents();
-}
-
-// ── Utility: find user by id or username ─────────────────
-function findUser(id) {
-  return getUsers().find(u => u.id === id || u.username === id);
+  const btn = document.getElementById('confirmToggleBtn');
+  btn.disabled = true;
+  try {
+    await ApiClient.patch('/residents/toggle-status.php?id=' + toggleTargetId);
+    toggleTargetId = null;
+    toggleModalInst.hide();
+    showToast('Resident status updated successfully.', 'success');
+    await loadResidents();
+  } catch (err) {
+    showToast(err.message || 'Status update failed.', 'danger');
+  } finally {
+    btn.disabled = false;
+  }
 }
 
 // ── DOMContentLoaded ──────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-  if (typeof initMockData === 'function') initMockData();
-  if (typeof Auth !== 'undefined') {
-    Auth.requireAdmin();
-    const session = Auth.getSession();
-    if (session) {
-      const initLetter = session.fullName ? session.fullName[0].toUpperCase() : 'A';
-      document.getElementById('sidebarUserAvatar').textContent = initLetter;
-      document.getElementById('sidebarUserName').textContent   = session.fullName || session.username;
-      document.getElementById('navbarAvatar').textContent      = initLetter;
-      document.getElementById('navbarUsername').textContent    = session.username;
-    }
+document.addEventListener('DOMContentLoaded', async () => {
+  if (!Auth.requireAdmin()) return;
+
+  const session = Auth.getSession();
+  if (session) {
+    const initLetter = session.fullName ? session.fullName[0].toUpperCase() : 'A';
+    const sa = document.getElementById('sidebarUserAvatar');
+    const sn = document.getElementById('sidebarUserName');
+    const na = document.getElementById('navbarAvatar');
+    const nu = document.getElementById('navbarUsername');
+    if (sa) sa.textContent = initLetter;
+    if (sn) sn.textContent = session.fullName || session.username;
+    if (na) na.textContent = initLetter;
+    if (nu) nu.textContent = session.username;
   }
 
   // Modal instances
@@ -809,7 +802,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Initial load
-  loadResidents();
+  await loadResidents();
 });
 </script>
 </body>

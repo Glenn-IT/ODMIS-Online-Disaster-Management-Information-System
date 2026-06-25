@@ -454,6 +454,7 @@
 ═══════════════════════════════════════════════════ -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="../assets/js/api.js"></script>
 <script src="../assets/js/auth.js"></script>
 <script src="../assets/js/app.js"></script>
 
@@ -486,16 +487,19 @@ const TABLE_HEADERS = {
    DOM READY / INIT
 ──────────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', function () {
-  initMockData();
-  Auth.requireAdmin();
+  if (!Auth.requireAdmin()) return;
 
   const session = Auth.getSession();
   if (session) {
     const initial = (session.fullName || session.username || 'A')[0].toUpperCase();
-    document.getElementById('sidebarUserAvatar').textContent = initial;
-    document.getElementById('sidebarUserName').textContent = session.fullName || session.username;
-    document.getElementById('navbarAvatar').textContent = initial;
-    document.getElementById('navbarUsername').textContent = session.username;
+    const sa = document.getElementById('sidebarUserAvatar');
+    const sn = document.getElementById('sidebarUserName');
+    const na = document.getElementById('navbarAvatar');
+    const nu = document.getElementById('navbarUsername');
+    if (sa) sa.textContent = initial;
+    if (sn) sn.textContent = session.fullName || session.username;
+    if (na) na.textContent = initial;
+    if (nu) nu.textContent = session.username;
   }
 
   document.getElementById('sidebarToggle').addEventListener('click', () => {
@@ -626,67 +630,73 @@ function resetReportOutput() {
 /* ────────────────────────────────────────────────────
    GENERATE REPORT
 ──────────────────────────────────────────────────── */
-function generateReport() {
-  const dateFrom   = document.getElementById('filterDateFrom').value;
-  const dateTo     = document.getElementById('filterDateTo').value;
-  const barangay   = document.getElementById('filterBarangay').value;
-  const status     = document.getElementById('filterStatus').value;
-  const disType    = document.getElementById('filterDisasterType').value;
+async function generateReport() {
+  const dateFrom = document.getElementById('filterDateFrom').value;
+  const dateTo   = document.getElementById('filterDateTo').value;
+  const barangay = document.getElementById('filterBarangay').value;
+  const status   = document.getElementById('filterStatus').value;
+  const disType  = document.getElementById('filterDisasterType').value;
 
-  let data = [];
+  const btn = document.querySelector('[onclick="generateReport()"]');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Loading…'; }
 
-  switch (currentReportType) {
-    case 'incidents':  data = loadIncidentsData(dateFrom, dateTo, barangay, status, disType); break;
-    case 'residents':  data = loadResidentsData(barangay, status);                            break;
-    case 'relief':     data = loadReliefData(dateFrom, dateTo, barangay, status);             break;
-    case 'evacuation': data = loadEvacuationData(barangay, status);                           break;
-  }
-
-  renderReportHeader(dateFrom, dateTo, barangay, status, disType, data.length);
-  renderReportTable(data);
-
-  if (currentReportType === 'incidents') {
-    renderIncidentCharts(data);
-  } else {
-    document.getElementById('reportCharts').style.display = 'none';
+  try {
+    let data = [];
+    switch (currentReportType) {
+      case 'incidents':  data = await loadIncidentsData(dateFrom, dateTo, barangay, status, disType); break;
+      case 'residents':  data = await loadResidentsData(barangay, status);                            break;
+      case 'relief':     data = await loadReliefData(dateFrom, dateTo, barangay, status);             break;
+      case 'evacuation': data = await loadEvacuationData(barangay, status);                           break;
+    }
+    renderReportHeader(dateFrom, dateTo, barangay, status, disType, data.length);
+    renderReportTable(data);
+    if (currentReportType === 'incidents') renderIncidentCharts(data);
+    else document.getElementById('reportCharts').style.display = 'none';
+  } catch (err) {
+    showToast('Failed to generate report: ' + err.message, 'danger');
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-chart-bar me-1"></i>Generate Report'; }
   }
 }
 
 /* ────────────────────────────────────────────────────
-   DATA LOADERS
+   DATA LOADERS (API)
 ──────────────────────────────────────────────────── */
-function loadIncidentsData(dateFrom, dateTo, barangay, status, disType) {
-  let rows = JSON.parse(localStorage.getItem('odmis_incidents') || '[]');
-  if (dateFrom) rows = rows.filter(r => (r.date || r.reportedDate || r.createdAt || '') >= dateFrom);
-  if (dateTo)   rows = rows.filter(r => (r.date || r.reportedDate || r.createdAt || '') <= dateTo);
-  if (barangay) rows = rows.filter(r => (r.barangay || '') === barangay);
-  if (status)   rows = rows.filter(r => (r.status || '').toLowerCase() === status.toLowerCase());
-  if (disType)  rows = rows.filter(r => (r.type || r.disasterType || '') === disType);
-  return rows;
+async function loadIncidentsData(dateFrom, dateTo, barangay, status, disType) {
+  let qs = '';
+  if (dateFrom) qs += '&date_from=' + encodeURIComponent(dateFrom);
+  if (dateTo)   qs += '&date_to='   + encodeURIComponent(dateTo);
+  if (barangay) qs += '&barangay='  + encodeURIComponent(barangay);
+  if (status)   qs += '&status='    + encodeURIComponent(status);
+  if (disType)  qs += '&disaster_type=' + encodeURIComponent(disType);
+  const res = await ApiClient.get('/reports/incidents.php?' + qs.replace(/^&/, ''));
+  return Array.isArray(res.data) ? res.data : [];
 }
 
-function loadResidentsData(barangay, status) {
-  let rows = JSON.parse(localStorage.getItem('odmis_users') || '[]');
-  rows = rows.filter(r => (r.role || '').toLowerCase() !== 'admin');
-  if (barangay) rows = rows.filter(r => (r.address || '').includes(barangay));
-  if (status)   rows = rows.filter(r => (r.status || 'Active').toLowerCase() === status.toLowerCase());
-  return rows;
+async function loadResidentsData(barangay, status) {
+  let qs = '';
+  if (barangay) qs += '&barangay=' + encodeURIComponent(barangay);
+  if (status)   qs += '&status='   + encodeURIComponent(status);
+  const res = await ApiClient.get('/reports/residents.php?' + qs.replace(/^&/, ''));
+  return Array.isArray(res.data) ? res.data : [];
 }
 
-function loadReliefData(dateFrom, dateTo, barangay, status) {
-  let rows = JSON.parse(localStorage.getItem('odmis_relief_operations') || '[]');
-  if (dateFrom) rows = rows.filter(r => (r.date || r.createdAt || '') >= dateFrom);
-  if (dateTo)   rows = rows.filter(r => (r.date || r.createdAt || '') <= dateTo);
-  if (barangay) rows = rows.filter(r => (r.barangay || '') === barangay);
-  if (status)   rows = rows.filter(r => (r.status || '').toLowerCase() === status.toLowerCase());
-  return rows;
+async function loadReliefData(dateFrom, dateTo, barangay, status) {
+  let qs = '';
+  if (dateFrom) qs += '&date_from=' + encodeURIComponent(dateFrom);
+  if (dateTo)   qs += '&date_to='   + encodeURIComponent(dateTo);
+  if (barangay) qs += '&barangay='  + encodeURIComponent(barangay);
+  if (status)   qs += '&status='    + encodeURIComponent(status);
+  const res = await ApiClient.get('/reports/relief.php?' + qs.replace(/^&/, ''));
+  return Array.isArray(res.data) ? res.data : [];
 }
 
-function loadEvacuationData(barangay, status) {
-  let rows = JSON.parse(localStorage.getItem('odmis_evacuation_centers') || '[]');
-  if (barangay) rows = rows.filter(r => (r.barangay || '') === barangay);
-  if (status)   rows = rows.filter(r => (r.status || '').toLowerCase() === status.toLowerCase());
-  return rows;
+async function loadEvacuationData(barangay, status) {
+  let qs = '';
+  if (barangay) qs += '&barangay=' + encodeURIComponent(barangay);
+  if (status)   qs += '&status='   + encodeURIComponent(status);
+  const res = await ApiClient.get('/reports/evacuation.php?' + qs.replace(/^&/, ''));
+  return Array.isArray(res.data) ? res.data : [];
 }
 
 /* ────────────────────────────────────────────────────
@@ -741,12 +751,12 @@ function buildRow(row, index) {
   switch (currentReportType) {
     case 'incidents':
       return `<tr>
-        <td><code>${row.id || row.incidentId || ('INC-' + (index + 1))}</code></td>
-        <td>${row.type || row.disasterType || '—'}</td>
-        <td>${row.title || row.name || '—'}</td>
+        <td><code>${row.incident_code || row.id || ('INC-' + (index + 1))}</code></td>
+        <td>${row.disaster_type || '—'}</td>
+        <td>${row.title || '—'}</td>
         <td>${row.location || '—'}</td>
         <td>${row.barangay || '—'}</td>
-        <td>${formatDateDisplay(row.date || row.reportedDate || row.createdAt)}</td>
+        <td>${formatDateDisplay(row.incident_date || row.created_at)}</td>
         <td>${severityBadge(row.severity)}</td>
         <td>${statusBadge(row.status)}</td>
       </tr>`;
@@ -754,35 +764,35 @@ function buildRow(row, index) {
     case 'residents':
       return `<tr>
         <td>${index + 1}</td>
-        <td>${row.fullName || row.name || '—'}</td>
+        <td>${row.full_name || '—'}</td>
         <td>${row.username || '—'}</td>
         <td>${row.email || '—'}</td>
-        <td>${row.contact || row.phone || row.contactNumber || '—'}</td>
+        <td>${row.contact_number || '—'}</td>
         <td>${row.address || '—'}</td>
         <td>${statusBadge(row.status || 'Active')}</td>
-        <td>${formatDateDisplay(row.createdAt || row.registeredDate)}</td>
+        <td>${formatDateDisplay(row.created_at)}</td>
       </tr>`;
 
     case 'relief':
       return `<tr>
-        <td><code>${row.batchNumber || row.batch || row.id || ('BATCH-' + (index + 1))}</code></td>
-        <td>${formatDateDisplay(row.date || row.createdAt)}</td>
+        <td><code>${row.batch_number || ('BATCH-' + (index + 1))}</code></td>
+        <td>${formatDateDisplay(row.operation_date)}</td>
         <td>${row.barangay || '—'}</td>
-        <td>${row.type || row.reliefType || '—'}</td>
+        <td>${row.relief_type || '—'}</td>
         <td>${row.quantity || '—'}</td>
         <td>${row.unit || '—'}</td>
         <td>${statusBadge(row.status)}</td>
       </tr>`;
 
     case 'evacuation': {
-      const available = (parseInt(row.capacity) || 0) - (parseInt(row.occupied) || parseInt(row.currentOccupants) || 0);
+      const available = (parseInt(row.capacity) || 0) - (parseInt(row.occupied_slots) || 0);
       return `<tr>
-        <td>${row.name || row.centerName || '—'}</td>
+        <td>${row.center_name || '—'}</td>
         <td>${row.barangay || '—'}</td>
         <td>${row.capacity || '—'}</td>
-        <td>${row.occupied || row.currentOccupants || 0}</td>
+        <td>${row.occupied_slots || 0}</td>
         <td>${Math.max(0, available)}</td>
-        <td>${row.contactPerson || row.contact || '—'}</td>
+        <td>${row.contact_person || '—'}</td>
         <td>${statusBadge(row.status)}</td>
       </tr>`;
     }
@@ -805,7 +815,7 @@ function renderIncidentCharts(data) {
   // Aggregate by type
   const byType = {};
   data.forEach(r => {
-    const t = r.type || r.disasterType || 'Unknown';
+    const t = r.disaster_type || 'Unknown';
     byType[t] = (byType[t] || 0) + 1;
   });
 
@@ -872,8 +882,50 @@ function printReport() {
   window.print();
 }
 
-function exportPDF() {
-  showToast('PDF export feature coming soon.', 'info');
+async function exportPDF() {
+  const type     = currentReportType;
+  const dateFrom = document.getElementById('filterDateFrom').value;
+  const dateTo   = document.getElementById('filterDateTo').value;
+  const barangay = document.getElementById('filterBarangay').value;
+  const status   = document.getElementById('filterStatus').value;
+  const disType  = document.getElementById('filterDisasterType').value;
+
+  let qs = '?report=' + type;
+  if (dateFrom) qs += '&date_from=' + encodeURIComponent(dateFrom);
+  if (dateTo)   qs += '&date_to='   + encodeURIComponent(dateTo);
+  if (barangay) qs += '&barangay='  + encodeURIComponent(barangay);
+  if (status)   qs += '&status='    + encodeURIComponent(status);
+  if (disType && type === 'incidents') qs += '&disaster_type=' + encodeURIComponent(disType);
+
+  try {
+    showToast('Generating PDF…', 'info');
+    await ApiClient.download('/reports/export-pdf.php' + qs);
+  } catch (err) {
+    showToast('PDF export failed: ' + err.message, 'danger');
+  }
+}
+
+async function exportCSV() {
+  const type     = currentReportType;
+  const dateFrom = document.getElementById('filterDateFrom').value;
+  const dateTo   = document.getElementById('filterDateTo').value;
+  const barangay = document.getElementById('filterBarangay').value;
+  const status   = document.getElementById('filterStatus').value;
+  const disType  = document.getElementById('filterDisasterType').value;
+
+  let qs = '?report=' + type;
+  if (dateFrom) qs += '&date_from=' + encodeURIComponent(dateFrom);
+  if (dateTo)   qs += '&date_to='   + encodeURIComponent(dateTo);
+  if (barangay) qs += '&barangay='  + encodeURIComponent(barangay);
+  if (status)   qs += '&status='    + encodeURIComponent(status);
+  if (disType && type === 'incidents') qs += '&disaster_type=' + encodeURIComponent(disType);
+
+  try {
+    showToast('Generating CSV…', 'info');
+    await ApiClient.download('/reports/export-csv.php' + qs);
+  } catch (err) {
+    showToast('CSV export failed: ' + err.message, 'danger');
+  }
 }
 </script>
 </body>

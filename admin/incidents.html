@@ -681,6 +681,7 @@
      SCRIPTS
 ══════════════════════════════════════════════════════════ -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/js/api.js"></script>
 <script src="../assets/js/auth.js"></script>
 <script src="../assets/js/app.js"></script>
 
@@ -690,9 +691,6 @@
    ============================================================ */
 (function () {
   'use strict';
-
-  // ── Constants ────────────────────────────────────────────
-  var STORAGE_KEY = 'odmis_incidents';
 
   // ── State ────────────────────────────────────────────────
   var _allIncidents    = [];   // full unfiltered dataset
@@ -753,37 +751,20 @@
     return '<span class="badge-type">' + esc(type || '—') + '</span>';
   }
 
-  // ── LocalStorage CRUD ─────────────────────────────────────
-  function readAll() {
-    try {
-      var raw = localStorage.getItem(STORAGE_KEY);
-      var parsed = raw ? JSON.parse(raw) : [];
-      return Array.isArray(parsed) ? parsed : [];
-    } catch(e) { return []; }
-  }
-
-  function writeAll(arr) {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
-    } catch(e) {
-      console.error('[Incidents] Failed to save:', e);
-    }
-  }
-
-  // ── Auto-generate next ID ─────────────────────────────────
-  function generateId(existingItems) {
-    var max = (existingItems || []).reduce(function(m, item) {
-      if (!item.id) return m;
-      var parts = String(item.id).split('-');
-      var n     = parseInt(parts[parts.length - 1], 10);
-      return isNaN(n) ? m : Math.max(m, n);
-    }, 0);
-    return 'INC-' + String(max + 1).padStart(3, '0');
+  // ── API CRUD ──────────────────────────────────────────────
+  async function fetchAll() {
+    var res = await ApiClient.get('/incidents/index.php');
+    return Array.isArray(res.data) ? res.data : [];
   }
 
   // ── LOAD & RENDER ─────────────────────────────────────────
-  function loadIncidents() {
-    _allIncidents = readAll();
+  async function loadIncidents() {
+    try {
+      _allIncidents = await fetchAll();
+    } catch (err) {
+      showToast('Failed to load incidents: ' + err.message, 'error');
+      _allIncidents = [];
+    }
     filterIncidents();
   }
 
@@ -795,22 +776,20 @@
     var barangay = document.getElementById('filterBarangay').value || '';
 
     _filtered = _allIncidents.filter(function(inc) {
-      // Text search
       if (search) {
-        var hay = [inc.id, inc.title, inc.location, inc.barangay, inc.municipality, inc.disasterType, inc.description]
+        var hay = [inc.incident_code, inc.title, inc.location, inc.barangay, inc.municipality, inc.disaster_type, inc.description]
                     .join(' ').toLowerCase();
         if (!hay.includes(search)) return false;
       }
-      if (type     && inc.disasterType !== type)  return false;
-      if (severity && inc.severity     !== severity) return false;
-      if (status   && inc.status       !== status)   return false;
-      if (barangay && inc.barangay     !== barangay) return false;
+      if (type     && inc.disaster_type !== type)    return false;
+      if (severity && inc.severity      !== severity) return false;
+      if (status   && inc.status        !== status)   return false;
+      if (barangay && inc.barangay      !== barangay) return false;
       return true;
     });
 
-    // Sort: newest date first
     _filtered.sort(function(a, b) {
-      return new Date(b.date || b.createdAt || 0) - new Date(a.date || a.createdAt || 0);
+      return new Date(b.incident_date || b.created_at || 0) - new Date(a.incident_date || a.created_at || 0);
     });
 
     _currentPage = 1;
@@ -846,28 +825,28 @@
 
     resultsInfo.textContent = 'Showing ' + (start + 1) + '–' + Math.min(start + _perPage, total) + ' of ' + total + ' records';
 
-    // Render rows
     var rows = slice.map(function(inc) {
+      var rowId = inc.id;
       var toggleBtn = inc.status === 'Active'
-        ? '<button class="btn-toggle-active" onclick="IncPage.toggleStatus(\'' + esc(inc.id) + '\')" title="Mark as Resolved"><i class="fas fa-check me-1"></i>Resolve</button>'
-        : '<button class="btn-toggle-resolved" onclick="IncPage.toggleStatus(\'' + esc(inc.id) + '\')" title="Mark as Active"><i class="fas fa-redo me-1"></i>Re-activate</button>';
+        ? '<button class="btn-toggle-active" onclick="IncPage.toggleStatus(' + rowId + ')" title="Mark as Resolved"><i class="fas fa-check me-1"></i>Resolve</button>'
+        : '<button class="btn-toggle-resolved" onclick="IncPage.toggleStatus(' + rowId + ')" title="Mark as Active"><i class="fas fa-redo me-1"></i>Re-activate</button>';
 
       return '<tr>' +
-        '<td><span class="incident-id-chip">' + esc(inc.id) + '</span></td>' +
-        '<td>' + typeBadge(inc.disasterType) + '</td>' +
+        '<td><span class="incident-id-chip">' + esc(inc.incident_code) + '</span></td>' +
+        '<td>' + typeBadge(inc.disaster_type) + '</td>' +
         '<td style="max-width:220px;"><span class="fw-600" title="' + esc(inc.title) + '">' + esc(inc.title || '—') + '</span></td>' +
         '<td style="max-width:160px;" class="text-muted">' +
           '<i class="fas fa-map-marker-alt me-1" style="color:var(--color-accent);font-size:0.75rem;"></i>' +
           esc(inc.barangay || inc.location || '—') +
         '</td>' +
-        '<td class="text-muted">' + formatDateDisplay(inc.date) + '</td>' +
+        '<td class="text-muted">' + formatDateDisplay(inc.incident_date) + '</td>' +
         '<td>' + severityBadge(inc.severity) + '</td>' +
         '<td>' + statusBadge(inc.status) + '</td>' +
         '<td class="text-center">' +
           '<div class="d-flex align-items-center justify-content-center gap-1">' +
-            '<button class="btn-action btn-view"  onclick="IncPage.viewIncident(\'' + esc(inc.id) + '\')"   title="View"><i class="fas fa-eye"></i></button>' +
-            '<button class="btn-action btn-edit"  onclick="IncPage.editIncident(\'' + esc(inc.id) + '\')"   title="Edit"><i class="fas fa-pencil-alt"></i></button>' +
-            '<button class="btn-action btn-delete" onclick="IncPage.confirmDelete(\'' + esc(inc.id) + '\')" title="Delete"><i class="fas fa-trash"></i></button>' +
+            '<button class="btn-action btn-view"  onclick="IncPage.viewIncident(' + rowId + ')"   title="View"><i class="fas fa-eye"></i></button>' +
+            '<button class="btn-action btn-edit"  onclick="IncPage.editIncident(' + rowId + ')"   title="Edit"><i class="fas fa-pencil-alt"></i></button>' +
+            '<button class="btn-action btn-delete" onclick="IncPage.confirmDelete(' + rowId + ')" title="Delete"><i class="fas fa-trash"></i></button>' +
             toggleBtn +
           '</div>' +
         '</td>' +
@@ -906,146 +885,102 @@
   // ── ADD / EDIT MODAL ──────────────────────────────────────
   function openAddModal() {
     _editingId = null;
-    var newId  = generateId(_allIncidents);
-
-    // Reset form
     var form = document.getElementById('incidentForm');
     form.reset();
     form.querySelectorAll('.is-invalid, .is-valid').forEach(function(el){
       el.classList.remove('is-invalid','is-valid');
     });
-
-    document.getElementById('fieldIncidentId').value = newId;
-    document.getElementById('fieldMunicipality').value = 'Sta. Cruz, Davao del Sur';
-
-    // Set modal title
+    document.getElementById('fieldIncidentId').value      = '(auto-generated)';
+    document.getElementById('fieldMunicipality').value   = 'Sta. Cruz, Davao del Sur';
     document.getElementById('incidentModalLabel').innerHTML = '<i class="fas fa-plus-circle me-2"></i>Add New Incident';
     document.getElementById('btnSaveIncident').innerHTML    = '<i class="fas fa-save me-1"></i>Save Incident';
-
     _incidentModal.show();
   }
 
   function editIncident(id) {
     var inc = _allIncidents.find(function(i){ return i.id === id; });
     if (!inc) { showToast('Incident not found.', 'error'); return; }
-
     _editingId = id;
-
     var form = document.getElementById('incidentForm');
     form.reset();
     form.querySelectorAll('.is-invalid, .is-valid').forEach(function(el){
       el.classList.remove('is-invalid','is-valid');
     });
-
-    // Populate fields
-    document.getElementById('fieldIncidentId').value    = inc.id;
-    document.getElementById('fieldDisasterType').value  = inc.disasterType || '';
-    document.getElementById('fieldSeverity').value      = inc.severity     || '';
-    document.getElementById('fieldTitle').value         = inc.title        || '';
-    document.getElementById('fieldDescription').value   = inc.description  || '';
-    document.getElementById('fieldLocation').value      = inc.location     || '';
-    document.getElementById('fieldBarangay').value      = inc.barangay     || '';
-    document.getElementById('fieldMunicipality').value  = inc.municipality || '';
-    document.getElementById('fieldDate').value          = inc.date         || '';
-    document.getElementById('fieldTime').value          = inc.time         || '';
-
+    document.getElementById('fieldIncidentId').value    = inc.incident_code || '';
+    document.getElementById('fieldDisasterType').value  = inc.disaster_type  || '';
+    document.getElementById('fieldSeverity').value      = inc.severity       || '';
+    document.getElementById('fieldTitle').value         = inc.title          || '';
+    document.getElementById('fieldDescription').value   = inc.description    || '';
+    document.getElementById('fieldLocation').value      = inc.location       || '';
+    document.getElementById('fieldBarangay').value      = inc.barangay       || '';
+    document.getElementById('fieldMunicipality').value  = inc.municipality   || '';
+    document.getElementById('fieldDate').value          = inc.incident_date  || '';
+    document.getElementById('fieldTime').value          = inc.incident_time  || '';
     document.getElementById('incidentModalLabel').innerHTML = '<i class="fas fa-pencil-alt me-2"></i>Edit Incident';
     document.getElementById('btnSaveIncident').innerHTML    = '<i class="fas fa-save me-1"></i>Update Incident';
-
     if (_viewModal) _viewModal.hide();
     _incidentModal.show();
   }
 
-  function saveIncident() {
-    // Validate
-    var requiredIds = ['fieldDisasterType', 'fieldSeverity', 'fieldTitle', 'fieldLocation', 'fieldBarangay', 'fieldDate'];
+  async function saveIncident() {
+    var requiredIds = ['fieldDisasterType','fieldSeverity','fieldTitle','fieldLocation','fieldBarangay','fieldDate'];
     var valid = true;
-
     requiredIds.forEach(function(fid) {
       var el = document.getElementById(fid);
       if (!el) return;
-      if (!el.value.trim()) {
-        el.classList.add('is-invalid');
-        el.classList.remove('is-valid');
-        valid = false;
-      } else {
-        el.classList.remove('is-invalid');
-        el.classList.add('is-valid');
-      }
+      if (!el.value.trim()) { el.classList.add('is-invalid'); el.classList.remove('is-valid'); valid = false; }
+      else { el.classList.remove('is-invalid'); el.classList.add('is-valid'); }
     });
+    if (!valid) { showToast('Please fill in all required fields.', 'error'); return; }
 
-    if (!valid) {
-      showToast('Please fill in all required fields.', 'error');
-      return;
-    }
+    var payload = {
+      disaster_type: document.getElementById('fieldDisasterType').value.trim(),
+      severity     : document.getElementById('fieldSeverity').value.trim(),
+      title        : document.getElementById('fieldTitle').value.trim(),
+      description  : document.getElementById('fieldDescription').value.trim(),
+      location     : document.getElementById('fieldLocation').value.trim(),
+      barangay     : document.getElementById('fieldBarangay').value.trim(),
+      municipality : document.getElementById('fieldMunicipality').value.trim(),
+      incident_date: document.getElementById('fieldDate').value,
+      incident_time: document.getElementById('fieldTime').value
+    };
 
-    var incidents = readAll();
+    var btn = document.getElementById('btnSaveIncident');
+    btn.disabled = true;
 
-    if (_editingId) {
-      // Update existing
-      var idx = incidents.findIndex(function(i){ return i.id === _editingId; });
-      if (idx === -1) { showToast('Incident not found.', 'error'); return; }
-
-      incidents[idx].disasterType  = document.getElementById('fieldDisasterType').value.trim();
-      incidents[idx].severity      = document.getElementById('fieldSeverity').value.trim();
-      incidents[idx].title         = document.getElementById('fieldTitle').value.trim();
-      incidents[idx].description   = document.getElementById('fieldDescription').value.trim();
-      incidents[idx].location      = document.getElementById('fieldLocation').value.trim();
-      incidents[idx].barangay      = document.getElementById('fieldBarangay').value.trim();
-      incidents[idx].municipality  = document.getElementById('fieldMunicipality').value.trim();
-      incidents[idx].date          = document.getElementById('fieldDate').value;
-      incidents[idx].time          = document.getElementById('fieldTime').value;
-      incidents[idx].updatedAt     = new Date().toISOString();
-
-      writeAll(incidents);
+    try {
+      if (_editingId) {
+        await ApiClient.put('/incidents/update.php?id=' + _editingId, payload);
+        showToast('Incident updated successfully.', 'success');
+      } else {
+        await ApiClient.post('/incidents/store.php', payload);
+        showToast('Incident added successfully.', 'success');
+      }
       _incidentModal.hide();
-      showToast('Incident "' + incidents[idx].title + '" updated successfully.', 'success');
-
-    } else {
-      // Add new
-      var newInc = {
-        id           : document.getElementById('fieldIncidentId').value,
-        disasterType : document.getElementById('fieldDisasterType').value.trim(),
-        severity     : document.getElementById('fieldSeverity').value.trim(),
-        title        : document.getElementById('fieldTitle').value.trim(),
-        description  : document.getElementById('fieldDescription').value.trim(),
-        location     : document.getElementById('fieldLocation').value.trim(),
-        barangay     : document.getElementById('fieldBarangay').value.trim(),
-        municipality : document.getElementById('fieldMunicipality').value.trim(),
-        date         : document.getElementById('fieldDate').value,
-        time         : document.getElementById('fieldTime').value,
-        status       : 'Active',
-        createdAt    : new Date().toISOString()
-      };
-
-      incidents.push(newInc);
-      writeAll(incidents);
-      _incidentModal.hide();
-      showToast('Incident "' + newInc.title + '" added successfully.', 'success');
+      await loadIncidents();
+    } catch (err) {
+      showToast(err.message || 'Save failed.', 'error');
+    } finally {
+      btn.disabled = false;
     }
-
-    loadIncidents();
   }
 
   // ── VIEW MODAL ────────────────────────────────────────────
   function viewIncident(id) {
     var inc = _allIncidents.find(function(i){ return i.id === id; });
     if (!inc) { showToast('Incident not found.', 'error'); return; }
-
     _viewingId = id;
-
-    document.getElementById('viewId').textContent          = inc.id || '—';
-    document.getElementById('viewTypeBadge').innerHTML     = typeBadge(inc.disasterType);
+    document.getElementById('viewId').textContent          = inc.incident_code || '—';
+    document.getElementById('viewTypeBadge').innerHTML     = typeBadge(inc.disaster_type);
     document.getElementById('viewSeverityBadge').innerHTML = severityBadge(inc.severity);
     document.getElementById('viewStatusBadge').innerHTML   = statusBadge(inc.status);
-    document.getElementById('viewTitle').textContent       = inc.title       || '—';
-    document.getElementById('viewDescription').textContent = inc.description || '—';
-    document.getElementById('viewLocation').textContent    = inc.location    || '—';
-    document.getElementById('viewBarangay').textContent    = inc.barangay    || '—';
-    document.getElementById('viewMunicipality').textContent= inc.municipality|| '—';
-    document.getElementById('viewDate').textContent        = formatDateDisplay(inc.date);
-    document.getElementById('viewTime').textContent        = formatTimeDisplay(inc.time);
-
+    document.getElementById('viewTitle').textContent       = inc.title        || '—';
+    document.getElementById('viewDescription').textContent = inc.description  || '—';
+    document.getElementById('viewLocation').textContent    = inc.location     || '—';
+    document.getElementById('viewBarangay').textContent    = inc.barangay     || '—';
+    document.getElementById('viewMunicipality').textContent= inc.municipality || '—';
+    document.getElementById('viewDate').textContent        = formatDateDisplay(inc.incident_date);
+    document.getElementById('viewTime').textContent        = formatTimeDisplay(inc.incident_time);
     _viewModal.show();
   }
 
@@ -1054,42 +989,35 @@
     _pendingDeleteId = id;
     var inc = _allIncidents.find(function(i){ return i.id === id; });
     var label = document.getElementById('deleteIncidentIdLabel');
-    if (label) label.textContent = inc ? (inc.id + ' — ' + inc.title) : id;
+    if (label) label.textContent = inc ? (inc.incident_code + ' — ' + inc.title) : id;
     _deleteModal.show();
   }
 
-  function deleteIncident() {
+  async function deleteIncident() {
     if (!_pendingDeleteId) return;
-    var incidents = readAll();
-    var idx       = incidents.findIndex(function(i){ return i.id === _pendingDeleteId; });
-    if (idx === -1) { showToast('Incident not found.', 'error'); return; }
-
-    var title = incidents[idx].title || _pendingDeleteId;
-    incidents.splice(idx, 1);
-    writeAll(incidents);
-
-    _deleteModal.hide();
-    _pendingDeleteId = null;
-    showToast('Incident "' + title + '" has been deleted.', 'success');
-    loadIncidents();
+    var btn = document.getElementById('btnConfirmDelete');
+    btn.disabled = true;
+    try {
+      await ApiClient.del('/incidents/destroy.php?id=' + _pendingDeleteId);
+      _deleteModal.hide();
+      _pendingDeleteId = null;
+      showToast('Incident deleted.', 'success');
+      await loadIncidents();
+    } catch (err) {
+      showToast(err.message || 'Delete failed.', 'error');
+    } finally {
+      btn.disabled = false;
+    }
   }
 
   // ── TOGGLE STATUS ─────────────────────────────────────────
-  function toggleStatus(id) {
-    var incidents = readAll();
-    var idx       = incidents.findIndex(function(i){ return i.id === id; });
-    if (idx === -1) { showToast('Incident not found.', 'error'); return; }
-
-    var prev  = incidents[idx].status;
-    incidents[idx].status    = prev === 'Active' ? 'Resolved' : 'Active';
-    incidents[idx].updatedAt = new Date().toISOString();
-    writeAll(incidents);
-
-    var msg = incidents[idx].status === 'Resolved'
-      ? 'Incident marked as Resolved.'
-      : 'Incident re-activated as Active.';
-    showToast(msg, 'success');
-    loadIncidents();
+  async function toggleStatus(id) {
+    try {
+      await ApiClient.patch('/incidents/update.php?id=' + id, { toggle_status: true });
+      await loadIncidents();
+    } catch (err) {
+      showToast(err.message || 'Status update failed.', 'error');
+    }
   }
 
   // ── PAGINATION ────────────────────────────────────────────
@@ -1150,27 +1078,18 @@
   };
 
   // ── BOOT ─────────────────────────────────────────────────
-  document.addEventListener('DOMContentLoaded', function () {
-    // 1. Seed mock data
-    if (typeof initMockData === 'function') initMockData();
+  document.addEventListener('DOMContentLoaded', async function () {
+    if (!Auth.requireAdmin()) return;
 
-    // 2. Auth guard
-    if (typeof Auth !== 'undefined') {
-      if (!Auth.requireAdmin()) return;
-    }
-
-    // 3. Init shared App behaviours
     if (typeof App !== 'undefined') {
       App.initPage({ page: 'incidents', adminPage: true, requireAdmin: true });
     }
 
-    // 4. Bootstrap modal instances
     _incidentModal = new bootstrap.Modal(document.getElementById('incidentModal'));
     _viewModal     = new bootstrap.Modal(document.getElementById('viewIncidentModal'));
     _deleteModal   = new bootstrap.Modal(document.getElementById('deleteModal'));
 
-    // 5. Load data
-    loadIncidents();
+    await loadIncidents();
 
     // 6. Wire up Add Incident buttons
     document.getElementById('btnAddIncident').addEventListener('click', openAddModal);

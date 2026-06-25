@@ -691,13 +691,13 @@
      SCRIPTS
 ══════════════════════════════════════════════════════════ -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/js/api.js"></script>
 <script src="../assets/js/auth.js"></script>
 <script src="../assets/js/app.js"></script>
 
 <script>
 /* ============================================================
    RELIEF OPERATIONS — Page Logic
-   LocalStorage key: odmis_relief_operations
 ============================================================ */
 
 // ── State ──────────────────────────────────────────────────
@@ -721,26 +721,6 @@ function showToast(message, type = 'success') {
   bootstrap.Toast.getOrCreateInstance(el, { delay: 3000 }).show();
 }
 
-// ── LocalStorage helpers ──────────────────────────────────
-function getBatches() {
-  try { return JSON.parse(localStorage.getItem('odmis_relief_operations')) || []; }
-  catch(e) { return []; }
-}
-function setBatches(data) {
-  localStorage.setItem('odmis_relief_operations', JSON.stringify(data));
-}
-
-// ── ID / Batch Number generator ────────────────────────────
-function generateBatchNumber() {
-  const batches = getBatches();
-  if (!batches.length) return 'BATCH-001';
-  const nums = batches.map(b => {
-    const m = b.batchNumber && b.batchNumber.match(/BATCH-(\d+)/i);
-    return m ? parseInt(m[1], 10) : 0;
-  });
-  return 'BATCH-' + String(Math.max(...nums) + 1).padStart(3, '0');
-}
-
 // ── HTML escaping ─────────────────────────────────────────
 function escHtml(s) {
   if (!s) return '';
@@ -758,8 +738,14 @@ function statusBadge(status) {
 }
 
 // ── Load & render ─────────────────────────────────────────
-function loadBatches() {
-  allBatches = getBatches();
+async function loadBatches() {
+  try {
+    const res = await ApiClient.get('/relief/index.php');
+    allBatches = Array.isArray(res.data) ? res.data : [];
+  } catch (err) {
+    showToast('Failed to load relief batches: ' + err.message, 'danger');
+    allBatches = [];
+  }
   filterBatches();
   renderSummary();
 }
@@ -772,14 +758,14 @@ function filterBatches() {
 
   filteredBatches = allBatches.filter(b => {
     const matchSearch = !search ||
-      (b.batchNumber   && b.batchNumber.toLowerCase().includes(search)) ||
-      (b.barangay      && b.barangay.toLowerCase().includes(search)) ||
-      (b.reliefType    && b.reliefType.toLowerCase().includes(search)) ||
-      (b.distributedBy && b.distributedBy.toLowerCase().includes(search)) ||
-      (b.notes         && b.notes.toLowerCase().includes(search));
-    const matchBrgy   = !barangay  || b.barangay  === barangay;
-    const matchType   = !type      || b.reliefType === type;
-    const matchStatus = !statusVal || b.status     === statusVal;
+      (b.batch_number   && b.batch_number.toLowerCase().includes(search)) ||
+      (b.barangay       && b.barangay.toLowerCase().includes(search)) ||
+      (b.relief_type    && b.relief_type.toLowerCase().includes(search)) ||
+      (b.distributed_by && b.distributed_by.toLowerCase().includes(search)) ||
+      (b.notes          && b.notes.toLowerCase().includes(search));
+    const matchBrgy   = !barangay  || b.barangay    === barangay;
+    const matchType   = !type      || b.relief_type  === type;
+    const matchStatus = !statusVal || b.status       === statusVal;
     return matchSearch && matchBrgy && matchType && matchStatus;
   });
 
@@ -812,26 +798,26 @@ function renderTable() {
 
   tbody.innerHTML = slice.map(b => `
     <tr>
-      <td><span class="batch-id-chip">${escHtml(b.batchNumber)}</span></td>
-      <td>${escHtml(b.date || '—')}</td>
+      <td><span class="batch-id-chip">${escHtml(b.batch_number)}</span></td>
+      <td>${escHtml(b.operation_date || '—')}</td>
       <td>${escHtml(b.barangay || '—')}</td>
       <td>
         <span class="badge bg-light text-dark border">
-          <i class="fas fa-box me-1" style="color:var(--color-accent);"></i>${escHtml(b.reliefType || '—')}
+          <i class="fas fa-box me-1" style="color:var(--color-accent);"></i>${escHtml(b.relief_type || '—')}
         </span>
       </td>
       <td class="text-center fw-semibold">${b.quantity != null ? b.quantity : '—'}</td>
       <td>${escHtml(b.unit || '—')}</td>
-      <td>${escHtml(b.distributedBy || '—')}</td>
+      <td>${escHtml(b.distributed_by || '—')}</td>
       <td>${statusBadge(b.status)}</td>
       <td class="text-center" style="white-space:nowrap;">
-        <button class="btn-action btn-view me-1" title="View" onclick="viewBatch('${b.id}')">
+        <button class="btn-action btn-view me-1" title="View" onclick="viewBatch(${b.id})">
           <i class="fas fa-eye"></i>
         </button>
-        <button class="btn-action btn-edit me-1" title="Edit" onclick="editBatch('${b.id}')">
+        <button class="btn-action btn-edit me-1" title="Edit" onclick="editBatch(${b.id})">
           <i class="fas fa-edit"></i>
         </button>
-        <button class="btn-action btn-delete" title="Delete" onclick="deleteBatch('${b.id}')">
+        <button class="btn-action btn-delete" title="Delete" onclick="deleteBatch(${b.id})">
           <i class="fas fa-trash-alt"></i>
         </button>
       </td>
@@ -862,120 +848,107 @@ function renderPagination(total) {
 function goPage(p) { currentPage = p; renderTable(); }
 
 function renderSummary() {
-  const batches = getBatches();
-  document.getElementById('statTotal').textContent      = batches.length;
-  document.getElementById('statPending').textContent    = batches.filter(b => b.status === 'Pending').length;
-  document.getElementById('statInProgress').textContent = batches.filter(b => b.status === 'In Progress').length;
-  document.getElementById('statCompleted').textContent  = batches.filter(b => b.status === 'Completed').length;
+  document.getElementById('statTotal').textContent      = allBatches.length;
+  document.getElementById('statPending').textContent    = allBatches.filter(b => b.status === 'Pending').length;
+  document.getElementById('statInProgress').textContent = allBatches.filter(b => b.status === 'In Progress').length;
+  document.getElementById('statCompleted').textContent  = allBatches.filter(b => b.status === 'Completed').length;
 }
 
 // ── Open Add modal ─────────────────────────────────────────
 function openAddModal() {
   document.getElementById('reliefModalTitle').innerHTML =
     '<i class="fas fa-plus-circle me-2"></i>Add Relief Batch';
-  document.getElementById('reliefId').value     = '';
+  document.getElementById('reliefId').value = '';
   document.getElementById('reliefForm').reset();
   document.getElementById('reliefForm').classList.remove('was-validated');
-  // auto batch number
-  document.getElementById('fBatchNumber').value = generateBatchNumber();
-  // default date = today
+  document.getElementById('fBatchNumber').value = '(auto-generated)';
   document.getElementById('fDate').value = new Date().toISOString().split('T')[0];
   reliefModalInst.show();
 }
 
 // ── Edit batch ─────────────────────────────────────────────
 function editBatch(id) {
-  const b = getBatches().find(x => x.id === id);
+  const b = allBatches.find(x => x.id === id);
   if (!b) return;
   document.getElementById('reliefModalTitle').innerHTML =
     '<i class="fas fa-edit me-2"></i>Edit Relief Batch';
   document.getElementById('reliefId').value          = b.id;
-  document.getElementById('fBatchNumber').value      = b.batchNumber || '';
-  document.getElementById('fDate').value             = b.date || '';
-  document.getElementById('fBarangay').value         = b.barangay || '';
-  document.getElementById('fReliefType').value       = b.reliefType || '';
+  document.getElementById('fBatchNumber').value      = b.batch_number    || '';
+  document.getElementById('fDate').value             = b.operation_date  || '';
+  document.getElementById('fBarangay').value         = b.barangay        || '';
+  document.getElementById('fReliefType').value       = b.relief_type     || '';
   document.getElementById('fQuantity').value         = b.quantity != null ? b.quantity : '';
-  document.getElementById('fUnit').value             = b.unit || '';
-  document.getElementById('fStatus').value           = b.status || 'Pending';
-  document.getElementById('fDistributedBy').value   = b.distributedBy || '';
-  document.getElementById('fNotes').value            = b.notes || '';
+  document.getElementById('fUnit').value             = b.unit            || '';
+  document.getElementById('fStatus').value           = b.status          || 'Pending';
+  document.getElementById('fDistributedBy').value    = b.distributed_by  || '';
+  document.getElementById('fNotes').value            = b.notes           || '';
   document.getElementById('reliefForm').classList.remove('was-validated');
   reliefModalInst.show();
 }
 
 // ── Save batch ─────────────────────────────────────────────
-function saveBatch() {
+async function saveBatch() {
   const form = document.getElementById('reliefForm');
   form.classList.add('was-validated');
   if (!form.checkValidity()) return;
 
-  const id           = document.getElementById('reliefId').value.trim();
-  const batchNumber  = document.getElementById('fBatchNumber').value.trim();
-  const date         = document.getElementById('fDate').value;
-  const barangay     = document.getElementById('fBarangay').value;
-  const reliefType   = document.getElementById('fReliefType').value;
-  const quantity     = parseInt(document.getElementById('fQuantity').value, 10);
-  const unit         = document.getElementById('fUnit').value.trim();
-  const status       = document.getElementById('fStatus').value;
-  const distributedBy = document.getElementById('fDistributedBy').value.trim();
-  const notes        = document.getElementById('fNotes').value.trim();
+  const id      = document.getElementById('reliefId').value.trim();
+  const payload = {
+    operation_date: document.getElementById('fDate').value,
+    barangay      : document.getElementById('fBarangay').value,
+    relief_type   : document.getElementById('fReliefType').value,
+    quantity      : parseInt(document.getElementById('fQuantity').value, 10),
+    unit          : document.getElementById('fUnit').value.trim(),
+    status        : document.getElementById('fStatus').value,
+    distributed_by: document.getElementById('fDistributedBy').value.trim(),
+    notes         : document.getElementById('fNotes').value.trim()
+  };
 
-  const batches = getBatches();
-
-  if (id) {
-    const idx = batches.findIndex(b => b.id === id);
-    if (idx > -1) {
-      batches[idx] = { ...batches[idx], batchNumber, date, barangay, reliefType,
-        quantity, unit, status, distributedBy, notes };
-      setBatches(batches);
+  const btn = document.getElementById('btnSaveRelief');
+  btn.disabled = true;
+  try {
+    if (id) {
+      await ApiClient.put('/relief/update.php?id=' + id, payload);
       showToast('Relief batch updated successfully.', 'success');
+    } else {
+      await ApiClient.post('/relief/store.php', payload);
+      showToast('Relief batch added successfully.', 'success');
     }
-  } else {
-    const newBatch = {
-      id: 'RELIEF-' + Date.now(),
-      batchNumber, date, barangay, reliefType,
-      quantity, unit, status, distributedBy, notes,
-      createdAt: new Date().toISOString().split('T')[0]
-    };
-    batches.push(newBatch);
-    setBatches(batches);
-    showToast('Relief batch added successfully.', 'success');
+    reliefModalInst.hide();
+    await loadBatches();
+  } catch (err) {
+    showToast(err.message || 'Save failed.', 'danger');
+  } finally {
+    btn.disabled = false;
   }
-
-  reliefModalInst.hide();
-  loadBatches();
 }
 
 // ── View batch ─────────────────────────────────────────────
 function viewBatch(id) {
-  const b = getBatches().find(x => x.id === id);
+  const b = allBatches.find(x => x.id === id);
   if (!b) return;
   viewTargetId = id;
 
-  document.getElementById('vBatchNumber').textContent   = b.batchNumber || '—';
-  document.getElementById('vBatchDate').textContent     = b.date ? `Date: ${b.date}` : '';
-  document.getElementById('vBarangay').textContent      = b.barangay || '—';
-  document.getElementById('vReliefType').textContent    = b.reliefType || '—';
+  document.getElementById('vBatchNumber').textContent   = b.batch_number   || '—';
+  document.getElementById('vBatchDate').textContent     = b.operation_date ? `Date: ${b.operation_date}` : '';
+  document.getElementById('vBarangay').textContent      = b.barangay       || '—';
+  document.getElementById('vReliefType').textContent    = b.relief_type    || '—';
   document.getElementById('vQuantity').textContent      = b.quantity != null ? b.quantity : '—';
-  document.getElementById('vUnit').textContent          = b.unit || '—';
-  document.getElementById('vDistributedBy').textContent = b.distributedBy || '—';
-  document.getElementById('vNotes').textContent         = b.notes || '—';
-  document.getElementById('vCreatedAt').textContent     = b.createdAt || '—';
+  document.getElementById('vUnit').textContent          = b.unit           || '—';
+  document.getElementById('vDistributedBy').textContent = b.distributed_by || '—';
+  document.getElementById('vNotes').textContent         = b.notes          || '—';
+  document.getElementById('vCreatedAt').textContent     = b.created_at     || '—';
 
   const badge = document.getElementById('vStatusBadge');
   switch ((b.status || '').toLowerCase()) {
     case 'pending':
-      badge.className = 'badge fs-6 border badge-pending';
-      badge.textContent = 'Pending'; break;
+      badge.className = 'badge fs-6 border badge-pending'; badge.textContent = 'Pending'; break;
     case 'in progress':
-      badge.className = 'badge fs-6 border badge-progress';
-      badge.textContent = 'In Progress'; break;
+      badge.className = 'badge fs-6 border badge-progress'; badge.textContent = 'In Progress'; break;
     case 'completed':
-      badge.className = 'badge fs-6 border badge-completed';
-      badge.textContent = 'Completed'; break;
+      badge.className = 'badge fs-6 border badge-completed'; badge.textContent = 'Completed'; break;
     default:
-      badge.className = 'badge fs-6 bg-secondary';
-      badge.textContent = b.status || '—';
+      badge.className = 'badge fs-6 bg-secondary'; badge.textContent = b.status || '—';
   }
 
   viewModalInst.show();
@@ -983,36 +956,45 @@ function viewBatch(id) {
 
 // ── Delete batch ───────────────────────────────────────────
 function deleteBatch(id) {
-  const b = getBatches().find(x => x.id === id);
+  const b = allBatches.find(x => x.id === id);
   if (!b) return;
   deleteTargetId = id;
-  document.getElementById('deleteTargetBatch').textContent = `"${b.batchNumber}"`;
+  document.getElementById('deleteTargetBatch').textContent = `"${b.batch_number}"`;
   deleteModalInst.show();
 }
 
-function confirmDelete() {
+async function confirmDelete() {
   if (!deleteTargetId) return;
-  const batches = getBatches().filter(b => b.id !== deleteTargetId);
-  setBatches(batches);
-  deleteTargetId = null;
-  deleteModalInst.hide();
-  showToast('Relief batch deleted.', 'danger');
-  loadBatches();
+  const btn = document.getElementById('confirmDeleteBtn');
+  btn.disabled = true;
+  try {
+    await ApiClient.del('/relief/destroy.php?id=' + deleteTargetId);
+    deleteTargetId = null;
+    deleteModalInst.hide();
+    showToast('Relief batch deleted.', 'danger');
+    await loadBatches();
+  } catch (err) {
+    showToast(err.message || 'Delete failed.', 'danger');
+  } finally {
+    btn.disabled = false;
+  }
 }
 
 // ── DOMContentLoaded ──────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-  if (typeof initMockData === 'function') initMockData();
-  if (typeof Auth !== 'undefined') {
-    Auth.requireAdmin();
-    const session = Auth.getSession();
-    if (session) {
-      const initLetter = session.fullName ? session.fullName[0].toUpperCase() : 'A';
-      document.getElementById('sidebarUserAvatar').textContent = initLetter;
-      document.getElementById('sidebarUserName').textContent   = session.fullName || session.username;
-      document.getElementById('navbarAvatar').textContent      = initLetter;
-      document.getElementById('navbarUsername').textContent    = session.username;
-    }
+document.addEventListener('DOMContentLoaded', async () => {
+  if (!Auth.requireAdmin()) return;
+
+  const session = Auth.getSession();
+  if (session) {
+    const initLetter = session.fullName ? session.fullName[0].toUpperCase() : 'A';
+    const sa = document.getElementById('sidebarUserAvatar');
+    const sn = document.getElementById('sidebarUserName');
+    const na = document.getElementById('navbarAvatar');
+    const nu = document.getElementById('navbarUsername');
+    if (sa) sa.textContent = initLetter;
+    if (sn) sn.textContent = session.fullName || session.username;
+    if (na) na.textContent = initLetter;
+    if (nu) nu.textContent = session.username;
   }
 
   // Modal instances
@@ -1088,7 +1070,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Initial load
-  loadBatches();
+  await loadBatches();
 });
 </script>
 </body>

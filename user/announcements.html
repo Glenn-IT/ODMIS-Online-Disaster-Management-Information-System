@@ -136,20 +136,24 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/js/api.js"></script>
 <script src="../assets/js/auth.js"></script>
 <script src="../assets/js/app.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-  initMockData();
-  Auth.requireUser();
+document.addEventListener('DOMContentLoaded', async function () {
+  if (!Auth.requireUser()) return;
 
   const session = Auth.getSession();
   if (session) {
     const initial = (session.fullName || session.username || 'U')[0].toUpperCase();
-    document.getElementById('sidebarAvatar').textContent = initial;
-    document.getElementById('sidebarName').textContent = session.fullName || session.username;
-    document.getElementById('navAvatar').textContent = initial;
-    document.getElementById('navUsername').textContent = session.username;
+    const sa = document.getElementById('sidebarAvatar');
+    const sn = document.getElementById('sidebarName');
+    const na = document.getElementById('navAvatar');
+    const nu = document.getElementById('navUsername');
+    if (sa) sa.textContent = initial;
+    if (sn) sn.textContent = session.fullName || session.username;
+    if (na) na.textContent = initial;
+    if (nu) nu.textContent = session.username;
   }
 
   document.getElementById('sidebarToggle').addEventListener('click', () => document.body.classList.toggle('sidebar-collapsed'));
@@ -158,10 +162,16 @@ document.addEventListener('DOMContentLoaded', function () {
     el.addEventListener('click', e => { e.preventDefault(); new bootstrap.Modal(document.getElementById('logoutModal')).show(); });
   });
 
-  const alerts = JSON.parse(localStorage.getItem('odmis_alerts') || '[]');
-  document.getElementById('notifBadge').textContent = alerts.filter(a => a.status !== 'Resolved').length;
-
-  const allAnn = JSON.parse(localStorage.getItem('odmis_announcements') || '[]');
+  let allAnn = [];
+  try {
+    const [annRes, alertRes] = await Promise.all([
+      ApiClient.get('/announcements/index.php'),
+      ApiClient.get('/alerts/index.php')
+    ]);
+    allAnn = Array.isArray(annRes.data) ? annRes.data : [];
+    const activeAlerts = (Array.isArray(alertRes.data) ? alertRes.data : []).filter(a => a.status !== 'Resolved');
+    document.getElementById('notifBadge').textContent = activeAlerts.length;
+  } catch (err) { console.error('Announcements load error:', err.message); }
 
   let currentCat = 'all';
   let searchQuery = '';
@@ -198,7 +208,7 @@ document.addEventListener('DOMContentLoaded', function () {
                (a.content || '').toLowerCase().includes(q) ||
                (a.category || '').toLowerCase().includes(q);
       })
-      .sort((a, b) => new Date(b.date) - new Date(a.date));
+      .sort((a, b) => new Date(b.date_posted || b.created_at) - new Date(a.date_posted || a.created_at));
 
     document.getElementById('annCount').textContent = filtered.length;
     const list = document.getElementById('annList');
@@ -217,15 +227,15 @@ document.addEventListener('DOMContentLoaded', function () {
               <span class="badge ${catBadgeClass(a.category)}">${a.category || 'General'}</span>
               <h6 class="mb-0 fw-bold" style="font-size:.95rem">${a.title || ''}</h6>
             </div>
-            <small class="text-muted flex-shrink-0"><i class="fas fa-calendar-alt me-1"></i>${a.date || ''}</small>
+            <small class="text-muted flex-shrink-0"><i class="fas fa-calendar-alt me-1"></i>${a.date_posted || a.created_at || ''}</small>
           </div>
           <div class="ann-card-body">
             <div class="ann-content ${isLong ? 'ann-content-collapsed' : ''}" id="annContent${idx}" style="font-size:.875rem;line-height:1.65;white-space:pre-line">${a.content || ''}</div>
             ${isLong ? `<button class="btn btn-link btn-sm p-0 mt-2 text-primary read-more-btn" data-target="annContent${idx}" data-expanded="false"><i class="fas fa-chevron-down me-1"></i>Read More</button>` : ''}
           </div>
           <div class="ann-card-footer d-flex justify-content-between align-items-center">
-            <span><i class="fas fa-user-shield me-1"></i>Posted by: ${a.postedBy || 'DRRM Office'}</span>
-            <span><i class="fas fa-calendar me-1"></i>${a.date || ''}</span>
+            <span><i class="fas fa-user-shield me-1"></i>Posted by: ${a.posted_by || 'DRRM Office'}</span>
+            <span><i class="fas fa-calendar me-1"></i>${a.date_posted || a.created_at || ''}</span>
           </div>
         </div>`;
     }).join('');

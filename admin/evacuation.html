@@ -328,8 +328,8 @@
       <span class="filter-label"><i class="fas fa-toggle-on me-1"></i>Status</span>
       <select id="filterStatus" class="form-select form-select-sm">
         <option value="">All Statuses</option>
-        <option value="Active">Active</option>
-        <option value="Inactive">Inactive</option>
+        <option value="Open">Open</option>
+        <option value="Closed">Closed</option>
       </select>
     </div>
 
@@ -506,8 +506,8 @@
             <div class="col-md-4">
               <label class="form-label fw-semibold" for="fStatus">Status</label>
               <select class="form-select" id="fStatus">
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
+                <option value="Open">Open</option>
+                <option value="Closed">Closed</option>
               </select>
             </div>
 
@@ -666,6 +666,7 @@
      SCRIPTS
 ══════════════════════════════════════════════════════════ -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/js/api.js"></script>
 <script src="../assets/js/auth.js"></script>
 <script src="../assets/js/app.js"></script>
 
@@ -700,26 +701,6 @@ function showToast(message, type = 'success') {
   bootstrap.Toast.getOrCreateInstance(el, { delay: 3000 }).show();
 }
 
-// ── LocalStorage helpers ──────────────────────────────────
-function getCenters() {
-  try { return JSON.parse(localStorage.getItem('odmis_evacuation_centers')) || []; }
-  catch(e) { return []; }
-}
-function setCenters(data) {
-  localStorage.setItem('odmis_evacuation_centers', JSON.stringify(data));
-}
-
-// ── ID generator ──────────────────────────────────────────
-function generateId() {
-  const centers = getCenters();
-  if (!centers.length) return 'EVAC-001';
-  const nums = centers.map(c => {
-    const m = c.id && c.id.match(/EVAC-(\d+)/);
-    return m ? parseInt(m[1], 10) : 0;
-  });
-  return 'EVAC-' + String(Math.max(...nums) + 1).padStart(3, '0');
-}
-
 // ── Capacity bar helper ────────────────────────────────────
 function buildCapBar(capacity, occupied) {
   const pct = capacity > 0 ? Math.min(100, Math.round((occupied / capacity) * 100)) : 0;
@@ -740,14 +721,20 @@ function buildCapBar(capacity, occupied) {
 // ── Status badge ───────────────────────────────────────────
 function statusBadge(status) {
   const s = (status || '').toLowerCase();
-  if (s === 'active')   return '<span class="badge bg-success">Active</span>';
-  if (s === 'inactive') return '<span class="badge bg-secondary">Inactive</span>';
+  if (s === 'open')   return '<span class="badge bg-success">Open</span>';
+  if (s === 'closed') return '<span class="badge bg-secondary">Closed</span>';
   return `<span class="badge bg-light text-dark">${status}</span>`;
 }
 
 // ── Load & render ─────────────────────────────────────────
-function loadCenters() {
-  allCenters = getCenters();
+async function loadCenters() {
+  try {
+    const res = await ApiClient.get('/evacuation/index.php');
+    allCenters = Array.isArray(res.data) ? res.data : [];
+  } catch (err) {
+    showToast('Failed to load centers: ' + err.message, 'danger');
+    allCenters = [];
+  }
   filterCenters();
 }
 
@@ -758,11 +745,11 @@ function filterCenters() {
 
   filteredCenters = allCenters.filter(c => {
     const matchSearch = !search ||
-      (c.name          && c.name.toLowerCase().includes(search)) ||
-      (c.location      && c.location.toLowerCase().includes(search)) ||
-      (c.contactPerson && c.contactPerson.toLowerCase().includes(search)) ||
-      (c.contactNumber && c.contactNumber.includes(search)) ||
-      (c.id            && c.id.toLowerCase().includes(search));
+      (c.center_name    && c.center_name.toLowerCase().includes(search)) ||
+      (c.location       && c.location.toLowerCase().includes(search)) ||
+      (c.contact_person && c.contact_person.toLowerCase().includes(search)) ||
+      (c.contact_number && c.contact_number.includes(search)) ||
+      (c.center_code    && c.center_code.toLowerCase().includes(search));
     const matchBrgy   = !barangay  || c.barangay === barangay;
     const matchStatus = !statusVal || c.status   === statusVal;
     return matchSearch && matchBrgy && matchStatus;
@@ -797,11 +784,11 @@ function renderTable() {
   pagBar.style.display = 'flex';
 
   tbody.innerHTML = slice.map(c => {
-    const avail = (c.capacity || 0) - (c.occupied || 0);
+    const avail = (c.capacity || 0) - (c.occupied_slots || 0);
     return `
       <tr>
-        <td><span class="center-id-chip">${c.id}</span></td>
-        <td class="fw-semibold">${escHtml(c.name)}</td>
+        <td><span class="center-id-chip">${escHtml(c.center_code)}</span></td>
+        <td class="fw-semibold">${escHtml(c.center_name)}</td>
         <td>
           <div style="max-width:220px; white-space:normal; line-height:1.3;">
             ${escHtml(c.location)}
@@ -809,20 +796,20 @@ function renderTable() {
           <small class="text-muted">${escHtml(c.barangay)}</small>
         </td>
         <td class="text-center">${c.capacity}</td>
-        <td class="text-center">${c.occupied}</td>
+        <td class="text-center">${c.occupied_slots}</td>
         <td class="text-center">${avail}</td>
-        <td>${buildCapBar(c.capacity, c.occupied)}</td>
-        <td>${escHtml(c.contactPerson || '—')}</td>
-        <td>${escHtml(c.contactNumber || '—')}</td>
+        <td>${buildCapBar(c.capacity, c.occupied_slots)}</td>
+        <td>${escHtml(c.contact_person || '—')}</td>
+        <td>${escHtml(c.contact_number || '—')}</td>
         <td>${statusBadge(c.status)}</td>
         <td class="text-center" style="white-space:nowrap;">
-          <button class="btn-action btn-view me-1" title="View" onclick="viewCenter('${c.id}')">
+          <button class="btn-action btn-view me-1" title="View" onclick="viewCenter(${c.id})">
             <i class="fas fa-eye"></i>
           </button>
-          <button class="btn-action btn-edit me-1" title="Edit" onclick="editCenter('${c.id}')">
+          <button class="btn-action btn-edit me-1" title="Edit" onclick="editCenter(${c.id})">
             <i class="fas fa-edit"></i>
           </button>
-          <button class="btn-action btn-delete" title="Delete" onclick="deleteCenter('${c.id}')">
+          <button class="btn-action btn-delete" title="Delete" onclick="deleteCenter(${c.id})">
             <i class="fas fa-trash-alt"></i>
           </button>
         </td>
@@ -856,10 +843,9 @@ function renderPagination(total) {
 function goPage(p) { currentPage = p; renderTable(); }
 
 function renderSummary() {
-  const centers = getCenters();
-  document.getElementById('statTotalCenters').textContent  = centers.length;
-  document.getElementById('statTotalCapacity').textContent = centers.reduce((a, c) => a + (c.capacity || 0), 0);
-  document.getElementById('statTotalOccupied').textContent = centers.reduce((a, c) => a + (c.occupied || 0), 0);
+  document.getElementById('statTotalCenters').textContent  = allCenters.length;
+  document.getElementById('statTotalCapacity').textContent = allCenters.reduce((a, c) => a + (c.capacity || 0), 0);
+  document.getElementById('statTotalOccupied').textContent = allCenters.reduce((a, c) => a + (c.occupied_slots || 0), 0);
 }
 
 // ── HTML escaping ─────────────────────────────────────────
@@ -880,38 +866,32 @@ function openAddModal() {
 
 // ── Edit center ───────────────────────────────────────────
 function editCenter(id) {
-  const c = getCenters().find(x => x.id === id);
+  const c = allCenters.find(x => x.id === id);
   if (!c) return;
   document.getElementById('evacModalTitle').innerHTML =
     '<i class="fas fa-edit me-2"></i>Edit Evacuation Center';
   document.getElementById('evacId').value          = c.id;
-  document.getElementById('fName').value           = c.name || '';
-  document.getElementById('fLocation').value       = c.location || '';
-  document.getElementById('fBarangay').value       = c.barangay || '';
-  document.getElementById('fCapacity').value       = c.capacity || '';
-  document.getElementById('fOccupied').value       = c.occupied || 0;
-  document.getElementById('fStatus').value         = c.status || 'Active';
-  document.getElementById('fContactPerson').value  = c.contactPerson || '';
-  document.getElementById('fContactNumber').value  = c.contactNumber || '';
+  document.getElementById('fName').value           = c.center_name     || '';
+  document.getElementById('fLocation').value       = c.location        || '';
+  document.getElementById('fBarangay').value       = c.barangay        || '';
+  document.getElementById('fCapacity').value       = c.capacity        || '';
+  document.getElementById('fOccupied').value       = c.occupied_slots  || 0;
+  document.getElementById('fStatus').value         = c.status          || 'Open';
+  document.getElementById('fContactPerson').value  = c.contact_person  || '';
+  document.getElementById('fContactNumber').value  = c.contact_number  || '';
   document.getElementById('evacForm').classList.remove('was-validated');
   evacModalInst.show();
 }
 
 // ── Save center ───────────────────────────────────────────
-function saveCenter() {
+async function saveCenter() {
   const form = document.getElementById('evacForm');
   form.classList.add('was-validated');
   if (!form.checkValidity()) return;
 
-  const id      = document.getElementById('evacId').value.trim();
-  const name    = document.getElementById('fName').value.trim();
-  const loc     = document.getElementById('fLocation').value.trim();
-  const brgy    = document.getElementById('fBarangay').value;
+  const dbId    = document.getElementById('evacId').value.trim();
   const cap     = parseInt(document.getElementById('fCapacity').value, 10);
   const occ     = parseInt(document.getElementById('fOccupied').value, 10) || 0;
-  const status  = document.getElementById('fStatus').value;
-  const cPerson = document.getElementById('fContactPerson').value.trim();
-  const cNum    = document.getElementById('fContactNumber').value.trim();
 
   if (occ > cap) {
     document.getElementById('fOccupied').setCustomValidity('Occupied cannot exceed capacity.');
@@ -920,52 +900,54 @@ function saveCenter() {
   }
   document.getElementById('fOccupied').setCustomValidity('');
 
-  const centers = getCenters();
+  const payload = {
+    center_name   : document.getElementById('fName').value.trim(),
+    location      : document.getElementById('fLocation').value.trim(),
+    barangay      : document.getElementById('fBarangay').value,
+    capacity      : cap,
+    occupied_slots: occ,
+    status        : document.getElementById('fStatus').value,
+    contact_person: document.getElementById('fContactPerson').value.trim(),
+    contact_number: document.getElementById('fContactNumber').value.trim()
+  };
 
-  if (id) {
-    // update
-    const idx = centers.findIndex(c => c.id === id);
-    if (idx > -1) {
-      centers[idx] = { ...centers[idx], name, location: loc, barangay: brgy,
-        capacity: cap, occupied: occ, status, contactPerson: cPerson, contactNumber: cNum };
-      setCenters(centers);
+  const btn = document.getElementById('btnSaveCenter');
+  btn.disabled = true;
+  try {
+    if (dbId) {
+      await ApiClient.put('/evacuation/update.php?id=' + dbId, payload);
       showToast('Evacuation center updated successfully.', 'success');
+    } else {
+      await ApiClient.post('/evacuation/store.php', payload);
+      showToast('Evacuation center added successfully.', 'success');
     }
-  } else {
-    // create
-    const newCenter = {
-      id: generateId(), name, location: loc, barangay: brgy,
-      capacity: cap, occupied: occ, contactPerson: cPerson,
-      contactNumber: cNum, status,
-      createdAt: new Date().toISOString().split('T')[0]
-    };
-    centers.push(newCenter);
-    setCenters(centers);
-    showToast('Evacuation center added successfully.', 'success');
+    evacModalInst.hide();
+    await loadCenters();
+  } catch (err) {
+    showToast(err.message || 'Save failed.', 'danger');
+  } finally {
+    btn.disabled = false;
   }
-
-  evacModalInst.hide();
-  loadCenters();
 }
 
 // ── View center ────────────────────────────────────────────
 function viewCenter(id) {
-  const c = getCenters().find(x => x.id === id);
+  const c = allCenters.find(x => x.id === id);
   if (!c) return;
   viewTargetId = id;
 
-  document.getElementById('vName').textContent        = c.name || '—';
-  document.getElementById('vId').textContent          = c.id;
-  document.getElementById('vLocation').textContent    = c.location || '—';
-  document.getElementById('vBarangay').textContent    = c.barangay || '—';
-  document.getElementById('vCapacity').textContent    = c.capacity || 0;
-  document.getElementById('vOccupied').textContent    = c.occupied || 0;
-  document.getElementById('vAvailable').textContent   = (c.capacity || 0) - (c.occupied || 0);
-  document.getElementById('vContactPerson').textContent = c.contactPerson || '—';
-  document.getElementById('vContactNumber').textContent = c.contactNumber || '—';
-  document.getElementById('vCreatedAt').textContent   = c.createdAt || '—';
+  document.getElementById('vName').textContent          = c.center_name    || '—';
+  document.getElementById('vId').textContent            = c.center_code    || '—';
+  document.getElementById('vLocation').textContent      = c.location       || '—';
+  document.getElementById('vBarangay').textContent      = c.barangay       || '—';
+  document.getElementById('vCapacity').textContent      = c.capacity       || 0;
+  document.getElementById('vOccupied').textContent      = c.occupied_slots || 0;
+  document.getElementById('vAvailable').textContent     = (c.capacity || 0) - (c.occupied_slots || 0);
+  document.getElementById('vContactPerson').textContent = c.contact_person || '—';
+  document.getElementById('vContactNumber').textContent = c.contact_number || '—';
+  document.getElementById('vCreatedAt').textContent     = c.created_at     || '—';
 
-  const pct = c.capacity > 0 ? Math.min(100, Math.round((c.occupied / c.capacity) * 100)) : 0;
+  const pct = c.capacity > 0 ? Math.min(100, Math.round((c.occupied_slots / c.capacity) * 100)) : 0;
   let barCls = 'bg-success';
   if (pct > 80) barCls = 'bg-danger';
   else if (pct >= 50) barCls = 'bg-warning';
@@ -973,14 +955,14 @@ function viewCenter(id) {
   const bar = document.getElementById('vCapBar');
   bar.className = `progress-bar ${barCls}`;
   bar.style.width = `${pct}%`;
-  document.getElementById('vCapPct').textContent     = `${pct}%`;
-  document.getElementById('vCapFraction').textContent = `${c.occupied} / ${c.capacity}`;
+  document.getElementById('vCapPct').textContent      = `${pct}%`;
+  document.getElementById('vCapFraction').textContent = `${c.occupied_slots} / ${c.capacity}`;
 
   const badge = document.getElementById('vStatusBadge');
-  if ((c.status || '').toLowerCase() === 'active') {
-    badge.className = 'badge bg-success fs-6'; badge.textContent = 'Active';
+  if ((c.status || '').toLowerCase() === 'open') {
+    badge.className = 'badge bg-success fs-6'; badge.textContent = 'Open';
   } else {
-    badge.className = 'badge bg-secondary fs-6'; badge.textContent = c.status || 'Inactive';
+    badge.className = 'badge bg-secondary fs-6'; badge.textContent = c.status || 'Closed';
   }
 
   viewModalInst.show();
@@ -988,37 +970,45 @@ function viewCenter(id) {
 
 // ── Delete center ─────────────────────────────────────────
 function deleteCenter(id) {
-  const c = getCenters().find(x => x.id === id);
+  const c = allCenters.find(x => x.id === id);
   if (!c) return;
   deleteTargetId = id;
-  document.getElementById('deleteTargetName').textContent = `"${c.name}"`;
+  document.getElementById('deleteTargetName').textContent = `"${c.center_name}"`;
   deleteModalInst.show();
 }
 
-function confirmDelete() {
+async function confirmDelete() {
   if (!deleteTargetId) return;
-  let centers = getCenters().filter(c => c.id !== deleteTargetId);
-  setCenters(centers);
-  deleteTargetId = null;
-  deleteModalInst.hide();
-  showToast('Evacuation center deleted.', 'danger');
-  loadCenters();
+  const btn = document.getElementById('confirmDeleteBtn');
+  btn.disabled = true;
+  try {
+    await ApiClient.del('/evacuation/destroy.php?id=' + deleteTargetId);
+    deleteTargetId = null;
+    deleteModalInst.hide();
+    showToast('Evacuation center deleted.', 'danger');
+    await loadCenters();
+  } catch (err) {
+    showToast(err.message || 'Delete failed.', 'danger');
+  } finally {
+    btn.disabled = false;
+  }
 }
 
 // ── DOMContentLoaded ──────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-  // Init mock data & auth
-  if (typeof initMockData === 'function') initMockData();
-  if (typeof Auth !== 'undefined') {
-    Auth.requireAdmin();
-    const session = Auth.getSession();
-    if (session) {
-      const initLetter = session.fullName ? session.fullName[0].toUpperCase() : 'A';
-      document.getElementById('sidebarUserAvatar').textContent = initLetter;
-      document.getElementById('sidebarUserName').textContent   = session.fullName || session.username;
-      document.getElementById('navbarAvatar').textContent      = initLetter;
-      document.getElementById('navbarUsername').textContent    = session.username;
-    }
+document.addEventListener('DOMContentLoaded', async () => {
+  if (!Auth.requireAdmin()) return;
+
+  const session = Auth.getSession();
+  if (session) {
+    const initLetter = session.fullName ? session.fullName[0].toUpperCase() : 'A';
+    const sidebarAvatar = document.getElementById('sidebarUserAvatar');
+    const sidebarName   = document.getElementById('sidebarUserName');
+    const navAvatar     = document.getElementById('navbarAvatar');
+    const navUsername   = document.getElementById('navbarUsername');
+    if (sidebarAvatar) sidebarAvatar.textContent = initLetter;
+    if (sidebarName)   sidebarName.textContent   = session.fullName || session.username;
+    if (navAvatar)     navAvatar.textContent      = initLetter;
+    if (navUsername)   navUsername.textContent    = session.username;
   }
 
   // Modal instances
@@ -1089,7 +1079,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Initial load
-  loadCenters();
+  await loadCenters();
 });
 </script>
 </body>

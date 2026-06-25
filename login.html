@@ -374,6 +374,7 @@
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/js/api.js"></script>
   <script src="assets/js/auth.js"></script>
 
   <script>
@@ -424,8 +425,7 @@
     }
 
     // ── Handle login ─────────────────────────────────────────────
-    function handleLogin(formId, usernameId, passwordId, btnId, role) {
-      const form     = document.getElementById(formId);
+    async function handleLogin(usernameId, passwordId, btnId, expectedRole) {
       const username = document.getElementById(usernameId).value.trim();
       const password = document.getElementById(passwordId).value;
 
@@ -435,34 +435,42 @@
       }
 
       setLoading(btnId, true);
+      try {
+        const res  = await ApiClient.post('/auth/login.php', { username, password });
+        const data = res.data;
 
-      // Small timeout to let the spinner render
-      setTimeout(function () {
-        const result = Auth.login(username, password, role);
-        setLoading(btnId, false);
-
-        if (result.success) {
-          showToast('Login successful! Redirecting…', 'success');
-          setTimeout(function () {
-            window.location.href = role === 'admin'
-              ? 'admin/dashboard.html'
-              : 'user/dashboard.html';
-          }, 800);
-        } else {
-          showToast(result.message, 'error');
+        // Enforce role-specific login tab
+        if (expectedRole && data.role !== expectedRole) {
+          const msg = expectedRole === 'admin'
+            ? 'Access denied. Administrator privileges are required.'
+            : 'Access denied. This login is for registered users only.';
+          showToast(msg, 'error');
+          return;
         }
-      }, 400);
+
+        ApiClient.setToken(data.token);
+        showToast('Login successful! Redirecting…', 'success');
+        setTimeout(function () {
+          window.location.href = data.role === 'admin'
+            ? 'admin/dashboard.html'
+            : 'user/dashboard.html';
+        }, 800);
+      } catch (err) {
+        showToast(err.message || 'Login failed.', 'error');
+      } finally {
+        setLoading(btnId, false);
+      }
     }
 
     // ── Form submit listeners ─────────────────────────────────────
     document.getElementById('adminForm').addEventListener('submit', function (e) {
       e.preventDefault();
-      handleLogin('adminForm', 'adminUsername', 'adminPassword', 'adminSubmit', 'admin');
+      handleLogin('adminUsername', 'adminPassword', 'adminSubmit', 'admin');
     });
 
     document.getElementById('userForm').addEventListener('submit', function (e) {
       e.preventDefault();
-      handleLogin('userForm', 'userUsername', 'userPassword', 'userSubmit', 'user');
+      handleLogin('userUsername', 'userPassword', 'userSubmit', 'user');
     });
 
     // ── Clear error styling on tab switch ────────────────────────
