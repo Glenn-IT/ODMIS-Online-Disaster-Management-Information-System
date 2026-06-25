@@ -200,12 +200,12 @@
 
 ## Phase 7 — Reports & Export
 
-- [ ] `GET /api/reports/incidents.php?start=&end=&type=&barangay=` — filtered incident data
-- [ ] `GET /api/reports/residents.php` — resident list data
-- [ ] `GET /api/reports/relief.php?start=&end=` — relief operations data
-- [ ] `GET /api/reports/evacuation.php` — evacuation center data
-- [ ] `GET /api/reports/export-pdf.php?report=&...filters` — generate and stream PDF using mPDF
-- [ ] `GET /api/reports/export-csv.php?report=&...filters` — generate and stream CSV
+- [x] `GET /api/reports/incidents.php` — filters: start, end, type, barangay, status, severity; returns count + filters + data ✅
+- [x] `GET /api/reports/residents.php` — filters: status; returns count + active/inactive breakdown; password_hash excluded ✅
+- [x] `GET /api/reports/relief.php` — filters: start, end, barangay, status; returns count + total_items ✅
+- [x] `GET /api/reports/evacuation.php` — filters: status, barangay; returns count + total_capacity + total_occupied + total_available ✅
+- [x] `GET /api/reports/export-pdf.php?report=` — mPDF generates styled PDF (29KB+); DRRM header, green theme, filter summary; landscape for wide tables; force download ✅
+- [x] `GET /api/reports/export-csv.php?report=` — streams CSV with UTF-8 BOM (Excel-safe), meta header rows, all columns; force download ✅
 
 ---
 
@@ -291,7 +291,7 @@
 | 4     | Core CRUD APIs               | ✅ Done        |
 | 5     | File Uploads                 | ✅ Done        |
 | 6     | Analytics API                | ✅ Done        |
-| 7     | Reports & Export             | ⬜ Not Started |
+| 7     | Reports & Export             | ✅ Done        |
 | 8     | Email Notifications          | ⬜ Not Started |
 | 9     | Frontend Integration         | ⬜ Not Started |
 | 10    | Security Hardening           | ⬜ Not Started |
