@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Disaster Alerts — ODMIS User</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <style>
+    .alert-card { border: none; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,.1); overflow: hidden; transition: transform .15s; }
+    .alert-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,.15); }
+    .alert-card-header { padding: 1rem 1.25rem .75rem; }
+    .alert-card-body   { padding: .75rem 1.25rem; }
+    .alert-card-footer { padding: .75rem 1.25rem; border-top: 1px solid rgba(0,0,0,.08); background: rgba(0,0,0,.02); font-size:.8rem; }
+
+    /* Severity color themes */
+    .theme-critical .alert-card-header { background: #dc3545; color: #fff; }
+    .theme-high     .alert-card-header { background: #fd7e14; color: #fff; }
+    .theme-moderate .alert-card-header { background: #ffc107; color: #333; }
+    .theme-low      .alert-card-header { background: #6c757d; color: #fff; }
+    .theme-safe     .alert-card-header { background: #198754; color: #fff; }
+
+    .filter-tabs .nav-link { font-size: .85rem; padding: .4rem .85rem; }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════
+     SIDEBAR
+════════════════════════════════════════ -->
+<div id="sidebar" class="sidebar">
+  <div class="sidebar-logo-area">
+    <div class="sidebar-logo-placeholder"><i class="fas fa-shield-alt"></i></div>
+    <div class="sidebar-brand-text"><span class="brand-title">ODMIS</span><span class="brand-subtitle">Disaster Management</span></div>
+  </div>
+  <nav class="sidebar-nav">
+    <ul class="list-unstyled mb-0">
+      <li class="sidebar-nav-item"><a href="dashboard.html" class="sidebar-nav-link" data-page="dashboard"><i class="fas fa-tachometer-alt nav-icon"></i><span class="nav-label">Dashboard</span></a></li>
+      <li class="sidebar-nav-item"><a href="report-incident.html" class="sidebar-nav-link" data-page="report-incident"><i class="fas fa-plus-circle nav-icon"></i><span class="nav-label">Report Incident</span></a></li>
+      <li class="sidebar-nav-item"><a href="alerts.html" class="sidebar-nav-link active" data-page="alerts"><i class="fas fa-bell nav-icon"></i><span class="nav-label">Disaster Alerts</span></a></li>
+      <li class="sidebar-nav-item"><a href="evacuation-centers.html" class="sidebar-nav-link" data-page="evacuation-centers"><i class="fas fa-house-damage nav-icon"></i><span class="nav-label">Evacuation Centers</span></a></li>
+      <li class="sidebar-nav-item"><a href="announcements.html" class="sidebar-nav-link" data-page="announcements"><i class="fas fa-bullhorn nav-icon"></i><span class="nav-label">Announcements</span></a></li>
+      <li class="sidebar-nav-item"><a href="profile.html" class="sidebar-nav-link" data-page="profile"><i class="fas fa-user nav-icon"></i><span class="nav-label">Profile</span></a></li>
+    </ul>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="sidebar-user-avatar" id="sidebarAvatar">U</div>
+    <div class="sidebar-user-info"><span class="sidebar-user-name" id="sidebarName">User</span><span class="sidebar-user-role">Resident</span></div>
+  </div>
+</div>
+<div id="sidebarOverlay"></div>
+
+<!-- ═══════════════════════════════════════
+     TOP NAVBAR
+════════════════════════════════════════ -->
+<nav id="topNavbar">
+  <button class="navbar-hamburger" id="sidebarToggle"><i class="fas fa-bars"></i></button>
+  <h1 class="navbar-page-title">Disaster Alerts</h1>
+  <div class="navbar-right">
+    <button class="navbar-icon-btn position-relative" title="Notifications">
+      <i class="fas fa-bell"></i><span class="notification-count" id="notifBadge">0</span>
+    </button>
+    <div class="navbar-divider"></div>
+    <div class="dropdown">
+      <div class="navbar-user dropdown-toggle" data-bs-toggle="dropdown" role="button">
+        <div class="navbar-avatar" id="navAvatar">U</div>
+        <span class="navbar-user-name" id="navUsername">User</span>
+        <i class="fas fa-chevron-down ms-1" style="font-size:.65rem;color:var(--color-gray)"></i>
+      </div>
+      <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="min-width:180px;font-size:var(--font-size-sm)">
+        <li><a class="dropdown-item" href="profile.html"><i class="fas fa-user me-2 text-muted"></i>Profile</a></li>
+        <li><hr class="dropdown-divider my-1"></li>
+        <li><a class="dropdown-item text-danger" href="#" data-action="logout"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════
+     MAIN CONTENT
+════════════════════════════════════════ -->
+<main id="mainContent">
+  <div class="page-header">
+    <div>
+      <h1 class="mb-1"><i class="fas fa-bell me-2" style="color:var(--color-accent)"></i>Disaster Alerts</h1>
+      <p class="page-subtitle mb-0">Stay informed about active disaster alerts and warnings in your area</p>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-body py-3">
+      <div class="row g-3 align-items-center">
+        <!-- Type Tabs -->
+        <div class="col-lg-8">
+          <label class="form-label fw-semibold small text-muted mb-1">Filter by Type</label>
+          <ul class="nav nav-pills filter-tabs flex-wrap gap-1" id="typeFilter">
+            <li class="nav-item"><a class="nav-link active" href="#" data-type="all">All</a></li>
+            <li class="nav-item"><a class="nav-link" href="#" data-type="Typhoon"><i class="fas fa-wind me-1"></i>Typhoon</a></li>
+            <li class="nav-item"><a class="nav-link" href="#" data-type="Flood"><i class="fas fa-water me-1"></i>Flood</a></li>
+            <li class="nav-item"><a class="nav-link" href="#" data-type="Earthquake"><i class="fas fa-mountain me-1"></i>Earthquake</a></li>
+            <li class="nav-item"><a class="nav-link" href="#" data-type="Fire"><i class="fas fa-fire me-1"></i>Fire</a></li>
+            <li class="nav-item"><a class="nav-link" href="#" data-type="Landslide"><i class="fas fa-mountain me-1"></i>Landslide</a></li>
+          </ul>
+        </div>
+        <!-- Severity Filter -->
+        <div class="col-lg-4">
+          <label class="form-label fw-semibold small text-muted mb-1">Filter by Severity</label>
+          <select class="form-select form-select-sm" id="severityFilter">
+            <option value="all">All Severities</option>
+            <option value="Critical">Critical</option>
+            <option value="High">High</option>
+            <option value="Moderate">Moderate</option>
+            <option value="Low">Low</option>
+            <option value="Safe">Safe</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results summary -->
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <span class="text-muted small"><span id="alertCount">0</span> alert(s) found</span>
+    <span class="badge bg-danger" id="criticalCount">0 Critical</span>
+  </div>
+
+  <!-- Alert Cards Grid -->
+  <div class="row g-3" id="alertsGrid">
+    <div class="col-12 text-center text-muted py-5"><i class="fas fa-spinner fa-spin me-2"></i>Loading alerts...</div>
+  </div>
+</main>
+
+<!-- ═══════════════════════════════════════
+     LOGOUT MODAL
+════════════════════════════════════════ -->
+<div class="modal fade" id="logoutModal" tabindex="-1">
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title"><i class="fas fa-sign-out-alt me-2"></i>Confirm Logout</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-center py-4"><p class="mb-0">Are you sure you want to logout?</p></div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-danger btn-sm" id="confirmLogoutBtn">Logout</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/js/mock-data.js"></script>
+<script src="../assets/js/auth.js"></script>
+<script src="../assets/js/app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  initMockData();
+  Auth.requireUser();
+
+  const session = Auth.getSession();
+  if (session) {
+    const initial = (session.fullName || session.username || 'U')[0].toUpperCase();
+    document.getElementById('sidebarAvatar').textContent = initial;
+    document.getElementById('sidebarName').textContent = session.fullName || session.username;
+    document.getElementById('navAvatar').textContent = initial;
+    document.getElementById('navUsername').textContent = session.username;
+  }
+
+  document.getElementById('sidebarToggle').addEventListener('click', () => document.body.classList.toggle('sidebar-collapsed'));
+  document.getElementById('confirmLogoutBtn').addEventListener('click', () => Auth.logout());
+  document.querySelectorAll('[data-action="logout"]').forEach(el => {
+    el.addEventListener('click', e => { e.preventDefault(); new bootstrap.Modal(document.getElementById('logoutModal')).show(); });
+  });
+
+  const allAlerts = JSON.parse(localStorage.getItem('odmis_alerts') || '[]');
+  const activeCount = allAlerts.filter(a => a.status !== 'Resolved').length;
+  document.getElementById('notifBadge').textContent = activeCount;
+
+  let currentType = 'all';
+  let currentSeverity = 'all';
+
+  // ── Helpers ────────────────────────────────────────────────
+  function severityTheme(sev) {
+    const s = (sev || '').toLowerCase();
+    if (s === 'critical') return 'theme-critical';
+    if (s === 'high')     return 'theme-high';
+    if (s === 'moderate') return 'theme-moderate';
+    if (s === 'low')      return 'theme-low';
+    return 'theme-safe';
+  }
+
+  function severityBadge(sev) {
+    const s = (sev || '').toLowerCase();
+    if (s === 'critical') return 'bg-danger';
+    if (s === 'high')     return 'bg-warning text-dark';
+    if (s === 'moderate') return 'bg-warning text-dark';
+    if (s === 'low')      return 'bg-secondary';
+    return 'bg-success';
+  }
+
+  function alertTypeIcon(type) {
+    const t = (type || '').toLowerCase();
+    if (t === 'typhoon')   return 'fa-wind';
+    if (t === 'flood')     return 'fa-water';
+    if (t === 'earthquake') return 'fa-mountain';
+    if (t === 'fire')      return 'fa-fire';
+    if (t === 'landslide') return 'fa-mountain';
+    return 'fa-exclamation-triangle';
+  }
+
+  function statusBadge(status) {
+    return status === 'Resolved'
+      ? '<span class="badge bg-success">Resolved</span>'
+      : '<span class="badge bg-danger">Active</span>';
+  }
+
+  // ── Render ─────────────────────────────────────────────────
+  function renderAlerts() {
+    let filtered = allAlerts;
+    if (currentType !== 'all')     filtered = filtered.filter(a => a.type === currentType);
+    if (currentSeverity !== 'all') filtered = filtered.filter(a => a.severity === currentSeverity);
+
+    document.getElementById('alertCount').textContent = filtered.length;
+    document.getElementById('criticalCount').textContent = filtered.filter(a => a.severity === 'Critical').length + ' Critical';
+
+    const grid = document.getElementById('alertsGrid');
+    if (filtered.length === 0) {
+      grid.innerHTML = '<div class="col-12 text-center text-muted py-5"><i class="fas fa-search me-2"></i>No alerts match the selected filters.</div>';
+      return;
+    }
+
+    grid.innerHTML = filtered.map(a => `
+      <div class="col-md-6">
+        <div class="alert-card ${severityTheme(a.severity)}">
+          <div class="alert-card-header">
+            <div class="d-flex align-items-start justify-content-between gap-2">
+              <div class="d-flex align-items-center gap-2">
+                <i class="fas ${alertTypeIcon(a.type)} fa-lg"></i>
+                <strong style="font-size:.9rem;line-height:1.3">${a.title || 'Alert'}</strong>
+              </div>
+              <span class="badge ${severityBadge(a.severity)} flex-shrink-0">${a.severity}</span>
+            </div>
+          </div>
+          <div class="alert-card-body">
+            <div class="d-flex gap-2 mb-2 flex-wrap">
+              ${statusBadge(a.status)}
+              <span class="badge bg-light text-dark">${a.type || ''}</span>
+            </div>
+            <p class="mb-2" style="font-size:.875rem;color:#444">${a.description || ''}</p>
+            <div style="font-size:.82rem">
+              <div class="mb-1"><i class="fas fa-map-marker-alt text-muted me-1"></i><strong>Affected Areas:</strong>
+                ${(a.affectedAreas || []).map(area => `<span class="badge bg-light text-dark me-1">${area}</span>`).join('')}
+              </div>
+            </div>
+          </div>
+          <div class="alert-card-footer text-muted">
+            <i class="fas fa-clock me-1"></i>Issued: ${a.dateIssued || '—'} at ${a.timeIssued || '—'}
+          </div>
+        </div>
+      </div>`).join('');
+  }
+
+  // ── Filter events ──────────────────────────────────────────
+  document.getElementById('typeFilter').querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      document.getElementById('typeFilter').querySelectorAll('a').forEach(l => l.classList.remove('active'));
+      link.classList.add('active');
+      currentType = link.dataset.type;
+      renderAlerts();
+    });
+  });
+
+  document.getElementById('severityFilter').addEventListener('change', function () {
+    currentSeverity = this.value;
+    renderAlerts();
+  });
+
+  renderAlerts();
+});
+</script>
+</body>
+</html>
