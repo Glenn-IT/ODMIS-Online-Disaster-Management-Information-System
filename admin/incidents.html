@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Disaster Incident Management — ODMIS Admin</title>
+
+  <!-- Bootstrap 5 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <!-- ODMIS Styles -->
+  <link rel="stylesheet" href="../assets/css/style.css" />
+
+  <style>
+    /* ── Filter bar ── */
+    .filter-bar {
+      background: #fff;
+      border-radius: var(--card-border-radius);
+      box-shadow: var(--card-shadow);
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.25rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: flex-end;
+    }
+    .filter-bar .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      min-width: 140px;
+      flex: 1;
+    }
+    .filter-bar .filter-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: var(--color-gray);
+    }
+    .filter-bar .search-group {
+      flex: 2;
+      min-width: 200px;
+    }
+
+    /* ── Table action buttons ── */
+    .btn-action {
+      width: 30px;
+      height: 30px;
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      border: none;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .btn-view   { background: #d1ecf1; color: #0c5460; }
+    .btn-view:hover   { background: #2980b9; color: #fff; }
+    .btn-edit   { background: #fff3cd; color: #856404; }
+    .btn-edit:hover   { background: #f39c12; color: #fff; }
+    .btn-delete { background: #f8d7da; color: #721c24; }
+    .btn-delete:hover { background: #c0392b; color: #fff; }
+
+    /* ── Toggle status button ── */
+    .btn-toggle-active   { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; font-size: 0.7rem; padding: 2px 8px; border-radius: 12px; white-space: nowrap; }
+    .btn-toggle-active:hover   { background: #27ae60; color: #fff; border-color: #27ae60; }
+    .btn-toggle-resolved { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; font-size: 0.7rem; padding: 2px 8px; border-radius: 12px; white-space: nowrap; }
+    .btn-toggle-resolved:hover { background: #2980b9; color: #fff; border-color: #2980b9; }
+
+    /* ── Record count badge ── */
+    .record-count {
+      background: var(--color-primary);
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 2px 9px;
+      border-radius: 20px;
+      vertical-align: middle;
+    }
+
+    /* ── View modal detail rows ── */
+    .view-field-label {
+      font-size: var(--font-size-xs);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: var(--color-gray);
+      min-width: 140px;
+    }
+    .view-field-value {
+      font-size: var(--font-size-sm);
+      color: var(--color-dark-gray);
+    }
+
+    /* ── Results summary bar ── */
+    .results-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+      font-size: var(--font-size-xs);
+      color: var(--color-gray);
+    }
+
+    /* ── Incident ID chip ── */
+    .incident-id-chip {
+      font-family: monospace;
+      font-weight: 700;
+      color: var(--color-primary);
+      font-size: var(--font-size-sm);
+      background: rgba(26,58,107,0.07);
+      padding: 2px 8px;
+      border-radius: 4px;
+      border: 1px solid rgba(26,58,107,0.15);
+    }
+
+    /* ── Pagination ── */
+    .odmis-pagination {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+    .odmis-pagination button {
+      width: 32px;
+      height: 32px;
+      border: 1px solid var(--color-mid-gray);
+      background: #fff;
+      border-radius: 6px;
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--color-dark-gray);
+      transition: all 0.15s;
+    }
+    .odmis-pagination button:hover:not(:disabled) { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+    .odmis-pagination button.active { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+    .odmis-pagination button:disabled { opacity: 0.4; cursor: default; }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════
+     MOBILE GUARD
+══════════════════════════════════════════════════════════ -->
+<div id="mobileGuard">
+  <div class="text-center text-white p-4">
+    <i class="fas fa-desktop mobile-guard-icon"></i>
+    <h4 class="mobile-guard-title">Desktop Required</h4>
+    <p class="mobile-guard-subtitle">This system is optimized for desktop devices (minimum 1366 px width). Please switch to a desktop or laptop computer.</p>
+    <span class="mobile-guard-badge"><i class="fas fa-expand-arrows-alt me-1"></i>Min. 1366 px</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SIDEBAR
+══════════════════════════════════════════════════════════ -->
+<div id="sidebar">
+  <div class="sidebar-logo-area">
+    <div class="sidebar-logo-placeholder">
+      <i class="fas fa-shield-alt"></i>
+    </div>
+    <div class="sidebar-brand-text">
+      <span class="brand-title">ODMIS</span>
+      <span class="brand-subtitle">Disaster Management</span>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <ul class="list-unstyled mb-0">
+      <li class="sidebar-nav-item">
+        <a href="dashboard.html" class="sidebar-nav-link" data-page="dashboard">
+          <i class="fas fa-tachometer-alt nav-icon"></i>
+          <span class="nav-label">Dashboard</span>
+        </a>
+      </li>
+      <li class="sidebar-nav-item">
+        <a href="incidents.html" class="sidebar-nav-link" data-page="incidents">
+          <i class="fas fa-exclamation-triangle nav-icon"></i>
+          <span class="nav-label">Incidents</span>
+        </a>
+      </li>
+      <li class="sidebar-nav-item">
+        <a href="evacuation.html" class="sidebar-nav-link" data-page="evacuation">
+          <i class="fas fa-house-damage nav-icon"></i>
+          <span class="nav-label">Evacuation Centers</span>
+        </a>
+      </li>
+      <li class="sidebar-nav-item">
+        <a href="residents.html" class="sidebar-nav-link" data-page="residents">
+          <i class="fas fa-users nav-icon"></i>
+          <span class="nav-label">Residents</span>
+        </a>
+      </li>
+      <li class="sidebar-nav-item">
+        <a href="relief.html" class="sidebar-nav-link" data-page="relief">
+          <i class="fas fa-box-open nav-icon"></i>
+          <span class="nav-label">Relief Operations</span>
+        </a>
+      </li>
+      <li class="sidebar-nav-item">
+        <a href="reports.html" class="sidebar-nav-link" data-page="reports">
+          <i class="fas fa-chart-bar nav-icon"></i>
+          <span class="nav-label">Reports</span>
+        </a>
+      </li>
+      <li class="sidebar-nav-item">
+        <a href="settings.html" class="sidebar-nav-link" data-page="settings">
+          <i class="fas fa-cog nav-icon"></i>
+          <span class="nav-label">Settings</span>
+        </a>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="sidebar-user-avatar" id="sidebarUserAvatar">A</div>
+    <div class="sidebar-user-info">
+      <span class="sidebar-user-name" id="sidebarUserName">Admin</span>
+      <span class="sidebar-user-role" id="sidebarUserRole">Administrator</span>
+    </div>
+  </div>
+</div>
+
+<div id="sidebarOverlay"></div>
+
+<!-- ══════════════════════════════════════════════════════════
+     TOP NAVBAR
+══════════════════════════════════════════════════════════ -->
+<nav id="topNavbar">
+  <button class="navbar-hamburger" id="sidebarToggle" title="Toggle Sidebar">
+    <i class="fas fa-bars"></i>
+  </button>
+
+  <h1 class="navbar-page-title">Disaster Incident Management</h1>
+
+  <div class="navbar-right">
+    <button class="navbar-icon-btn position-relative" title="Notifications">
+      <i class="fas fa-bell"></i>
+      <span class="notification-count" id="notificationCount">0</span>
+    </button>
+
+    <div class="navbar-divider"></div>
+
+    <div class="dropdown">
+      <div class="navbar-user dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false">
+        <div class="navbar-avatar" id="navbarAvatar">A</div>
+        <span class="navbar-user-name" id="navbarUsername">Admin</span>
+        <i class="fas fa-chevron-down ms-1" style="font-size:0.65rem; color:var(--color-gray);"></i>
+      </div>
+      <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="min-width:180px; font-size:var(--font-size-sm);">
+        <li>
+          <a class="dropdown-item" href="settings.html">
+            <i class="fas fa-cog me-2 text-muted"></i>Settings
+          </a>
+        </li>
+        <li><hr class="dropdown-divider my-1"></li>
+        <li>
+          <a class="dropdown-item text-danger" href="#" data-action="logout">
+            <i class="fas fa-sign-out-alt me-2"></i>Logout
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════════
+     MAIN CONTENT
+══════════════════════════════════════════════════════════ -->
+<main id="mainContent">
+
+  <!-- Page Header -->
+  <div class="page-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div>
+      <h1 class="mb-1">
+        <i class="fas fa-exclamation-triangle me-2" style="color:var(--color-accent);"></i>
+        Disaster Incident Management
+      </h1>
+      <p class="page-subtitle mb-0">Record, monitor, and manage all disaster incidents in your jurisdiction.</p>
+    </div>
+    <button class="btn btn-primary" id="btnAddIncident">
+      <i class="fas fa-plus me-2"></i>Add Incident
+    </button>
+  </div>
+
+  <!-- ── FILTER BAR ── -->
+  <div class="filter-bar">
+    <!-- Search -->
+    <div class="filter-group search-group">
+      <span class="filter-label"><i class="fas fa-search me-1"></i>Search</span>
+      <div class="search-wrapper">
+        <i class="fas fa-search search-icon"></i>
+        <input type="text" id="filterSearch" class="form-control form-control-sm"
+               placeholder="Search by title, ID, location…" />
+      </div>
+    </div>
+
+    <!-- Disaster Type -->
+    <div class="filter-group">
+      <span class="filter-label"><i class="fas fa-bolt me-1"></i>Disaster Type</span>
+      <select id="filterType" class="form-select form-select-sm">
+        <option value="">All Types</option>
+        <option value="Flood">Flood</option>
+        <option value="Typhoon">Typhoon</option>
+        <option value="Earthquake">Earthquake</option>
+        <option value="Fire">Fire</option>
+        <option value="Landslide">Landslide</option>
+      </select>
+    </div>
+
+    <!-- Severity -->
+    <div class="filter-group">
+      <span class="filter-label"><i class="fas fa-thermometer-half me-1"></i>Severity</span>
+      <select id="filterSeverity" class="form-select form-select-sm">
+        <option value="">All Levels</option>
+        <option value="Low">Low</option>
+        <option value="Moderate">Moderate</option>
+        <option value="High">High</option>
+        <option value="Critical">Critical</option>
+      </select>
+    </div>
+
+    <!-- Status -->
+    <div class="filter-group">
+      <span class="filter-label"><i class="fas fa-toggle-on me-1"></i>Status</span>
+      <select id="filterStatus" class="form-select form-select-sm">
+        <option value="">All Statuses</option>
+        <option value="Active">Active</option>
+        <option value="Resolved">Resolved</option>
+      </select>
+    </div>
+
+    <!-- Barangay -->
+    <div class="filter-group">
+      <span class="filter-label"><i class="fas fa-map-pin me-1"></i>Barangay</span>
+      <select id="filterBarangay" class="form-select form-select-sm">
+        <option value="">All Barangays</option>
+        <option value="Minanga">Minanga</option>
+        <option value="Lubo">Lubo</option>
+        <option value="Sto. Niño">Sto. Niño</option>
+        <option value="Poblacion">Poblacion</option>
+      </select>
+    </div>
+
+    <!-- Reset button -->
+    <div class="filter-group" style="flex: 0; min-width: auto;">
+      <span class="filter-label">&nbsp;</span>
+      <button class="btn btn-outline-secondary btn-sm" id="btnResetFilters" title="Clear all filters">
+        <i class="fas fa-times me-1"></i>Clear
+      </button>
+    </div>
+  </div>
+
+  <!-- ── INCIDENTS TABLE CARD ── -->
+  <div class="content-card">
+    <div class="content-card-header">
+      <h5 class="mb-0" style="color:var(--color-primary); font-weight:700;">
+        <i class="fas fa-list me-2" style="color:var(--color-accent);"></i>
+        Incident Records
+        <span class="record-count ms-2" id="recordCount">0</span>
+      </h5>
+      <div class="d-flex align-items-center gap-2">
+        <button class="btn btn-outline-primary btn-sm no-print" onclick="window.print()">
+          <i class="fas fa-print me-1"></i>Print
+        </button>
+      </div>
+    </div>
+
+    <div class="content-card-body p-0">
+      <!-- Results bar -->
+      <div class="px-3 pt-3 pb-1 results-bar">
+        <span id="resultsInfo">Showing all records</span>
+        <div class="d-flex align-items-center gap-2">
+          <label class="mb-0" style="font-size:0.75rem; color:var(--color-gray);">Per page:</label>
+          <select id="perPageSelect" class="form-select form-select-sm" style="width:70px;">
+            <option value="10" selected>10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="table-wrapper">
+        <table class="table table-hover mb-0" id="incidentsTable">
+          <thead>
+            <tr>
+              <th>Incident ID</th>
+              <th>Disaster Type</th>
+              <th>Title</th>
+              <th>Location</th>
+              <th>Date</th>
+              <th>Severity</th>
+              <th>Status</th>
+              <th class="text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="incidentsTableBody">
+            <!-- populated by JS -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Empty state -->
+      <div id="incidentsEmptyState" class="empty-state d-none">
+        <i class="fas fa-inbox empty-state-icon"></i>
+        <p class="empty-state-title">No Incidents Found</p>
+        <p class="empty-state-text">No incidents match your current filters, or none have been recorded yet.</p>
+        <button class="btn btn-primary btn-sm mt-2" id="btnAddFromEmpty">
+          <i class="fas fa-plus me-1"></i>Add First Incident
+        </button>
+      </div>
+
+      <!-- Pagination -->
+      <div class="d-flex align-items-center justify-content-between px-3 py-2 border-top" id="paginationWrapper">
+        <span class="text-muted" id="paginationInfo" style="font-size:var(--font-size-xs);"></span>
+        <div class="odmis-pagination" id="paginationBtns"></div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ══════════════════════════════════════════════════════════
+     MODAL 1 — ADD / EDIT INCIDENT
+══════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="incidentModal" tabindex="-1" aria-labelledby="incidentModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="incidentModalLabel">
+          <i class="fas fa-plus-circle me-2"></i>Add New Incident
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body modal-body-scroll">
+        <form id="incidentForm" novalidate>
+          <div class="row g-3">
+            <!-- Incident ID (readonly) -->
+            <div class="col-md-4">
+              <label class="form-label" for="fieldIncidentId">
+                Incident ID <span class="text-muted fw-normal">(auto)</span>
+              </label>
+              <input type="text" id="fieldIncidentId" name="id" class="form-control" readonly
+                     placeholder="INC-001" style="background:#f8f9fa; color:var(--color-primary); font-weight:700;" />
+            </div>
+
+            <!-- Disaster Type -->
+            <div class="col-md-4">
+              <label class="form-label" for="fieldDisasterType">
+                Disaster Type <span class="text-danger">*</span>
+              </label>
+              <select id="fieldDisasterType" name="disasterType" class="form-select" required>
+                <option value="">— Select Type —</option>
+                <option value="Flood">Flood</option>
+                <option value="Typhoon">Typhoon</option>
+                <option value="Earthquake">Earthquake</option>
+                <option value="Fire">Fire</option>
+                <option value="Landslide">Landslide</option>
+              </select>
+              <div class="invalid-feedback">Please select a disaster type.</div>
+            </div>
+
+            <!-- Severity Level -->
+            <div class="col-md-4">
+              <label class="form-label" for="fieldSeverity">
+                Severity Level <span class="text-danger">*</span>
+              </label>
+              <select id="fieldSeverity" name="severity" class="form-select" required>
+                <option value="">— Select Severity —</option>
+                <option value="Low">Low</option>
+                <option value="Moderate">Moderate</option>
+                <option value="High">High</option>
+                <option value="Critical">Critical</option>
+              </select>
+              <div class="invalid-feedback">Please select a severity level.</div>
+            </div>
+
+            <!-- Incident Title -->
+            <div class="col-12">
+              <label class="form-label" for="fieldTitle">
+                Incident Title <span class="text-danger">*</span>
+              </label>
+              <input type="text" id="fieldTitle" name="title" class="form-control"
+                     placeholder="e.g. Flash Flood along Minanga River" required />
+              <div class="invalid-feedback">Please enter the incident title.</div>
+            </div>
+
+            <!-- Description -->
+            <div class="col-12">
+              <label class="form-label" for="fieldDescription">Description</label>
+              <textarea id="fieldDescription" name="description" class="form-control" rows="3"
+                        placeholder="Describe the incident in detail…"></textarea>
+            </div>
+
+            <!-- Location / Address -->
+            <div class="col-md-6">
+              <label class="form-label" for="fieldLocation">
+                Location / Address <span class="text-danger">*</span>
+              </label>
+              <input type="text" id="fieldLocation" name="location" class="form-control"
+                     placeholder="e.g. Sitio Pag-asa, near bridge" required />
+              <div class="invalid-feedback">Please enter the incident location.</div>
+            </div>
+
+            <!-- Barangay -->
+            <div class="col-md-6">
+              <label class="form-label" for="fieldBarangay">
+                Barangay <span class="text-danger">*</span>
+              </label>
+              <select id="fieldBarangay" name="barangay" class="form-select" required>
+                <option value="">— Select Barangay —</option>
+                <option value="Minanga">Minanga</option>
+                <option value="Lubo">Lubo</option>
+                <option value="Sto. Niño">Sto. Niño</option>
+                <option value="Poblacion">Poblacion</option>
+              </select>
+              <div class="invalid-feedback">Please select a barangay.</div>
+            </div>
+
+            <!-- Municipality -->
+            <div class="col-md-6">
+              <label class="form-label" for="fieldMunicipality">Municipality</label>
+              <input type="text" id="fieldMunicipality" name="municipality" class="form-control"
+                     placeholder="e.g. Sta. Cruz, Davao del Sur" value="Sta. Cruz, Davao del Sur" />
+            </div>
+
+            <!-- Date -->
+            <div class="col-md-3">
+              <label class="form-label" for="fieldDate">
+                Date <span class="text-danger">*</span>
+              </label>
+              <input type="date" id="fieldDate" name="date" class="form-control" required />
+              <div class="invalid-feedback">Please select the incident date.</div>
+            </div>
+
+            <!-- Time -->
+            <div class="col-md-3">
+              <label class="form-label" for="fieldTime">Time</label>
+              <input type="time" id="fieldTime" name="time" class="form-control" />
+            </div>
+          </div><!-- /row -->
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <i class="fas fa-times me-1"></i>Cancel
+        </button>
+        <button type="button" class="btn btn-primary" id="btnSaveIncident">
+          <i class="fas fa-save me-1"></i>Save Incident
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     MODAL 2 — VIEW INCIDENT (read-only)
+══════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="viewIncidentModal" tabindex="-1" aria-labelledby="viewIncidentModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header" style="background:var(--color-primary-dark);">
+        <h5 class="modal-title" id="viewIncidentModalLabel">
+          <i class="fas fa-eye me-2"></i>Incident Details
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body modal-body-scroll">
+
+        <!-- ID + type header strip -->
+        <div class="d-flex align-items-center gap-3 mb-4 p-3 rounded"
+             style="background:rgba(26,58,107,0.05); border:1px solid rgba(26,58,107,0.1);">
+          <div>
+            <div style="font-size:0.7rem; font-weight:700; text-transform:uppercase; color:var(--color-gray); letter-spacing:0.5px;">Incident ID</div>
+            <div class="incident-id-chip mt-1" id="viewId">—</div>
+          </div>
+          <div class="vr mx-1"></div>
+          <div>
+            <div style="font-size:0.7rem; font-weight:700; text-transform:uppercase; color:var(--color-gray); letter-spacing:0.5px;">Type</div>
+            <div class="mt-1" id="viewTypeBadge">—</div>
+          </div>
+          <div class="vr mx-1"></div>
+          <div>
+            <div style="font-size:0.7rem; font-weight:700; text-transform:uppercase; color:var(--color-gray); letter-spacing:0.5px;">Severity</div>
+            <div class="mt-1" id="viewSeverityBadge">—</div>
+          </div>
+          <div class="vr mx-1"></div>
+          <div>
+            <div style="font-size:0.7rem; font-weight:700; text-transform:uppercase; color:var(--color-gray); letter-spacing:0.5px;">Status</div>
+            <div class="mt-1" id="viewStatusBadge">—</div>
+          </div>
+        </div>
+
+        <!-- Title -->
+        <div class="section-title">Incident Information</div>
+        <div class="info-row">
+          <span class="info-label view-field-label">Incident Title</span>
+          <span class="info-value view-field-value fw-600" id="viewTitle">—</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label view-field-label">Description</span>
+          <span class="info-value view-field-value" id="viewDescription">—</span>
+        </div>
+
+        <div class="section-title mt-4">Location Details</div>
+        <div class="info-row">
+          <span class="info-label view-field-label">Location / Address</span>
+          <span class="info-value view-field-value" id="viewLocation">—</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label view-field-label">Barangay</span>
+          <span class="info-value view-field-value" id="viewBarangay">—</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label view-field-label">Municipality</span>
+          <span class="info-value view-field-value" id="viewMunicipality">—</span>
+        </div>
+
+        <div class="section-title mt-4">Date &amp; Time</div>
+        <div class="info-row">
+          <span class="info-label view-field-label">Date</span>
+          <span class="info-value view-field-value" id="viewDate">—</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label view-field-label">Time</span>
+          <span class="info-value view-field-value" id="viewTime">—</span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <i class="fas fa-times me-1"></i>Close
+        </button>
+        <button type="button" class="btn btn-warning" id="btnEditFromView">
+          <i class="fas fa-pencil-alt me-1"></i>Edit
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     MODAL 3 — DELETE CONFIRMATION
+══════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header modal-danger">
+        <h5 class="modal-title" id="deleteModalLabel">
+          <i class="fas fa-trash me-2"></i>Delete Incident
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center py-4">
+        <i class="fas fa-exclamation-triangle fa-2x text-danger mb-3 d-block"></i>
+        <p class="mb-1" style="font-size:var(--font-size-sm); color:var(--color-dark-gray);">
+          Are you sure you want to delete this incident?
+        </p>
+        <p class="fw-700 text-danger mb-0" id="deleteIncidentIdLabel" style="font-size:var(--font-size-sm);"></p>
+        <p class="text-muted mt-1" style="font-size:var(--font-size-xs);">This action cannot be undone.</p>
+      </div>
+      <div class="modal-footer justify-content-center gap-2">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">
+          <i class="fas fa-times me-1"></i>Cancel
+        </button>
+        <button type="button" class="btn btn-danger btn-sm" id="btnConfirmDelete">
+          <i class="fas fa-trash me-1"></i>Yes, Delete
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SCRIPTS
+══════════════════════════════════════════════════════════ -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/js/mock-data.js"></script>
+<script src="../assets/js/auth.js"></script>
+<script src="../assets/js/app.js"></script>
+
+<script>
+/* ============================================================
+   incidents.html — page-specific logic
+   ============================================================ */
+(function () {
+  'use strict';
+
+  // ── Constants ────────────────────────────────────────────
+  var STORAGE_KEY = 'odmis_incidents';
+
+  // ── State ────────────────────────────────────────────────
+  var _allIncidents    = [];   // full unfiltered dataset
+  var _filtered        = [];   // after search + filter
+  var _currentPage     = 1;
+  var _perPage         = 10;
+  var _editingId       = null; // null = add mode, string = edit mode
+  var _pendingDeleteId = null;
+  var _viewingId       = null;
+
+  // ── Bootstrap modal instances ────────────────────────────
+  var _incidentModal, _viewModal, _deleteModal;
+
+  // ── Helpers ──────────────────────────────────────────────
+  function esc(str) {
+    return String(str || '')
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+
+  function formatDateDisplay(dateStr) {
+    if (!dateStr) return '—';
+    try {
+      var d = new Date(dateStr + 'T00:00:00');
+      if (isNaN(d.getTime())) return dateStr;
+      var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      return months[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+    } catch(e) { return dateStr; }
+  }
+
+  function formatTimeDisplay(t) {
+    if (!t) return '—';
+    var parts = t.split(':');
+    if (parts.length < 2) return t;
+    var h    = parseInt(parts[0], 10);
+    var m    = parts[1];
+    var ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    return h + ':' + m + ' ' + ampm;
+  }
+
+  function severityBadge(sev) {
+    var map = {
+      'Low'      : 'badge-severity-low',
+      'Moderate' : 'badge-severity-moderate',
+      'High'     : 'badge-severity-high',
+      'Critical' : 'badge-severity-critical'
+    };
+    return '<span class="badge-severity ' + (map[sev] || 'badge-severity-low') + '">' + esc(sev || '—') + '</span>';
+  }
+
+  function statusBadge(st) {
+    var cls = st === 'Active' ? 'badge-status-active' : 'badge-status-resolved';
+    return '<span class="badge-status ' + cls + '">' + esc(st || '—') + '</span>';
+  }
+
+  function typeBadge(type) {
+    return '<span class="badge-type">' + esc(type || '—') + '</span>';
+  }
+
+  // ── LocalStorage CRUD ─────────────────────────────────────
+  function readAll() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      var parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch(e) { return []; }
+  }
+
+  function writeAll(arr) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
+    } catch(e) {
+      console.error('[Incidents] Failed to save:', e);
+    }
+  }
+
+  // ── Auto-generate next ID ─────────────────────────────────
+  function generateId(existingItems) {
+    var max = (existingItems || []).reduce(function(m, item) {
+      if (!item.id) return m;
+      var parts = String(item.id).split('-');
+      var n     = parseInt(parts[parts.length - 1], 10);
+      return isNaN(n) ? m : Math.max(m, n);
+    }, 0);
+    return 'INC-' + String(max + 1).padStart(3, '0');
+  }
+
+  // ── LOAD & RENDER ─────────────────────────────────────────
+  function loadIncidents() {
+    _allIncidents = readAll();
+    filterIncidents();
+  }
+
+  function filterIncidents() {
+    var search   = (document.getElementById('filterSearch').value   || '').toLowerCase().trim();
+    var type     = document.getElementById('filterType').value     || '';
+    var severity = document.getElementById('filterSeverity').value || '';
+    var status   = document.getElementById('filterStatus').value   || '';
+    var barangay = document.getElementById('filterBarangay').value || '';
+
+    _filtered = _allIncidents.filter(function(inc) {
+      // Text search
+      if (search) {
+        var hay = [inc.id, inc.title, inc.location, inc.barangay, inc.municipality, inc.disasterType, inc.description]
+                    .join(' ').toLowerCase();
+        if (!hay.includes(search)) return false;
+      }
+      if (type     && inc.disasterType !== type)  return false;
+      if (severity && inc.severity     !== severity) return false;
+      if (status   && inc.status       !== status)   return false;
+      if (barangay && inc.barangay     !== barangay) return false;
+      return true;
+    });
+
+    // Sort: newest date first
+    _filtered.sort(function(a, b) {
+      return new Date(b.date || b.createdAt || 0) - new Date(a.date || a.createdAt || 0);
+    });
+
+    _currentPage = 1;
+    renderTable();
+  }
+
+  function renderTable() {
+    var tbody       = document.getElementById('incidentsTableBody');
+    var emptyState  = document.getElementById('incidentsEmptyState');
+    var countBadge  = document.getElementById('recordCount');
+    var resultsInfo = document.getElementById('resultsInfo');
+    var pWrapper    = document.getElementById('paginationWrapper');
+
+    countBadge.textContent = _allIncidents.length;
+
+    if (!_filtered.length) {
+      tbody.innerHTML = '';
+      emptyState.classList.remove('d-none');
+      pWrapper.classList.add('d-none');
+      resultsInfo.textContent = 'No records found';
+      return;
+    }
+
+    emptyState.classList.add('d-none');
+    pWrapper.classList.remove('d-none');
+
+    // Pagination
+    var total  = _filtered.length;
+    var pages  = Math.ceil(total / _perPage);
+    _currentPage = Math.min(_currentPage, pages);
+    var start  = (_currentPage - 1) * _perPage;
+    var slice  = _filtered.slice(start, start + _perPage);
+
+    resultsInfo.textContent = 'Showing ' + (start + 1) + '–' + Math.min(start + _perPage, total) + ' of ' + total + ' records';
+
+    // Render rows
+    var rows = slice.map(function(inc) {
+      var toggleBtn = inc.status === 'Active'
+        ? '<button class="btn-toggle-active" onclick="IncPage.toggleStatus(\'' + esc(inc.id) + '\')" title="Mark as Resolved"><i class="fas fa-check me-1"></i>Resolve</button>'
+        : '<button class="btn-toggle-resolved" onclick="IncPage.toggleStatus(\'' + esc(inc.id) + '\')" title="Mark as Active"><i class="fas fa-redo me-1"></i>Re-activate</button>';
+
+      return '<tr>' +
+        '<td><span class="incident-id-chip">' + esc(inc.id) + '</span></td>' +
+        '<td>' + typeBadge(inc.disasterType) + '</td>' +
+        '<td style="max-width:220px;"><span class="fw-600" title="' + esc(inc.title) + '">' + esc(inc.title || '—') + '</span></td>' +
+        '<td style="max-width:160px;" class="text-muted">' +
+          '<i class="fas fa-map-marker-alt me-1" style="color:var(--color-accent);font-size:0.75rem;"></i>' +
+          esc(inc.barangay || inc.location || '—') +
+        '</td>' +
+        '<td class="text-muted">' + formatDateDisplay(inc.date) + '</td>' +
+        '<td>' + severityBadge(inc.severity) + '</td>' +
+        '<td>' + statusBadge(inc.status) + '</td>' +
+        '<td class="text-center">' +
+          '<div class="d-flex align-items-center justify-content-center gap-1">' +
+            '<button class="btn-action btn-view"  onclick="IncPage.viewIncident(\'' + esc(inc.id) + '\')"   title="View"><i class="fas fa-eye"></i></button>' +
+            '<button class="btn-action btn-edit"  onclick="IncPage.editIncident(\'' + esc(inc.id) + '\')"   title="Edit"><i class="fas fa-pencil-alt"></i></button>' +
+            '<button class="btn-action btn-delete" onclick="IncPage.confirmDelete(\'' + esc(inc.id) + '\')" title="Delete"><i class="fas fa-trash"></i></button>' +
+            toggleBtn +
+          '</div>' +
+        '</td>' +
+      '</tr>';
+    });
+    tbody.innerHTML = rows.join('');
+
+    renderPagination(pages);
+  }
+
+  function renderPagination(pages) {
+    var container = document.getElementById('paginationBtns');
+    var info      = document.getElementById('paginationInfo');
+
+    info.textContent = 'Page ' + _currentPage + ' of ' + (pages || 1);
+
+    var html = '';
+    // Prev
+    html += '<button ' + (_currentPage <= 1 ? 'disabled' : '') + ' onclick="IncPage.goPage(' + (_currentPage - 1) + ')" title="Previous"><i class="fas fa-chevron-left"></i></button>';
+
+    // Page numbers (show up to 5 around current)
+    var start = Math.max(1, _currentPage - 2);
+    var end   = Math.min(pages, start + 4);
+    if (end - start < 4) start = Math.max(1, end - 4);
+
+    for (var p = start; p <= end; p++) {
+      html += '<button class="' + (p === _currentPage ? 'active' : '') + '" onclick="IncPage.goPage(' + p + ')">' + p + '</button>';
+    }
+
+    // Next
+    html += '<button ' + (_currentPage >= pages ? 'disabled' : '') + ' onclick="IncPage.goPage(' + (_currentPage + 1) + ')" title="Next"><i class="fas fa-chevron-right"></i></button>';
+
+    container.innerHTML = html;
+  }
+
+  // ── ADD / EDIT MODAL ──────────────────────────────────────
+  function openAddModal() {
+    _editingId = null;
+    var newId  = generateId(_allIncidents);
+
+    // Reset form
+    var form = document.getElementById('incidentForm');
+    form.reset();
+    form.querySelectorAll('.is-invalid, .is-valid').forEach(function(el){
+      el.classList.remove('is-invalid','is-valid');
+    });
+
+    document.getElementById('fieldIncidentId').value = newId;
+    document.getElementById('fieldMunicipality').value = 'Sta. Cruz, Davao del Sur';
+
+    // Set modal title
+    document.getElementById('incidentModalLabel').innerHTML = '<i class="fas fa-plus-circle me-2"></i>Add New Incident';
+    document.getElementById('btnSaveIncident').innerHTML    = '<i class="fas fa-save me-1"></i>Save Incident';
+
+    _incidentModal.show();
+  }
+
+  function editIncident(id) {
+    var inc = _allIncidents.find(function(i){ return i.id === id; });
+    if (!inc) { showToast('Incident not found.', 'error'); return; }
+
+    _editingId = id;
+
+    var form = document.getElementById('incidentForm');
+    form.reset();
+    form.querySelectorAll('.is-invalid, .is-valid').forEach(function(el){
+      el.classList.remove('is-invalid','is-valid');
+    });
+
+    // Populate fields
+    document.getElementById('fieldIncidentId').value    = inc.id;
+    document.getElementById('fieldDisasterType').value  = inc.disasterType || '';
+    document.getElementById('fieldSeverity').value      = inc.severity     || '';
+    document.getElementById('fieldTitle').value         = inc.title        || '';
+    document.getElementById('fieldDescription').value   = inc.description  || '';
+    document.getElementById('fieldLocation').value      = inc.location     || '';
+    document.getElementById('fieldBarangay').value      = inc.barangay     || '';
+    document.getElementById('fieldMunicipality').value  = inc.municipality || '';
+    document.getElementById('fieldDate').value          = inc.date         || '';
+    document.getElementById('fieldTime').value          = inc.time         || '';
+
+    document.getElementById('incidentModalLabel').innerHTML = '<i class="fas fa-pencil-alt me-2"></i>Edit Incident';
+    document.getElementById('btnSaveIncident').innerHTML    = '<i class="fas fa-save me-1"></i>Update Incident';
+
+    if (_viewModal) _viewModal.hide();
+    _incidentModal.show();
+  }
+
+  function saveIncident() {
+    // Validate
+    var requiredIds = ['fieldDisasterType', 'fieldSeverity', 'fieldTitle', 'fieldLocation', 'fieldBarangay', 'fieldDate'];
+    var valid = true;
+
+    requiredIds.forEach(function(fid) {
+      var el = document.getElementById(fid);
+      if (!el) return;
+      if (!el.value.trim()) {
+        el.classList.add('is-invalid');
+        el.classList.remove('is-valid');
+        valid = false;
+      } else {
+        el.classList.remove('is-invalid');
+        el.classList.add('is-valid');
+      }
+    });
+
+    if (!valid) {
+      showToast('Please fill in all required fields.', 'error');
+      return;
+    }
+
+    var incidents = readAll();
+
+    if (_editingId) {
+      // Update existing
+      var idx = incidents.findIndex(function(i){ return i.id === _editingId; });
+      if (idx === -1) { showToast('Incident not found.', 'error'); return; }
+
+      incidents[idx].disasterType  = document.getElementById('fieldDisasterType').value.trim();
+      incidents[idx].severity      = document.getElementById('fieldSeverity').value.trim();
+      incidents[idx].title         = document.getElementById('fieldTitle').value.trim();
+      incidents[idx].description   = document.getElementById('fieldDescription').value.trim();
+      incidents[idx].location      = document.getElementById('fieldLocation').value.trim();
+      incidents[idx].barangay      = document.getElementById('fieldBarangay').value.trim();
+      incidents[idx].municipality  = document.getElementById('fieldMunicipality').value.trim();
+      incidents[idx].date          = document.getElementById('fieldDate').value;
+      incidents[idx].time          = document.getElementById('fieldTime').value;
+      incidents[idx].updatedAt     = new Date().toISOString();
+
+      writeAll(incidents);
+      _incidentModal.hide();
+      showToast('Incident "' + incidents[idx].title + '" updated successfully.', 'success');
+
+    } else {
+      // Add new
+      var newInc = {
+        id           : document.getElementById('fieldIncidentId').value,
+        disasterType : document.getElementById('fieldDisasterType').value.trim(),
+        severity     : document.getElementById('fieldSeverity').value.trim(),
+        title        : document.getElementById('fieldTitle').value.trim(),
+        description  : document.getElementById('fieldDescription').value.trim(),
+        location     : document.getElementById('fieldLocation').value.trim(),
+        barangay     : document.getElementById('fieldBarangay').value.trim(),
+        municipality : document.getElementById('fieldMunicipality').value.trim(),
+        date         : document.getElementById('fieldDate').value,
+        time         : document.getElementById('fieldTime').value,
+        status       : 'Active',
+        createdAt    : new Date().toISOString()
+      };
+
+      incidents.push(newInc);
+      writeAll(incidents);
+      _incidentModal.hide();
+      showToast('Incident "' + newInc.title + '" added successfully.', 'success');
+    }
+
+    loadIncidents();
+  }
+
+  // ── VIEW MODAL ────────────────────────────────────────────
+  function viewIncident(id) {
+    var inc = _allIncidents.find(function(i){ return i.id === id; });
+    if (!inc) { showToast('Incident not found.', 'error'); return; }
+
+    _viewingId = id;
+
+    document.getElementById('viewId').textContent          = inc.id || '—';
+    document.getElementById('viewTypeBadge').innerHTML     = typeBadge(inc.disasterType);
+    document.getElementById('viewSeverityBadge').innerHTML = severityBadge(inc.severity);
+    document.getElementById('viewStatusBadge').innerHTML   = statusBadge(inc.status);
+    document.getElementById('viewTitle').textContent       = inc.title       || '—';
+    document.getElementById('viewDescription').textContent = inc.description || '—';
+    document.getElementById('viewLocation').textContent    = inc.location    || '—';
+    document.getElementById('viewBarangay').textContent    = inc.barangay    || '—';
+    document.getElementById('viewMunicipality').textContent= inc.municipality|| '—';
+    document.getElementById('viewDate').textContent        = formatDateDisplay(inc.date);
+    document.getElementById('viewTime').textContent        = formatTimeDisplay(inc.time);
+
+    _viewModal.show();
+  }
+
+  // ── DELETE ────────────────────────────────────────────────
+  function confirmDelete(id) {
+    _pendingDeleteId = id;
+    var inc = _allIncidents.find(function(i){ return i.id === id; });
+    var label = document.getElementById('deleteIncidentIdLabel');
+    if (label) label.textContent = inc ? (inc.id + ' — ' + inc.title) : id;
+    _deleteModal.show();
+  }
+
+  function deleteIncident() {
+    if (!_pendingDeleteId) return;
+    var incidents = readAll();
+    var idx       = incidents.findIndex(function(i){ return i.id === _pendingDeleteId; });
+    if (idx === -1) { showToast('Incident not found.', 'error'); return; }
+
+    var title = incidents[idx].title || _pendingDeleteId;
+    incidents.splice(idx, 1);
+    writeAll(incidents);
+
+    _deleteModal.hide();
+    _pendingDeleteId = null;
+    showToast('Incident "' + title + '" has been deleted.', 'success');
+    loadIncidents();
+  }
+
+  // ── TOGGLE STATUS ─────────────────────────────────────────
+  function toggleStatus(id) {
+    var incidents = readAll();
+    var idx       = incidents.findIndex(function(i){ return i.id === id; });
+    if (idx === -1) { showToast('Incident not found.', 'error'); return; }
+
+    var prev  = incidents[idx].status;
+    incidents[idx].status    = prev === 'Active' ? 'Resolved' : 'Active';
+    incidents[idx].updatedAt = new Date().toISOString();
+    writeAll(incidents);
+
+    var msg = incidents[idx].status === 'Resolved'
+      ? 'Incident marked as Resolved.'
+      : 'Incident re-activated as Active.';
+    showToast(msg, 'success');
+    loadIncidents();
+  }
+
+  // ── PAGINATION ────────────────────────────────────────────
+  function goPage(p) {
+    var pages = Math.ceil(_filtered.length / _perPage);
+    if (p < 1 || p > pages) return;
+    _currentPage = p;
+    renderTable();
+    // Scroll table into view
+    var card = document.querySelector('.content-card');
+    if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // ── TOAST ─────────────────────────────────────────────────
+  function showToast(message, type) {
+    if (typeof App !== 'undefined' && typeof App.showToast === 'function') {
+      App.showToast(message, type || 'success');
+    } else {
+      // Fallback minimal toast
+      type = type || 'success';
+      var icons = { success: 'fa-check-circle', error: 'fa-times-circle', warning: 'fa-exclamation-triangle', info: 'fa-info-circle' };
+      var colors = { success: 'var(--color-success)', error: 'var(--color-danger)', warning: 'var(--color-warning)', info: 'var(--color-info)' };
+      var container = document.getElementById('toastContainer');
+      if (!container) {
+        container = document.createElement('div');
+        container.id = 'toastContainer';
+        container.className = 'toast-container';
+        document.body.appendChild(container);
+      }
+      var t = document.createElement('div');
+      t.className = 'odmis-toast toast-' + type;
+      t.innerHTML = '<i class="fas ' + (icons[type] || 'fa-info-circle') + ' toast-icon"></i>' +
+                    '<div class="toast-body"><div class="toast-message">' + message + '</div></div>' +
+                    '<button class="toast-close" onclick="this.parentNode.remove()"><i class="fas fa-times"></i></button>' +
+                    '<div class="toast-progress"></div>';
+      container.appendChild(t);
+      setTimeout(function(){ if (t.parentNode) { t.classList.add('hiding'); setTimeout(function(){ if(t.parentNode) t.parentNode.removeChild(t); }, 330); } }, 4000);
+    }
+  }
+
+  // ── RESET FILTERS ─────────────────────────────────────────
+  function resetFilters() {
+    document.getElementById('filterSearch').value   = '';
+    document.getElementById('filterType').value     = '';
+    document.getElementById('filterSeverity').value = '';
+    document.getElementById('filterStatus').value   = '';
+    document.getElementById('filterBarangay').value = '';
+    filterIncidents();
+  }
+
+  // ── PUBLIC API (called from inline HTML onclick) ──────────
+  window.IncPage = {
+    viewIncident  : viewIncident,
+    editIncident  : editIncident,
+    confirmDelete : confirmDelete,
+    toggleStatus  : toggleStatus,
+    goPage        : goPage
+  };
+
+  // ── BOOT ─────────────────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', function () {
+    // 1. Seed mock data
+    if (typeof initMockData === 'function') initMockData();
+
+    // 2. Auth guard
+    if (typeof Auth !== 'undefined') {
+      if (!Auth.requireAdmin()) return;
+    }
+
+    // 3. Init shared App behaviours
+    if (typeof App !== 'undefined') {
+      App.initPage({ page: 'incidents', adminPage: true, requireAdmin: true });
+    }
+
+    // 4. Bootstrap modal instances
+    _incidentModal = new bootstrap.Modal(document.getElementById('incidentModal'));
+    _viewModal     = new bootstrap.Modal(document.getElementById('viewIncidentModal'));
+    _deleteModal   = new bootstrap.Modal(document.getElementById('deleteModal'));
+
+    // 5. Load data
+    loadIncidents();
+
+    // 6. Wire up Add Incident buttons
+    document.getElementById('btnAddIncident').addEventListener('click', openAddModal);
+    var btnAddEmpty = document.getElementById('btnAddFromEmpty');
+    if (btnAddEmpty) btnAddEmpty.addEventListener('click', openAddModal);
+
+    // 7. Wire up Save button in modal
+    document.getElementById('btnSaveIncident').addEventListener('click', saveIncident);
+
+    // 8. Wire up Delete confirm button
+    document.getElementById('btnConfirmDelete').addEventListener('click', deleteIncident);
+
+    // 9. Wire up Edit from View modal
+    document.getElementById('btnEditFromView').addEventListener('click', function() {
+      if (_viewingId) editIncident(_viewingId);
+    });
+
+    // 10. Filter event listeners
+    ['filterSearch','filterType','filterSeverity','filterStatus','filterBarangay'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener('input',  filterIncidents);
+      el.addEventListener('change', filterIncidents);
+    });
+
+    // 11. Reset filters
+    document.getElementById('btnResetFilters').addEventListener('click', resetFilters);
+
+    // 12. Per-page select
+    document.getElementById('perPageSelect').addEventListener('change', function() {
+      _perPage = parseInt(this.value, 10) || 10;
+      _currentPage = 1;
+      renderTable();
+    });
+
+    // 13. Clear invalid on field input
+    document.getElementById('incidentForm').querySelectorAll('input, select, textarea').forEach(function(el) {
+      el.addEventListener('input', function() {
+        if (this.value.trim()) {
+          this.classList.remove('is-invalid');
+          this.classList.add('is-valid');
+        }
+      });
+    });
+  });
+
+})();
+</script>
+</body>
+</html>
