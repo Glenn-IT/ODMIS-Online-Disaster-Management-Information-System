@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Profile — ODMIS User</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <style>
+    .profile-avatar-lg {
+      width: 90px; height: 90px; border-radius: 50%;
+      background: var(--color-primary, #0d6efd);
+      color: #fff; font-size: 2.4rem; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1rem;
+    }
+    .info-row { display: flex; align-items: flex-start; padding: .6rem 0; border-bottom: 1px solid #f0f0f0; font-size: .875rem; }
+    .info-row:last-child { border-bottom: none; }
+    .info-label { width: 160px; flex-shrink: 0; color: #777; font-weight: 600; }
+    .info-value { color: #333; word-break: break-word; }
+    .toast-container-fixed { position: fixed; top: 1.25rem; right: 1.25rem; z-index: 9999; }
+    .password-field { position: relative; }
+    .password-toggle { position: absolute; right: .75rem; top: 50%; transform: translateY(-50%); cursor: pointer; color: #777; }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════
+     SIDEBAR
+════════════════════════════════════════ -->
+<div id="sidebar" class="sidebar">
+  <div class="sidebar-logo-area">
+    <div class="sidebar-logo-placeholder"><i class="fas fa-shield-alt"></i></div>
+    <div class="sidebar-brand-text"><span class="brand-title">ODMIS</span><span class="brand-subtitle">Disaster Management</span></div>
+  </div>
+  <nav class="sidebar-nav">
+    <ul class="list-unstyled mb-0">
+      <li class="sidebar-nav-item"><a href="dashboard.html" class="sidebar-nav-link" data-page="dashboard"><i class="fas fa-tachometer-alt nav-icon"></i><span class="nav-label">Dashboard</span></a></li>
+      <li class="sidebar-nav-item"><a href="report-incident.html" class="sidebar-nav-link" data-page="report-incident"><i class="fas fa-plus-circle nav-icon"></i><span class="nav-label">Report Incident</span></a></li>
+      <li class="sidebar-nav-item"><a href="alerts.html" class="sidebar-nav-link" data-page="alerts"><i class="fas fa-bell nav-icon"></i><span class="nav-label">Disaster Alerts</span></a></li>
+      <li class="sidebar-nav-item"><a href="evacuation-centers.html" class="sidebar-nav-link" data-page="evacuation-centers"><i class="fas fa-house-damage nav-icon"></i><span class="nav-label">Evacuation Centers</span></a></li>
+      <li class="sidebar-nav-item"><a href="announcements.html" class="sidebar-nav-link" data-page="announcements"><i class="fas fa-bullhorn nav-icon"></i><span class="nav-label">Announcements</span></a></li>
+      <li class="sidebar-nav-item"><a href="profile.html" class="sidebar-nav-link active" data-page="profile"><i class="fas fa-user nav-icon"></i><span class="nav-label">Profile</span></a></li>
+    </ul>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="sidebar-user-avatar" id="sidebarAvatar">U</div>
+    <div class="sidebar-user-info"><span class="sidebar-user-name" id="sidebarName">User</span><span class="sidebar-user-role">Resident</span></div>
+  </div>
+</div>
+<div id="sidebarOverlay"></div>
+
+<!-- ═══════════════════════════════════════
+     TOP NAVBAR
+════════════════════════════════════════ -->
+<nav id="topNavbar">
+  <button class="navbar-hamburger" id="sidebarToggle"><i class="fas fa-bars"></i></button>
+  <h1 class="navbar-page-title">My Profile</h1>
+  <div class="navbar-right">
+    <button class="navbar-icon-btn position-relative" title="Notifications">
+      <i class="fas fa-bell"></i><span class="notification-count" id="notifBadge">0</span>
+    </button>
+    <div class="navbar-divider"></div>
+    <div class="dropdown">
+      <div class="navbar-user dropdown-toggle" data-bs-toggle="dropdown" role="button">
+        <div class="navbar-avatar" id="navAvatar">U</div>
+        <span class="navbar-user-name" id="navUsername">User</span>
+        <i class="fas fa-chevron-down ms-1" style="font-size:.65rem;color:var(--color-gray)"></i>
+      </div>
+      <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="min-width:180px;font-size:var(--font-size-sm)">
+        <li><a class="dropdown-item" href="profile.html"><i class="fas fa-user me-2 text-muted"></i>Profile</a></li>
+        <li><hr class="dropdown-divider my-1"></li>
+        <li><a class="dropdown-item text-danger" href="#" data-action="logout"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════
+     MAIN CONTENT
+════════════════════════════════════════ -->
+<main id="mainContent">
+  <div class="page-header">
+    <div>
+      <h1 class="mb-1"><i class="fas fa-user me-2" style="color:var(--color-accent)"></i>My Profile</h1>
+      <p class="page-subtitle mb-0">Manage your personal information and account settings</p>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- ── LEFT COL: Profile Card ── -->
+    <div class="col-lg-4">
+      <div class="card shadow-sm text-center mb-3">
+        <div class="card-body py-4">
+          <div class="profile-avatar-lg" id="profileAvatarLg">U</div>
+          <h5 class="fw-bold mb-1" id="profileFullName">—</h5>
+          <div class="mb-2">
+            <span class="badge bg-secondary me-1" id="profileUsername">username</span>
+            <span class="badge bg-primary">Resident</span>
+          </div>
+          <p class="text-muted small mb-3">
+            <i class="fas fa-calendar-alt me-1"></i>Member since <span id="profileMemberSince">—</span>
+          </p>
+          <button class="btn btn-outline-primary btn-sm w-100" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+            <i class="fas fa-edit me-2"></i>Edit Profile
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Stats -->
+      <div class="card shadow-sm">
+        <div class="card-header py-3"><h6 class="mb-0 fw-bold"><i class="fas fa-chart-bar me-2 text-primary"></i>My Activity</h6></div>
+        <div class="card-body p-3">
+          <div class="info-row"><span class="info-label">Reports Submitted</span><span class="info-value fw-bold text-primary" id="statReports">0</span></div>
+          <div class="info-row"><span class="info-label">Active Alerts</span><span class="info-value fw-bold text-danger" id="statAlerts">0</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── RIGHT COL ── -->
+    <div class="col-lg-8">
+      <!-- Personal Information -->
+      <div class="card shadow-sm mb-3">
+        <div class="card-header py-3 d-flex align-items-center justify-content-between">
+          <h6 class="mb-0 fw-bold"><i class="fas fa-id-card me-2 text-primary"></i>Personal Information</h6>
+          <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+            <i class="fas fa-edit me-1"></i>Edit
+          </button>
+        </div>
+        <div class="card-body p-3">
+          <div class="info-row"><span class="info-label"><i class="fas fa-user me-2 text-muted"></i>Full Name</span><span class="info-value" id="infoFullName">—</span></div>
+          <div class="info-row"><span class="info-label"><i class="fas fa-at me-2 text-muted"></i>Username</span><span class="info-value" id="infoUsername">—</span></div>
+          <div class="info-row"><span class="info-label"><i class="fas fa-envelope me-2 text-muted"></i>Email</span><span class="info-value" id="infoEmail">—</span></div>
+          <div class="info-row"><span class="info-label"><i class="fas fa-phone me-2 text-muted"></i>Contact Number</span><span class="info-value" id="infoContact">—</span></div>
+          <div class="info-row"><span class="info-label"><i class="fas fa-birthday-cake me-2 text-muted"></i>Date of Birth</span><span class="info-value" id="infoDob">—</span></div>
+        </div>
+      </div>
+
+      <!-- Address -->
+      <div class="card shadow-sm mb-3">
+        <div class="card-header py-3">
+          <h6 class="mb-0 fw-bold"><i class="fas fa-map-marker-alt me-2 text-primary"></i>Address</h6>
+        </div>
+        <div class="card-body p-3">
+          <div class="info-row"><span class="info-label"><i class="fas fa-home me-2 text-muted"></i>Full Address</span><span class="info-value" id="infoAddress">—</span></div>
+        </div>
+      </div>
+
+      <!-- Account Security -->
+      <div class="card shadow-sm">
+        <div class="card-header py-3">
+          <h6 class="mb-0 fw-bold"><i class="fas fa-lock me-2 text-primary"></i>Account Security</h6>
+        </div>
+        <div class="card-body p-3">
+          <h6 class="fw-semibold mb-3 text-muted" style="font-size:.85rem">Change Password</h6>
+          <form id="changePasswordForm" novalidate>
+            <div class="mb-3">
+              <label class="form-label fw-semibold small">Current Password <span class="text-danger">*</span></label>
+              <div class="password-field">
+                <input type="password" class="form-control" id="currentPassword" placeholder="Enter current password" required />
+                <i class="fas fa-eye password-toggle" id="toggleCurrentPwd"></i>
+              </div>
+              <div class="invalid-feedback" id="currentPwdError">Current password is incorrect.</div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold small">New Password <span class="text-danger">*</span></label>
+              <div class="password-field">
+                <input type="password" class="form-control" id="newPassword" placeholder="Minimum 6 characters" required minlength="6" />
+                <i class="fas fa-eye password-toggle" id="toggleNewPwd"></i>
+              </div>
+              <div class="invalid-feedback">Password must be at least 6 characters.</div>
+            </div>
+            <div class="mb-4">
+              <label class="form-label fw-semibold small">Confirm New Password <span class="text-danger">*</span></label>
+              <div class="password-field">
+                <input type="password" class="form-control" id="confirmPassword" placeholder="Re-enter new password" required />
+                <i class="fas fa-eye password-toggle" id="toggleConfirmPwd"></i>
+              </div>
+              <div class="invalid-feedback" id="confirmPwdError">Passwords do not match.</div>
+            </div>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save me-2"></i>Save Changes</button>
+            <button type="reset" class="btn btn-outline-secondary ms-2"><i class="fas fa-undo me-2"></i>Reset</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- ═══════════════════════════════════════
+     EDIT PROFILE MODAL
+════════════════════════════════════════ -->
+<div class="modal fade" id="editProfileModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title"><i class="fas fa-edit me-2"></i>Edit Profile</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4">
+        <form id="editProfileForm" novalidate>
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label fw-semibold">Username <span class="text-muted">(cannot be changed)</span></label>
+              <input type="text" class="form-control" id="editUsername" readonly />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Full Name <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="editFullName" required />
+              <div class="invalid-feedback">Full name is required.</div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Email <span class="text-danger">*</span></label>
+              <input type="email" class="form-control" id="editEmail" required />
+              <div class="invalid-feedback">Valid email is required.</div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Contact Number</label>
+              <input type="text" class="form-control" id="editContact" placeholder="09XXXXXXXXX" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Date of Birth</label>
+              <input type="date" class="form-control" id="editDob" />
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold">Address</label>
+              <textarea class="form-control" id="editAddress" rows="2" placeholder="House/Lot, Street, Barangay, Municipality"></textarea>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary" id="saveProfileBtn"><i class="fas fa-save me-2"></i>Save Changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     LOGOUT MODAL
+════════════════════════════════════════ -->
+<div class="modal fade" id="logoutModal" tabindex="-1">
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title"><i class="fas fa-sign-out-alt me-2"></i>Confirm Logout</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-center py-4"><p class="mb-0">Are you sure you want to logout?</p></div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-danger btn-sm" id="confirmLogoutBtn">Logout</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast-container-fixed">
+  <div id="appToast" class="toast align-items-center text-white border-0" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+      <div class="toast-body" id="appToastBody">Message</div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/js/mock-data.js"></script>
+<script src="../assets/js/auth.js"></script>
+<script src="../assets/js/app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  initMockData();
+  Auth.requireUser();
+
+  let session = Auth.getSession();
+  if (!session) return;
+
+  // ── Toast helper ───────────────────────────────────────────
+  function showToast(msg, type = 'success') {
+    const el = document.getElementById('appToast');
+    el.className = `toast align-items-center text-white border-0 bg-${type}`;
+    document.getElementById('appToastBody').textContent = msg;
+    new bootstrap.Toast(el, { delay: 3500 }).show();
+  }
+
+  // ── Load user from localStorage ────────────────────────────
+  function getUser() {
+    const users = JSON.parse(localStorage.getItem('odmis_users') || '[]');
+    return users.find(u => u.id === session.id) || null;
+  }
+
+  // ── Populate UI ────────────────────────────────────────────
+  function populateUI(user) {
+    if (!user) return;
+    const initial = (user.fullName || user.username || 'U')[0].toUpperCase();
+
+    // Sidebar / Navbar
+    document.getElementById('sidebarAvatar').textContent = initial;
+    document.getElementById('sidebarName').textContent = user.fullName || user.username;
+    document.getElementById('navAvatar').textContent = initial;
+    document.getElementById('navUsername').textContent = user.username;
+
+    // Profile card
+    document.getElementById('profileAvatarLg').textContent = initial;
+    document.getElementById('profileFullName').textContent = user.fullName || '—';
+    document.getElementById('profileUsername').textContent = '@' + user.username;
+    document.getElementById('profileMemberSince').textContent = user.createdAt
+      ? new Date(user.createdAt).toLocaleDateString('en-PH', { year: 'numeric', month: 'long' })
+      : '—';
+
+    // Info fields
+    document.getElementById('infoFullName').textContent = user.fullName || '—';
+    document.getElementById('infoUsername').textContent = user.username || '—';
+    document.getElementById('infoEmail').textContent    = user.email    || '—';
+    document.getElementById('infoContact').textContent  = user.contactNumber || '—';
+    document.getElementById('infoDob').textContent      = user.dateOfBirth
+      ? new Date(user.dateOfBirth + 'T00:00:00').toLocaleDateString('en-PH', { year:'numeric', month:'long', day:'numeric' })
+      : '—';
+    document.getElementById('infoAddress').textContent  = user.address  || '—';
+  }
+
+  function populateStats() {
+    const reports = JSON.parse(localStorage.getItem('odmis_user_reports') || '[]');
+    const alerts  = JSON.parse(localStorage.getItem('odmis_alerts') || '[]');
+    document.getElementById('statReports').textContent = reports.filter(r => r.userId === session.id).length;
+    document.getElementById('statAlerts').textContent  = alerts.filter(a => a.status !== 'Resolved').length;
+    document.getElementById('notifBadge').textContent  = alerts.filter(a => a.status !== 'Resolved').length;
+  }
+
+  // Init
+  const user = getUser();
+  populateUI(user || session);
+  populateStats();
+
+  // Sidebar/navbar toggle/logout
+  document.getElementById('sidebarToggle').addEventListener('click', () => document.body.classList.toggle('sidebar-collapsed'));
+  document.getElementById('confirmLogoutBtn').addEventListener('click', () => Auth.logout());
+  document.querySelectorAll('[data-action="logout"]').forEach(el => {
+    el.addEventListener('click', e => { e.preventDefault(); new bootstrap.Modal(document.getElementById('logoutModal')).show(); });
+  });
+
+  // ── Password toggles ───────────────────────────────────────
+  function setupToggle(toggleId, inputId) {
+    document.getElementById(toggleId).addEventListener('click', function () {
+      const input = document.getElementById(inputId);
+      const isText = input.type === 'text';
+      input.type = isText ? 'password' : 'text';
+      this.classList.toggle('fa-eye', isText);
+      this.classList.toggle('fa-eye-slash', !isText);
+    });
+  }
+  setupToggle('toggleCurrentPwd', 'currentPassword');
+  setupToggle('toggleNewPwd',     'newPassword');
+  setupToggle('toggleConfirmPwd', 'confirmPassword');
+
+  // ── Edit Profile Modal: pre-fill ──────────────────────────
+  document.getElementById('editProfileModal').addEventListener('show.bs.modal', function () {
+    const u = getUser() || session;
+    document.getElementById('editUsername').value = u.username || '';
+    document.getElementById('editFullName').value = u.fullName || '';
+    document.getElementById('editEmail').value    = u.email    || '';
+    document.getElementById('editContact').value  = u.contactNumber || '';
+    document.getElementById('editDob').value      = u.dateOfBirth   || '';
+    document.getElementById('editAddress').value  = u.address  || '';
+    document.getElementById('editProfileForm').classList.remove('was-validated');
+  });
+
+  // ── Save Profile ───────────────────────────────────────────
+  document.getElementById('saveProfileBtn').addEventListener('click', function () {
+    const form = document.getElementById('editProfileForm');
+    form.classList.add('was-validated');
+    if (!form.checkValidity()) return;
+
+    const updates = {
+      fullName      : document.getElementById('editFullName').value.trim(),
+      email         : document.getElementById('editEmail').value.trim(),
+      contactNumber : document.getElementById('editContact').value.trim(),
+      dateOfBirth   : document.getElementById('editDob').value,
+      address       : document.getElementById('editAddress').value.trim()
+    };
+
+    const result = Auth.updateProfile(session.username, updates);
+    if (result.success) {
+      session = Auth.getSession(); // refresh
+      const updatedUser = getUser();
+      populateUI(updatedUser || session);
+      bootstrap.Modal.getInstance(document.getElementById('editProfileModal')).hide();
+      showToast('Profile updated successfully!', 'success');
+    } else {
+      showToast(result.message || 'Failed to update profile.', 'danger');
+    }
+  });
+
+  // ── Change Password ────────────────────────────────────────
+  document.getElementById('changePasswordForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    this.classList.add('was-validated');
+
+    const currentPwd = document.getElementById('currentPassword').value;
+    const newPwd     = document.getElementById('newPassword').value;
+    const confirmPwd = document.getElementById('confirmPassword').value;
+
+    // Validate current password
+    const users = JSON.parse(localStorage.getItem('odmis_users') || '[]');
+    const userRecord = users.find(u => u.id === session.id);
+    const currentPwdInput = document.getElementById('currentPassword');
+    const confirmPwdInput = document.getElementById('confirmPassword');
+
+    if (!userRecord || userRecord.password !== currentPwd) {
+      currentPwdInput.setCustomValidity('incorrect');
+      currentPwdInput.classList.add('is-invalid');
+      document.getElementById('currentPwdError').textContent = 'Current password is incorrect.';
+      return;
+    } else {
+      currentPwdInput.setCustomValidity('');
+      currentPwdInput.classList.remove('is-invalid');
+    }
+
+    if (newPwd !== confirmPwd) {
+      confirmPwdInput.setCustomValidity('mismatch');
+      confirmPwdInput.classList.add('is-invalid');
+      document.getElementById('confirmPwdError').textContent = 'Passwords do not match.';
+      return;
+    } else {
+      confirmPwdInput.setCustomValidity('');
+      confirmPwdInput.classList.remove('is-invalid');
+    }
+
+    if (newPwd.length < 6) return;
+
+    const result = Auth.updatePassword(session.username, newPwd);
+    if (result.success) {
+      showToast('Password changed successfully!', 'success');
+      this.reset();
+      this.classList.remove('was-validated');
+    } else {
+      showToast(result.message || 'Failed to change password.', 'danger');
+    }
+  });
+
+  // Clear custom validity on input
+  ['currentPassword', 'newPassword', 'confirmPassword'].forEach(id => {
+    document.getElementById(id).addEventListener('input', function () {
+      this.setCustomValidity('');
+      this.classList.remove('is-invalid');
+    });
+  });
+});
+</script>
+</body>
+</html>
