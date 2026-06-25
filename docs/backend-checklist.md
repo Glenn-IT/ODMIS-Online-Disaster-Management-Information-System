@@ -177,12 +177,12 @@
 
 ## Phase 5 — File Uploads
 
-- [ ] Configure `php.ini`: set `upload_max_filesize = 5M`, `post_max_size = 6M`
-- [ ] Create `/uploads/reports/` directory
-- [ ] In `user-reports/store.php`: validate file type (JPEG/PNG only), validate size, move to `/uploads/reports/`
-- [ ] Store relative path in `user_reports.photo_path`
-- [ ] Create `GET /api/uploads/{filename}` or serve directly via Apache
-- [ ] Restrict direct directory browsing (`Options -Indexes` in `.htaccess`)
+- [x] Configure `php.ini`: already set to 40M — app enforces 5MB cap in `config/env.php` (UPLOAD_MAX_SIZE)
+- [x] `/uploads/reports/` directory created (Phase 1); confirmed writable ✅
+- [x] `user-reports/store.php`: validates MIME via `finfo` (not just extension), enforces 5MB, moves file with unique `uniqid` filename
+- [x] `photo_path` stored as `uploads/reports/{filename}` in `user_reports` table
+- [x] `GET /api/uploads/serve.php?file=` — serves files with auth check, MIME validation, path-traversal protection, and `Cache-Control` header
+- [x] `/uploads/.htaccess` — `Options -Indexes`, `php_flag engine off`, PHP files denied
 
 ---
 
@@ -291,7 +291,7 @@
 | 2     | Database Schema              | ✅ Done        |
 | 3     | Authentication API           | ✅ Done        |
 | 4     | Core CRUD APIs               | ✅ Done        |
-| 5     | File Uploads                 | ⬜ Not Started |
+| 5     | File Uploads                 | ✅ Done        |
 | 6     | Analytics API                | ⬜ Not Started |
 | 7     | Reports & Export             | ⬜ Not Started |
 | 8     | Email Notifications          | ⬜ Not Started |
