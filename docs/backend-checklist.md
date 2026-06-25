@@ -124,54 +124,54 @@
 ## Phase 4 — Core CRUD APIs
 
 ### 4.1 Incidents
-- [ ] `GET /api/incidents/index.php` — list all incidents (admin)
-- [ ] `GET /api/incidents/show.php?id=` — single incident detail
-- [ ] `POST /api/incidents/store.php` — create incident (admin only)
-- [ ] `PUT /api/incidents/update.php?id=` — update incident (admin only)
-- [ ] `DELETE /api/incidents/destroy.php?id=` — delete incident (admin only)
+- [x] `GET /api/incidents/index.php` — list all (admin); filters: type, barangay, status, date range
+- [x] `GET /api/incidents/show.php?id=` — single incident detail
+- [x] `POST /api/incidents/store.php` — create (admin only); validates type, severity, unique code
+- [x] `PUT /api/incidents/update.php?id=` — partial update (admin only)
+- [x] `DELETE /api/incidents/destroy.php?id=` — delete (admin only)
 
 ### 4.2 Evacuation Centers
-- [ ] `GET /api/evacuation/index.php` — list all centers
-- [ ] `GET /api/evacuation/show.php?id=` — single center
-- [ ] `POST /api/evacuation/store.php` — create center (admin only)
-- [ ] `PUT /api/evacuation/update.php?id=` — update center (admin only)
-- [ ] `DELETE /api/evacuation/destroy.php?id=` — delete center (admin only)
+- [x] `GET /api/evacuation/index.php` — list all; includes `available_slots` computed column
+- [x] `GET /api/evacuation/show.php?id=` — single center with available_slots
+- [x] `POST /api/evacuation/store.php` — create (admin only); validates capacity vs occupied
+- [x] `PUT /api/evacuation/update.php?id=` — partial update (admin only)
+- [x] `DELETE /api/evacuation/destroy.php?id=` — delete (admin only)
 
 ### 4.3 Relief Operations
-- [ ] `GET /api/relief/index.php` — list all operations
-- [ ] `GET /api/relief/show.php?id=` — single operation
-- [ ] `POST /api/relief/store.php` — create (admin only)
-- [ ] `PUT /api/relief/update.php?id=` — update (admin only)
+- [x] `GET /api/relief/index.php` — list all (admin); filters: barangay, status, date range
+- [x] `GET /api/relief/show.php?id=` — single operation (admin only)
+- [x] `POST /api/relief/store.php` — create (admin only); validates unique batch number
+- [x] `PUT /api/relief/update.php?id=` — partial update (admin only)
 
 ### 4.4 Residents (Users)
-- [ ] `GET /api/residents/index.php` — list all users with role='user' (admin only)
-- [ ] `GET /api/residents/show.php?id=` — single resident (admin only)
-- [ ] `PUT /api/residents/update.php?id=` — edit resident info (admin only)
-- [ ] `PATCH /api/residents/toggle-status.php?id=` — activate/deactivate (admin only)
+- [x] `GET /api/residents/index.php` — list role='user' (admin only); filters: status, search
+- [x] `GET /api/residents/show.php?id=` — single resident (admin only)
+- [x] `PUT /api/residents/update.php?id=` — edit info (admin only); validates email & phone
+- [x] `PATCH /api/residents/toggle-status.php?id=` — toggles active ↔ inactive (admin only)
 
 ### 4.5 Announcements
-- [ ] `GET /api/announcements/index.php` — list active announcements (public)
-- [ ] `POST /api/announcements/store.php` — create (admin only)
-- [ ] `PUT /api/announcements/update.php?id=` — update (admin only)
-- [ ] `DELETE /api/announcements/destroy.php?id=` — delete (admin only)
+- [x] `GET /api/announcements/index.php` — active announcements (public); JOIN to users for name
+- [x] `POST /api/announcements/store.php` — create (admin only); records published_by from JWT
+- [x] `PUT /api/announcements/update.php?id=` — partial update incl. is_active toggle (admin only)
+- [x] `DELETE /api/announcements/destroy.php?id=` — delete (admin only)
 
 ### 4.6 Disaster Alerts
-- [ ] `GET /api/alerts/index.php` — list active alerts (public)
-- [ ] `POST /api/alerts/store.php` — issue new alert (admin only)
-- [ ] `PUT /api/alerts/update.php?id=` — update alert (admin only)
-- [ ] `PATCH /api/alerts/deactivate.php?id=` — deactivate alert (admin only)
+- [x] `GET /api/alerts/index.php` — active alerts by default (public); ?all=1 for admin
+- [x] `POST /api/alerts/store.php` — issue alert (admin only); records issued_by from JWT
+- [x] `PUT /api/alerts/update.php?id=` — partial update (admin only)
+- [x] `PATCH /api/alerts/deactivate.php?id=` — sets status=Resolved (admin only)
 
 ### 4.7 User Reports
-- [ ] `GET /api/user-reports/index.php` — list user's own reports (user), all reports (admin)
-- [ ] `GET /api/user-reports/show.php?id=` — single report
-- [ ] `POST /api/user-reports/store.php` — submit report with optional photo upload
-- [ ] `PUT /api/user-reports/update.php?id=` — edit report (owner only, if still pending)
-- [ ] `PATCH /api/user-reports/update-status.php?id=` — admin updates report status
+- [x] `GET /api/user-reports/index.php` — own reports (user) or all reports (admin)
+- [x] `GET /api/user-reports/show.php?id=` — single report; ownership enforced for users
+- [x] `POST /api/user-reports/store.php` — submit with optional photo upload (multipart)
+- [x] `PUT /api/user-reports/update.php?id=` — edit own Pending report (or admin any)
+- [x] `PATCH /api/user-reports/update-status.php?id=` — admin sets Pending/Reviewed/Resolved
 
 ### 4.8 Profile
-- [ ] `GET /api/profile/index.php` — get own profile (authenticated user)
-- [ ] `PUT /api/profile/update.php` — update own profile fields
-- [ ] `PUT /api/profile/change-password.php` — change own password (verify old password first)
+- [x] `GET /api/profile/index.php` — own profile (authenticated user)
+- [x] `PUT /api/profile/update.php` — update own fields; checks email uniqueness
+- [x] `PUT /api/profile/change-password.php` — verifies old password before hashing new one
 
 ---
 
@@ -290,7 +290,7 @@
 | 1     | Environment & Setup          | ✅ Done        |
 | 2     | Database Schema              | ✅ Done        |
 | 3     | Authentication API           | ✅ Done        |
-| 4     | Core CRUD APIs               | ⬜ Not Started |
+| 4     | Core CRUD APIs               | ✅ Done        |
 | 5     | File Uploads                 | ⬜ Not Started |
 | 6     | Analytics API                | ⬜ Not Started |
 | 7     | Reports & Export             | ⬜ Not Started |
