@@ -98,28 +98,26 @@
 
 ## Phase 3 — Authentication API
 
-- [ ] `POST /api/auth/login.php`
+- [x] `POST /api/auth/login.php`
   - Validate username + password against `users` table
-  - Compare password with `password_verify()` (bcrypt)
-  - Return JWT token + user role on success
-  - Return 401 on failure (generic message — no username hint)
-- [ ] `POST /api/auth/register.php`
-  - Validate all fields (server-side)
-  - Check username and email uniqueness in DB
-  - Hash password with `password_hash()` (PASSWORD_BCRYPT)
-  - Hash security answer
-  - Insert new user (role = 'user', status = 'active')
-  - Return success + JWT
-- [ ] `POST /api/auth/forgot-password.php`
-  - Step 1: Verify username exists → return security question
-  - Step 2: Verify security answer hash
-  - Step 3: Hash and update new password
-- [ ] `POST /api/auth/logout.php`
-  - Client-side: delete JWT from localStorage
-  - (Optional) server-side token blacklist if needed
-- [ ] `GET /api/auth/me.php` — return current user profile from JWT
-- [ ] Add rate limiting on login endpoint (max 5 attempts per 15 min per IP)
-- [ ] Add lockout logic after repeated failed attempts
+  - Compare password with `password_verify()` (bcrypt) ✅
+  - Return JWT token + user role on success ✅
+  - Return 401 on failure (generic message — no username hint) ✅
+- [x] `POST /api/auth/register.php`
+  - Validate all fields server-side (length, email format, PH phone) ✅
+  - Check username and email uniqueness in DB ✅
+  - Hash password with `password_hash()` (PASSWORD_BCRYPT) ✅
+  - Hash security answer (lowercased before hashing) ✅
+  - Insert new user (role = 'user', status = 'active') ✅
+  - Return success + JWT ✅
+- [x] `POST /api/auth/forgot-password.php`
+  - Step 1: Verify username exists → return security question ✅
+  - Step 2: Verify security answer hash (case-insensitive) ✅
+  - Step 3: Hash and update new password ✅
+- [x] `POST /api/auth/logout.php` — validates token then acknowledges (client deletes JWT) ✅
+- [x] `GET /api/auth/me.php` — return current user profile from JWT ✅
+- [x] Rate limiting on login: 5 attempts per 15 min per IP (file-based cache) ✅
+- [x] Lockout clears automatically after 15-minute window ✅
 
 ---
 
@@ -291,7 +289,7 @@
 |-------|------------------------------|-------------|
 | 1     | Environment & Setup          | ✅ Done        |
 | 2     | Database Schema              | ✅ Done        |
-| 3     | Authentication API           | ⬜ Not Started |
+| 3     | Authentication API           | ✅ Done        |
 | 4     | Core CRUD APIs               | ⬜ Not Started |
 | 5     | File Uploads                 | ⬜ Not Started |
 | 6     | Analytics API                | ⬜ Not Started |
