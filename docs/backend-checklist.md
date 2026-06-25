@@ -188,15 +188,13 @@
 
 ## Phase 6 — Dashboard Analytics API
 
-- [ ] `GET /api/analytics/summary.php` — return:
-  - Total registered residents
-  - Total disaster reports
-  - Active incidents count
-  - Resolved incidents count
-- [ ] `GET /api/analytics/by-type.php` — incidents grouped by disaster_type (for pie chart)
-- [ ] `GET /api/analytics/monthly.php?year=` — incidents per month (for bar chart)
-- [ ] `GET /api/analytics/by-barangay.php` — incidents grouped by barangay (for bar chart)
-- [ ] `GET /api/analytics/frequency.php` — disaster frequency over time (for line chart)
+- [x] `GET /api/analytics/summary.php` — returns 8 stat-card values:
+  - total_residents (4), total_reports (10), active_incidents (4), resolved_incidents (6)
+  - active_alerts (5), open_evac_centers (4), pending_user_reports, relief_in_progress ✅
+- [x] `GET /api/analytics/by-type.php` — all 5 types with total/active/resolved + chart labels/values array ✅
+- [x] `GET /api/analytics/monthly.php?year=` — full 12-month scaffold (zeroed gaps); multi-year support ✅
+- [x] `GET /api/analytics/by-barangay.php` — per-barangay totals + critical/high breakdown ✅
+- [x] `GET /api/analytics/frequency.php` — monthly pivot by type with Chart.js `series` format ✅
 
 ---
 
@@ -292,7 +290,7 @@
 | 3     | Authentication API           | ✅ Done        |
 | 4     | Core CRUD APIs               | ✅ Done        |
 | 5     | File Uploads                 | ✅ Done        |
-| 6     | Analytics API                | ⬜ Not Started |
+| 6     | Analytics API                | ✅ Done        |
 | 7     | Reports & Export             | ⬜ Not Started |
 | 8     | Email Notifications          | ⬜ Not Started |
 | 9     | Frontend Integration         | ⬜ Not Started |
