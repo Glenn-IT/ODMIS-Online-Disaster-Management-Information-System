@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — ODMIS Admin</title>
+
+  <!-- Bootstrap 5 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <!-- ODMIS Styles -->
+  <link rel="stylesheet" href="../assets/css/style.css" />
+
+  <style>
+    /* ── Chart card equal-height ── */
+    .chart-card {
+      background: #fff;
+      border-radius: var(--card-border-radius);
+      box-shadow: var(--card-shadow);
+      padding: 1.25rem;
+      height: 100%;
+    }
+    .chart-card-title {
+      font-size: var(--font-size-sm);
+      font-weight: 700;
+      color: var(--color-primary);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .chart-card-title i { color: var(--color-accent); }
+    .chart-wrapper {
+      position: relative;
+      width: 100%;
+    }
+    .chart-wrapper canvas { max-width: 100%; }
+
+    /* ── Recent incidents table card ── */
+    .section-heading {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--color-primary);
+      margin-bottom: 0;
+    }
+    .view-all-link {
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+      color: var(--color-primary-light);
+    }
+    .view-all-link:hover { color: var(--color-primary); }
+
+    /* ── Trend chip inside stat cards ── */
+    .stat-card-badge {
+      margin-top: 0.4rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 20px;
+    }
+    .stat-card-badge.up   { background: var(--color-success-light); color: #155724; }
+    .stat-card-badge.flat { background: var(--color-light-gray);   color: var(--color-gray); }
+    .stat-card-badge.down { background: var(--color-danger-light);  color: #721c24; }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════
+     MOBILE GUARD
+══════════════════════════════════════════════════════════ -->
+<div id="mobileGuard">
+  <div class="text-center text-white p-4">
+    <i class="fas fa-desktop mobile-guard-icon"></i>
+    <h4 class="mobile-guard-title">Desktop Required</h4>
+    <p class="mobile-guard-subtitle">This system is optimized for desktop devices (minimum 1366 px width). Please switch to a desktop or laptop computer.</p>
+    <span class="mobile-guard-badge"><i class="fas fa-expand-arrows-alt me-1"></i>Min. 1366 px</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SIDEBAR
+══════════════════════════════════════════════════════════ -->
+<div id="sidebar">
+  <!-- Brand -->
+  <div class="sidebar-logo-area">
+    <div class="sidebar-logo-placeholder">
+      <i class="fas fa-shield-alt"></i>
+    </div>
+    <div class="sidebar-brand-text">
+      <span class="brand-title">ODMIS</span>
+      <span class="brand-subtitle">Disaster Management</span>
+    </div>
+  </div>
+
+  <!-- Nav -->
+  <nav class="sidebar-nav">
+    <ul class="list-unstyled mb-0">
+      <li class="sidebar-nav-item">
+        <a href="dashboard.html" class="sidebar-nav-link" data-page="dashboard">
+          <i class="fas fa-tachometer-alt nav-icon"></i>
+          <span class="nav-label">Dashboard</span>
+        </a>
+      </li>
+      <li class="sidebar-nav-item">
+        <a href="incidents.html" class="sidebar-nav-link" data-page="incidents">
+          <i class="fas fa-exclamation-triangle nav-icon"></i>
+          <span class="nav-label">Incidents</span>
+        </a>
+      </li>
+      <li class="sidebar-nav-item">
+        <a href="evacuation.html" class="sidebar-nav-link" data-page="evacuation">
+          <i class="fas fa-house-damage nav-icon"></i>
+          <span class="nav-label">Evacuation Centers</span>
+        </a>
+      </li>
+      <li class="sidebar-nav-item">
+        <a href="residents.html" class="sidebar-nav-link" data-page="residents">
+          <i class="fas fa-users nav-icon"></i>
+          <span class="nav-label">Residents</span>
+        </a>
+      </li>
+      <li class="sidebar-nav-item">
+        <a href="relief.html" class="sidebar-nav-link" data-page="relief">
+          <i class="fas fa-box-open nav-icon"></i>
+          <span class="nav-label">Relief Operations</span>
+        </a>
+      </li>
+      <li class="sidebar-nav-item">
+        <a href="reports.html" class="sidebar-nav-link" data-page="reports">
+          <i class="fas fa-chart-bar nav-icon"></i>
+          <span class="nav-label">Reports</span>
+        </a>
+      </li>
+      <li class="sidebar-nav-item">
+        <a href="settings.html" class="sidebar-nav-link" data-page="settings">
+          <i class="fas fa-cog nav-icon"></i>
+          <span class="nav-label">Settings</span>
+        </a>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- Footer user info -->
+  <div class="sidebar-footer">
+    <div class="sidebar-user-avatar" id="sidebarUserAvatar">A</div>
+    <div class="sidebar-user-info">
+      <span class="sidebar-user-name" id="sidebarUserName">Admin</span>
+      <span class="sidebar-user-role" id="sidebarUserRole">Administrator</span>
+    </div>
+  </div>
+</div>
+
+<!-- Sidebar overlay (mobile) -->
+<div id="sidebarOverlay"></div>
+
+<!-- ══════════════════════════════════════════════════════════
+     TOP NAVBAR
+══════════════════════════════════════════════════════════ -->
+<nav id="topNavbar">
+  <button class="navbar-hamburger" id="sidebarToggle" title="Toggle Sidebar">
+    <i class="fas fa-bars"></i>
+  </button>
+
+  <h1 class="navbar-page-title">Dashboard</h1>
+
+  <div class="navbar-right">
+    <!-- Notification bell -->
+    <button class="navbar-icon-btn position-relative" title="Notifications">
+      <i class="fas fa-bell"></i>
+      <span class="notification-count" id="notificationCount">0</span>
+    </button>
+
+    <div class="navbar-divider"></div>
+
+    <!-- User dropdown -->
+    <div class="dropdown">
+      <div class="navbar-user dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false">
+        <div class="navbar-avatar" id="navbarAvatar">A</div>
+        <span class="navbar-user-name" id="navbarUsername">Admin</span>
+        <i class="fas fa-chevron-down ms-1" style="font-size:0.65rem; color:var(--color-gray);"></i>
+      </div>
+      <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="min-width:180px; font-size:var(--font-size-sm);">
+        <li>
+          <a class="dropdown-item" href="settings.html">
+            <i class="fas fa-cog me-2 text-muted"></i>Settings
+          </a>
+        </li>
+        <li><hr class="dropdown-divider my-1"></li>
+        <li>
+          <a class="dropdown-item text-danger" href="#" data-action="logout">
+            <i class="fas fa-sign-out-alt me-2"></i>Logout
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════════
+     MAIN CONTENT
+══════════════════════════════════════════════════════════ -->
+<main id="mainContent">
+
+  <!-- Page Header -->
+  <div class="page-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div>
+      <h1 class="mb-1"><i class="fas fa-tachometer-alt me-2" style="color:var(--color-accent);"></i>Dashboard</h1>
+      <p class="page-subtitle mb-0">
+        <i class="fas fa-calendar-alt me-1"></i>
+        Overview as of <span id="dashDate"></span>
+      </p>
+    </div>
+    <button class="btn btn-outline-primary btn-sm no-print" onclick="window.print()">
+      <i class="fas fa-print me-1"></i>Print Report
+    </button>
+  </div>
+
+  <!-- ── SUMMARY CARDS ── -->
+  <div class="row g-3 mb-4">
+    <!-- Total Residents -->
+    <div class="col-xl-3 col-sm-6">
+      <div class="stat-card stat-primary">
+        <div class="stat-card-icon">
+          <i class="fas fa-users"></i>
+        </div>
+        <div class="stat-card-body">
+          <div class="stat-card-value" id="cardResidents">0</div>
+          <div class="stat-card-label">Total Residents</div>
+          <div class="stat-card-badge flat" id="cardResidentsTrend">
+            <i class="fas fa-minus"></i> Registered Users
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Total Disaster Reports -->
+    <div class="col-xl-3 col-sm-6">
+      <div class="stat-card stat-danger">
+        <div class="stat-card-icon">
+          <i class="fas fa-file-alt"></i>
+        </div>
+        <div class="stat-card-body">
+          <div class="stat-card-value" id="cardTotalIncidents">0</div>
+          <div class="stat-card-label">Total Disaster Reports</div>
+          <div class="stat-card-badge flat" id="cardTotalTrend">
+            <i class="fas fa-database"></i> All Records
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Incidents -->
+    <div class="col-xl-3 col-sm-6">
+      <div class="stat-card stat-warning">
+        <div class="stat-card-icon">
+          <i class="fas fa-exclamation-circle"></i>
+        </div>
+        <div class="stat-card-body">
+          <div class="stat-card-value" id="cardActiveIncidents">0</div>
+          <div class="stat-card-label">Active Incidents</div>
+          <div class="stat-card-badge up" id="cardActiveTrend">
+            <i class="fas fa-circle-notch fa-spin"></i> Ongoing
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Resolved Incidents -->
+    <div class="col-xl-3 col-sm-6">
+      <div class="stat-card stat-success">
+        <div class="stat-card-icon">
+          <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="stat-card-body">
+          <div class="stat-card-value" id="cardResolvedIncidents">0</div>
+          <div class="stat-card-label">Resolved Incidents</div>
+          <div class="stat-card-badge flat" id="cardResolvedTrend">
+            <i class="fas fa-check"></i> Closed
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── CHARTS ROW 1 ── -->
+  <div class="row g-3 mb-3">
+    <!-- Doughnut: Disaster Types Distribution -->
+    <div class="col-xl-5 col-lg-6">
+      <div class="chart-card h-100">
+        <div class="chart-card-title">
+          <i class="fas fa-chart-pie"></i> Disaster Types Distribution
+        </div>
+        <div class="chart-wrapper" style="max-height:280px;">
+          <canvas id="chartDisasterTypes"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Line: Monthly Reports (last 6 months) -->
+    <div class="col-xl-7 col-lg-6">
+      <div class="chart-card h-100">
+        <div class="chart-card-title">
+          <i class="fas fa-chart-line"></i> Monthly Incident Reports (Last 6 Months)
+        </div>
+        <div class="chart-wrapper" style="max-height:280px;">
+          <canvas id="chartMonthly"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── CHARTS ROW 2 ── -->
+  <div class="row g-3 mb-4">
+    <!-- Bar: Affected Barangays -->
+    <div class="col-xl-6">
+      <div class="chart-card h-100">
+        <div class="chart-card-title">
+          <i class="fas fa-map-marker-alt"></i> Incidents by Barangay
+        </div>
+        <div class="chart-wrapper" style="max-height:260px;">
+          <canvas id="chartBarangay"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bar: Disaster Frequency by Year -->
+    <div class="col-xl-6">
+      <div class="chart-card h-100">
+        <div class="chart-card-title">
+          <i class="fas fa-calendar"></i> Disaster Frequency by Year
+        </div>
+        <div class="chart-wrapper" style="max-height:260px;">
+          <canvas id="chartByYear"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── RECENT INCIDENTS TABLE ── -->
+  <div class="content-card mb-4">
+    <div class="content-card-header">
+      <h5 class="section-heading mb-0">
+        <i class="fas fa-history me-2" style="color:var(--color-accent);"></i>Recent Incidents
+      </h5>
+      <a href="incidents.html" class="view-all-link">
+        View All <i class="fas fa-arrow-right ms-1"></i>
+      </a>
+    </div>
+    <div class="content-card-body p-0">
+      <div class="table-wrapper">
+        <table class="table table-hover mb-0" id="recentIncidentsTable">
+          <thead>
+            <tr>
+              <th>Incident ID</th>
+              <th>Type</th>
+              <th>Title</th>
+              <th>Location</th>
+              <th>Date</th>
+              <th>Severity</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="recentIncidentsBody">
+            <!-- populated by JS -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Empty state -->
+      <div id="recentEmptyState" class="empty-state d-none">
+        <i class="fas fa-inbox empty-state-icon"></i>
+        <p class="empty-state-title">No Incidents Recorded</p>
+        <p class="empty-state-text">Once incidents are reported they will appear here.</p>
+      </div>
+    </div>
+  </div>
+
+</main><!-- /mainContent -->
+
+<!-- ══════════════════════════════════════════════════════════
+     LOGOUT CONFIRM MODAL  (created dynamically by App.initLogout)
+══════════════════════════════════════════════════════════ -->
+
+<!-- ══════════════════════════════════════════════════════════
+     SCRIPTS
+══════════════════════════════════════════════════════════ -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="../assets/js/mock-data.js"></script>
+<script src="../assets/js/auth.js"></script>
+<script src="../assets/js/app.js"></script>
+
+<script>
+/* ============================================================
+   dashboard.html — page-specific logic
+   ============================================================ */
+(function () {
+  'use strict';
+
+  // ── Chart color palette ──────────────────────────────────
+  var PALETTE = {
+    primary : '#467235',
+    accent  : '#FFBF00',
+    success : '#27ae60',
+    warning : '#f39c12',
+    info    : '#2980b9',
+    orange  : '#FFBF00',
+    purple  : '#8e44ad',
+    teal    : '#16a085',
+    brown   : '#795548'
+  };
+
+  var DISASTER_COLORS = {
+    'Flood'      : PALETTE.info,
+    'Typhoon'    : PALETTE.purple,
+    'Earthquake' : PALETTE.orange,
+    'Fire'       : PALETTE.accent,
+    'Landslide'  : PALETTE.brown
+  };
+
+  // Shared Chart.js default font
+  Chart.defaults.font.family = "'Segoe UI', system-ui, sans-serif";
+  Chart.defaults.font.size   = 12;
+  Chart.defaults.color       = '#495057';
+
+  // ── Helpers ──────────────────────────────────────────────
+  function esc(str) {
+    return String(str || '')
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+
+  function severityBadge(sev) {
+    var map = {
+      'Low'      : ['badge-severity-low',      'fa-arrow-down'],
+      'Moderate' : ['badge-severity-moderate',  'fa-minus'],
+      'High'     : ['badge-severity-high',      'fa-arrow-up'],
+      'Critical' : ['badge-severity-critical',  'fa-skull-crossbones']
+    };
+    var cls  = (map[sev] || map['Low'])[0];
+    var icon = (map[sev] || map['Low'])[1];
+    return '<span class="badge-severity ' + cls + '"><i class="fas ' + icon + ' me-1"></i>' + esc(sev || '—') + '</span>';
+  }
+
+  function statusBadge(st) {
+    var cls = st === 'Active' ? 'badge-status-active' : 'badge-status-resolved';
+    return '<span class="badge-status ' + cls + '">' + esc(st || '—') + '</span>';
+  }
+
+  function formatDateShort(dateStr) {
+    if (!dateStr) return '—';
+    try {
+      var d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
+      var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      return months[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+    } catch(e) { return dateStr; }
+  }
+
+  // ── Data loading ─────────────────────────────────────────
+  function loadData() {
+    var users     = JSON.parse(localStorage.getItem('odmis_users')  || '[]');
+    var incidents = JSON.parse(localStorage.getItem('odmis_incidents') || '[]');
+    return { users: users, incidents: incidents };
+  }
+
+  // ── Populate summary cards ────────────────────────────────
+  function populateCards(users, incidents) {
+    var residents = users.filter(function(u){ return u.role === 'user'; }).length;
+    var total     = incidents.length;
+    var active    = incidents.filter(function(i){ return i.status === 'Active'; }).length;
+    var resolved  = incidents.filter(function(i){ return i.status === 'Resolved'; }).length;
+
+    document.getElementById('cardResidents').textContent        = residents;
+    document.getElementById('cardTotalIncidents').textContent   = total;
+    document.getElementById('cardActiveIncidents').textContent  = active;
+    document.getElementById('cardResolvedIncidents').textContent = resolved;
+
+    // Dynamic trend chip for active incidents
+    var activeTrend = document.getElementById('cardActiveTrend');
+    if (active > 0) {
+      activeTrend.className = 'stat-card-badge up';
+      activeTrend.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Needs Attention';
+    } else {
+      activeTrend.className = 'stat-card-badge flat';
+      activeTrend.innerHTML = '<i class="fas fa-check"></i> None Active';
+    }
+  }
+
+  // ── Chart helpers ─────────────────────────────────────────
+  var _charts = {};
+
+  function destroyChart(id) {
+    if (_charts[id]) { _charts[id].destroy(); delete _charts[id]; }
+  }
+
+  // Disaster Types — Doughnut
+  function renderDisasterTypesChart(incidents) {
+    var counts = {};
+    incidents.forEach(function(inc) {
+      var t = inc.disasterType || inc.type || 'Other';
+      counts[t] = (counts[t] || 0) + 1;
+    });
+    var labels = Object.keys(counts);
+    var data   = labels.map(function(l){ return counts[l]; });
+    var colors = labels.map(function(l){ return DISASTER_COLORS[l] || PALETTE.teal; });
+
+    destroyChart('disasterTypes');
+    var ctx = document.getElementById('chartDisasterTypes').getContext('2d');
+    _charts['disasterTypes'] = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: labels,
+        datasets: [{
+          data        : data,
+          backgroundColor: colors,
+          borderWidth : 2,
+          borderColor : '#fff',
+          hoverOffset : 6
+        }]
+      },
+      options: {
+        responsive  : true,
+        maintainAspectRatio: true,
+        cutout      : '60%',
+        plugins: {
+          legend: {
+            position : 'bottom',
+            labels   : { padding: 14, boxWidth: 12, font: { size: 11 } }
+          },
+          tooltip: {
+            callbacks: {
+              label: function(ctx) {
+                var total = ctx.dataset.data.reduce(function(a,b){return a+b;},0);
+                var pct   = total ? Math.round(ctx.parsed / total * 100) : 0;
+                return ' ' + ctx.label + ': ' + ctx.parsed + ' (' + pct + '%)';
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // Monthly Reports — Line (last 6 months)
+  function renderMonthlyChart(incidents) {
+    var now    = new Date();
+    var labels = [];
+    var data   = [];
+    var monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+    for (var i = 5; i >= 0; i--) {
+      var d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      labels.push(monthNames[d.getMonth()] + ' ' + d.getFullYear());
+      var count = incidents.filter(function(inc) {
+        var dt = new Date(inc.date || inc.dateTime || inc.createdAt || '');
+        return dt.getFullYear() === d.getFullYear() && dt.getMonth() === d.getMonth();
+      }).length;
+      data.push(count);
+    }
+
+    destroyChart('monthly');
+    var ctx = document.getElementById('chartMonthly').getContext('2d');
+    var gradient = ctx.createLinearGradient(0, 0, 0, 260);
+    gradient.addColorStop(0, 'rgba(26,58,107,0.3)');
+    gradient.addColorStop(1, 'rgba(26,58,107,0.02)');
+
+    _charts['monthly'] = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label           : 'Incidents',
+          data            : data,
+          borderColor     : PALETTE.primary,
+          backgroundColor : gradient,
+          borderWidth     : 2.5,
+          pointBackgroundColor: PALETTE.accent,
+          pointRadius     : 5,
+          pointHoverRadius: 7,
+          tension         : 0.4,
+          fill            : true
+        }]
+      },
+      options: {
+        responsive : true,
+        maintainAspectRatio: true,
+        scales: {
+          y: {
+            beginAtZero : true,
+            ticks: { stepSize: 1, precision: 0 },
+            grid: { color: 'rgba(0,0,0,0.05)' }
+          },
+          x: {
+            grid: { display: false }
+          }
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: function(ctx) { return ' Incidents: ' + ctx.parsed.y; }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // Barangay Bar Chart
+  function renderBarangayChart(incidents) {
+    var counts = {};
+    incidents.forEach(function(inc) {
+      var b = inc.barangay || 'Unknown';
+      counts[b] = (counts[b] || 0) + 1;
+    });
+
+    // Sort descending
+    var entries = Object.entries(counts).sort(function(a,b){return b[1]-a[1];});
+    var labels  = entries.map(function(e){return e[0];});
+    var data    = entries.map(function(e){return e[1];});
+
+    destroyChart('barangay');
+    var ctx = document.getElementById('chartBarangay').getContext('2d');
+    _charts['barangay'] = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label           : 'Incidents',
+          data            : data,
+          backgroundColor : 'rgba(26,58,107,0.75)',
+          borderColor     : PALETTE.primary,
+          borderWidth     : 1.5,
+          borderRadius    : 4,
+          hoverBackgroundColor: PALETTE.accent
+        }]
+      },
+      options: {
+        responsive : true,
+        maintainAspectRatio: true,
+        scales: {
+          y: {
+            beginAtZero : true,
+            ticks: { stepSize: 1, precision: 0 },
+            grid: { color: 'rgba(0,0,0,0.05)' }
+          },
+          x: { grid: { display: false } }
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: function(ctx){ return ' Incidents: ' + ctx.parsed.y; }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // Disaster Frequency by Year — Bar
+  function renderYearChart(incidents) {
+    var counts = {};
+    incidents.forEach(function(inc) {
+      var dt = new Date(inc.date || inc.dateTime || inc.createdAt || '');
+      if (!isNaN(dt.getTime())) {
+        var yr = String(dt.getFullYear());
+        counts[yr] = (counts[yr] || 0) + 1;
+      }
+    });
+
+    var years = Object.keys(counts).sort();
+    var data  = years.map(function(y){ return counts[y]; });
+
+    // Build gradient colors per bar
+    var colors = years.map(function(_, idx) {
+      var palette = [PALETTE.info, PALETTE.primary, PALETTE.orange, PALETTE.success, PALETTE.purple, PALETTE.accent];
+      return palette[idx % palette.length];
+    });
+
+    destroyChart('byYear');
+    var ctx = document.getElementById('chartByYear').getContext('2d');
+    _charts['byYear'] = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: years,
+        datasets: [{
+          label           : 'Disasters',
+          data            : data,
+          backgroundColor : colors.map(function(c){ return c + 'cc'; }),
+          borderColor     : colors,
+          borderWidth     : 1.5,
+          borderRadius    : 4
+        }]
+      },
+      options: {
+        responsive : true,
+        maintainAspectRatio: true,
+        scales: {
+          y: {
+            beginAtZero : true,
+            ticks: { stepSize: 1, precision: 0 },
+            grid: { color: 'rgba(0,0,0,0.05)' }
+          },
+          x: { grid: { display: false } }
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: function(ctx){ return ' Disasters: ' + ctx.parsed.y; }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // ── Recent Incidents Table ────────────────────────────────
+  function renderRecentTable(incidents) {
+    var tbody  = document.getElementById('recentIncidentsBody');
+    var empty  = document.getElementById('recentEmptyState');
+    var sorted = incidents.slice().sort(function(a, b) {
+      return new Date(b.date || b.createdAt || 0) - new Date(a.date || a.createdAt || 0);
+    });
+    var recent = sorted.slice(0, 5);
+
+    if (!recent.length) {
+      tbody.innerHTML = '';
+      empty.classList.remove('d-none');
+      return;
+    }
+    empty.classList.add('d-none');
+
+    var rows = recent.map(function(inc) {
+      return '<tr>' +
+        '<td><code class="text-primary fw-600">' + esc(inc.id) + '</code></td>' +
+        '<td>' +
+          '<span class="badge-type"><i class="fas fa-bolt me-1"></i>' + esc(inc.disasterType || inc.type || '—') + '</span>' +
+        '</td>' +
+        '<td class="fw-600">' + esc(inc.title || '—') + '</td>' +
+        '<td><i class="fas fa-map-marker-alt text-muted me-1"></i>' + esc(inc.location || inc.barangay || '—') + '</td>' +
+        '<td class="text-muted">' + formatDateShort(inc.date || inc.createdAt) + '</td>' +
+        '<td>' + severityBadge(inc.severity || inc.severityLevel) + '</td>' +
+        '<td>' + statusBadge(inc.status) + '</td>' +
+      '</tr>';
+    });
+    tbody.innerHTML = rows.join('');
+  }
+
+  // ── Set dashboard date ────────────────────────────────────
+  function setDashDate() {
+    var el = document.getElementById('dashDate');
+    if (!el) return;
+    var now = new Date();
+    var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    var days   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    el.textContent = days[now.getDay()] + ', ' + months[now.getMonth()] + ' ' + now.getDate() + ', ' + now.getFullYear();
+  }
+
+  // ── Boot ─────────────────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', function () {
+    // 1. Seed mock data (safe — skips if already seeded)
+    if (typeof initMockData === 'function') initMockData();
+
+    // 2. Auth guard — redirects if not admin
+    if (typeof Auth !== 'undefined') {
+      if (!Auth.requireAdmin()) return;
+    }
+
+    // 3. Init shared App behaviours (sidebar, navbar, logout, mobile guard, active nav)
+    if (typeof App !== 'undefined') {
+      App.initPage({ page: 'dashboard', adminPage: true, requireAdmin: true });
+    }
+
+    // 4. Set date display
+    setDashDate();
+
+    // 5. Load data
+    var data = loadData();
+
+    // 6. Summary cards
+    populateCards(data.users, data.incidents);
+
+    // 7. Charts
+    renderDisasterTypesChart(data.incidents);
+    renderMonthlyChart(data.incidents);
+    renderBarangayChart(data.incidents);
+    renderYearChart(data.incidents);
+
+    // 8. Recent incidents table
+    renderRecentTable(data.incidents);
+  });
+
+})();
+</script>
+</body>
+</html>
