@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Announcements — ODMIS User</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <style>
+    .ann-card { border: none; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,.09); overflow: hidden; margin-bottom: 1rem; transition: box-shadow .15s; }
+    .ann-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.14); }
+    .ann-card-header { padding: .85rem 1.25rem; display: flex; align-items: center; justify-content: space-between; gap: .5rem; flex-wrap: wrap; }
+    .ann-card-body   { padding: 1rem 1.25rem; }
+    .ann-card-footer { padding: .65rem 1.25rem; background: #f8f9fa; border-top: 1px solid #eee; font-size: .78rem; color: #777; }
+    .ann-content-collapsed { max-height: 80px; overflow: hidden; position: relative; }
+    .ann-content-collapsed::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 30px; background: linear-gradient(transparent, #fff); }
+    .filter-tabs .nav-link { font-size: .85rem; padding: .4rem .85rem; }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════
+     SIDEBAR
+════════════════════════════════════════ -->
+<div id="sidebar" class="sidebar">
+  <div class="sidebar-logo-area">
+    <div class="sidebar-logo-placeholder"><i class="fas fa-shield-alt"></i></div>
+    <div class="sidebar-brand-text"><span class="brand-title">ODMIS</span><span class="brand-subtitle">Disaster Management</span></div>
+  </div>
+  <nav class="sidebar-nav">
+    <ul class="list-unstyled mb-0">
+      <li class="sidebar-nav-item"><a href="dashboard.html" class="sidebar-nav-link" data-page="dashboard"><i class="fas fa-tachometer-alt nav-icon"></i><span class="nav-label">Dashboard</span></a></li>
+      <li class="sidebar-nav-item"><a href="report-incident.html" class="sidebar-nav-link" data-page="report-incident"><i class="fas fa-plus-circle nav-icon"></i><span class="nav-label">Report Incident</span></a></li>
+      <li class="sidebar-nav-item"><a href="alerts.html" class="sidebar-nav-link" data-page="alerts"><i class="fas fa-bell nav-icon"></i><span class="nav-label">Disaster Alerts</span></a></li>
+      <li class="sidebar-nav-item"><a href="evacuation-centers.html" class="sidebar-nav-link" data-page="evacuation-centers"><i class="fas fa-house-damage nav-icon"></i><span class="nav-label">Evacuation Centers</span></a></li>
+      <li class="sidebar-nav-item"><a href="announcements.html" class="sidebar-nav-link active" data-page="announcements"><i class="fas fa-bullhorn nav-icon"></i><span class="nav-label">Announcements</span></a></li>
+      <li class="sidebar-nav-item"><a href="profile.html" class="sidebar-nav-link" data-page="profile"><i class="fas fa-user nav-icon"></i><span class="nav-label">Profile</span></a></li>
+    </ul>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="sidebar-user-avatar" id="sidebarAvatar">U</div>
+    <div class="sidebar-user-info"><span class="sidebar-user-name" id="sidebarName">User</span><span class="sidebar-user-role">Resident</span></div>
+  </div>
+</div>
+<div id="sidebarOverlay"></div>
+
+<!-- ═══════════════════════════════════════
+     TOP NAVBAR
+════════════════════════════════════════ -->
+<nav id="topNavbar">
+  <button class="navbar-hamburger" id="sidebarToggle"><i class="fas fa-bars"></i></button>
+  <h1 class="navbar-page-title">Announcements</h1>
+  <div class="navbar-right">
+    <button class="navbar-icon-btn position-relative" title="Notifications">
+      <i class="fas fa-bell"></i><span class="notification-count" id="notifBadge">0</span>
+    </button>
+    <div class="navbar-divider"></div>
+    <div class="dropdown">
+      <div class="navbar-user dropdown-toggle" data-bs-toggle="dropdown" role="button">
+        <div class="navbar-avatar" id="navAvatar">U</div>
+        <span class="navbar-user-name" id="navUsername">User</span>
+        <i class="fas fa-chevron-down ms-1" style="font-size:.65rem;color:var(--color-gray)"></i>
+      </div>
+      <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="min-width:180px;font-size:var(--font-size-sm)">
+        <li><a class="dropdown-item" href="profile.html"><i class="fas fa-user me-2 text-muted"></i>Profile</a></li>
+        <li><hr class="dropdown-divider my-1"></li>
+        <li><a class="dropdown-item text-danger" href="#" data-action="logout"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════
+     MAIN CONTENT
+════════════════════════════════════════ -->
+<main id="mainContent">
+  <div class="page-header">
+    <div>
+      <h1 class="mb-1"><i class="fas fa-bullhorn me-2" style="color:var(--color-accent)"></i>Announcements</h1>
+      <p class="page-subtitle mb-0">Official announcements and advisories from the DRRM Office</p>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-body py-3">
+      <div class="row g-3 align-items-center">
+        <div class="col-lg-8">
+          <label class="form-label fw-semibold small text-muted mb-1">Category</label>
+          <ul class="nav nav-pills filter-tabs flex-wrap gap-1" id="catFilter">
+            <li class="nav-item"><a class="nav-link active" href="#" data-cat="all">All</a></li>
+            <li class="nav-item"><a class="nav-link" href="#" data-cat="emergency"><i class="fas fa-exclamation-circle me-1"></i>Emergency</a></li>
+            <li class="nav-item"><a class="nav-link" href="#" data-cat="advisory"><i class="fas fa-info-circle me-1"></i>Advisory</a></li>
+            <li class="nav-item"><a class="nav-link" href="#" data-cat="information"><i class="fas fa-newspaper me-1"></i>Information</a></li>
+            <li class="nav-item"><a class="nav-link" href="#" data-cat="event"><i class="fas fa-calendar-check me-1"></i>Event</a></li>
+          </ul>
+        </div>
+        <div class="col-lg-4">
+          <label class="form-label fw-semibold small text-muted mb-1">Search</label>
+          <div class="input-group input-group-sm">
+            <span class="input-group-text"><i class="fas fa-search"></i></span>
+            <input type="text" class="form-control" id="searchInput" placeholder="Search announcements..." />
+            <button class="btn btn-outline-secondary" id="clearSearch"><i class="fas fa-times"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mb-2 text-muted small"><span id="annCount">0</span> announcement(s) found</div>
+
+  <!-- Announcement Cards -->
+  <div id="annList">
+    <div class="text-center text-muted py-5"><i class="fas fa-spinner fa-spin me-2"></i>Loading announcements...</div>
+  </div>
+</main>
+
+<!-- ═══════════════════════════════════════
+     LOGOUT MODAL
+════════════════════════════════════════ -->
+<div class="modal fade" id="logoutModal" tabindex="-1">
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title"><i class="fas fa-sign-out-alt me-2"></i>Confirm Logout</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-center py-4"><p class="mb-0">Are you sure you want to logout?</p></div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-danger btn-sm" id="confirmLogoutBtn">Logout</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/js/mock-data.js"></script>
+<script src="../assets/js/auth.js"></script>
+<script src="../assets/js/app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  initMockData();
+  Auth.requireUser();
+
+  const session = Auth.getSession();
+  if (session) {
+    const initial = (session.fullName || session.username || 'U')[0].toUpperCase();
+    document.getElementById('sidebarAvatar').textContent = initial;
+    document.getElementById('sidebarName').textContent = session.fullName || session.username;
+    document.getElementById('navAvatar').textContent = initial;
+    document.getElementById('navUsername').textContent = session.username;
+  }
+
+  document.getElementById('sidebarToggle').addEventListener('click', () => document.body.classList.toggle('sidebar-collapsed'));
+  document.getElementById('confirmLogoutBtn').addEventListener('click', () => Auth.logout());
+  document.querySelectorAll('[data-action="logout"]').forEach(el => {
+    el.addEventListener('click', e => { e.preventDefault(); new bootstrap.Modal(document.getElementById('logoutModal')).show(); });
+  });
+
+  const alerts = JSON.parse(localStorage.getItem('odmis_alerts') || '[]');
+  document.getElementById('notifBadge').textContent = alerts.filter(a => a.status !== 'Resolved').length;
+
+  const allAnn = JSON.parse(localStorage.getItem('odmis_announcements') || '[]');
+
+  let currentCat = 'all';
+  let searchQuery = '';
+
+  // ── Category badge ─────────────────────────────────────────
+  function catBadgeClass(cat) {
+    const c = (cat || '').toLowerCase();
+    if (c.includes('evacuation') || c.includes('emergency') || c.includes('order')) return 'bg-danger';
+    if (c.includes('advisory') || c.includes('weather'))                              return 'bg-warning text-dark';
+    if (c.includes('relief') || c.includes('distribution'))                           return 'bg-info';
+    if (c.includes('training') || c.includes('awareness') || c.includes('campaign'))  return 'bg-success';
+    if (c.includes('damage') || c.includes('report') || c.includes('assessment'))     return 'bg-secondary';
+    return 'bg-primary';
+  }
+
+  function catFilterMatch(ann) {
+    if (currentCat === 'all') return true;
+    const c = (ann.category || '').toLowerCase();
+    if (currentCat === 'emergency')   return c.includes('evacuation') || c.includes('emergency') || c.includes('order');
+    if (currentCat === 'advisory')    return c.includes('advisory') || c.includes('weather');
+    if (currentCat === 'information') return c.includes('damage') || c.includes('report') || c.includes('assessment') || c.includes('awareness');
+    if (currentCat === 'event')       return c.includes('training') || c.includes('campaign') || c.includes('distribution') || c.includes('capacity');
+    return true;
+  }
+
+  // ── Render ─────────────────────────────────────────────────
+  function render() {
+    let filtered = allAnn
+      .filter(a => catFilterMatch(a))
+      .filter(a => {
+        if (!searchQuery) return true;
+        const q = searchQuery.toLowerCase();
+        return (a.title || '').toLowerCase().includes(q) ||
+               (a.content || '').toLowerCase().includes(q) ||
+               (a.category || '').toLowerCase().includes(q);
+      })
+      .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    document.getElementById('annCount').textContent = filtered.length;
+    const list = document.getElementById('annList');
+
+    if (filtered.length === 0) {
+      list.innerHTML = '<div class="text-center text-muted py-5"><i class="fas fa-search me-2"></i>No announcements match your filters.</div>';
+      return;
+    }
+
+    list.innerHTML = filtered.map((a, idx) => {
+      const isLong = (a.content || '').length > 300;
+      return `
+        <div class="ann-card">
+          <div class="ann-card-header">
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+              <span class="badge ${catBadgeClass(a.category)}">${a.category || 'General'}</span>
+              <h6 class="mb-0 fw-bold" style="font-size:.95rem">${a.title || ''}</h6>
+            </div>
+            <small class="text-muted flex-shrink-0"><i class="fas fa-calendar-alt me-1"></i>${a.date || ''}</small>
+          </div>
+          <div class="ann-card-body">
+            <div class="ann-content ${isLong ? 'ann-content-collapsed' : ''}" id="annContent${idx}" style="font-size:.875rem;line-height:1.65;white-space:pre-line">${a.content || ''}</div>
+            ${isLong ? `<button class="btn btn-link btn-sm p-0 mt-2 text-primary read-more-btn" data-target="annContent${idx}" data-expanded="false"><i class="fas fa-chevron-down me-1"></i>Read More</button>` : ''}
+          </div>
+          <div class="ann-card-footer d-flex justify-content-between align-items-center">
+            <span><i class="fas fa-user-shield me-1"></i>Posted by: ${a.postedBy || 'DRRM Office'}</span>
+            <span><i class="fas fa-calendar me-1"></i>${a.date || ''}</span>
+          </div>
+        </div>`;
+    }).join('');
+
+    // Read More toggle
+    list.querySelectorAll('.read-more-btn').forEach(btn => {
+      btn.addEventListener('click', function () {
+        const target = document.getElementById(this.dataset.target);
+        const expanded = this.dataset.expanded === 'true';
+        if (expanded) {
+          target.classList.add('ann-content-collapsed');
+          this.innerHTML = '<i class="fas fa-chevron-down me-1"></i>Read More';
+          this.dataset.expanded = 'false';
+        } else {
+          target.classList.remove('ann-content-collapsed');
+          this.innerHTML = '<i class="fas fa-chevron-up me-1"></i>Show Less';
+          this.dataset.expanded = 'true';
+        }
+      });
+    });
+  }
+
+  // ── Events ─────────────────────────────────────────────────
+  document.getElementById('catFilter').querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      document.getElementById('catFilter').querySelectorAll('a').forEach(l => l.classList.remove('active'));
+      link.classList.add('active');
+      currentCat = link.dataset.cat;
+      render();
+    });
+  });
+
+  document.getElementById('searchInput').addEventListener('input', function () {
+    searchQuery = this.value.trim();
+    render();
+  });
+
+  document.getElementById('clearSearch').addEventListener('click', () => {
+    document.getElementById('searchInput').value = '';
+    searchQuery = '';
+    render();
+  });
+
+  render();
+});
+</script>
+</body>
+</html>
