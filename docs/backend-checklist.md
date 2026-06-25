@@ -8,90 +8,91 @@
 
 ## Phase 1 — Environment & Project Setup
 
-- [ ] Verify XAMPP is running Apache 2.4+ and MySQL 8.x
-- [ ] Create MySQL database: `odmis_db`
-- [ ] Create a dedicated DB user with limited privileges (not root)
-- [ ] Create `/api/` folder at project root for all backend endpoints
-- [ ] Create `/config/` folder for DB connection and constants
-- [ ] Create `/uploads/` folder for user photo uploads (set permissions)
-- [ ] Install Composer (PHP dependency manager)
-- [ ] Install PHP libraries via Composer:
-  - [ ] `firebase/php-jwt` — JWT token generation and verification
-  - [ ] `PHPMailer/PHPMailer` — email delivery
-  - [ ] `mpdf/mpdf` — PDF report generation
-- [ ] Create `.env` file (or `config/env.php`) for secrets (DB credentials, JWT secret, SMTP credentials)
-- [ ] Add `.env` to `.gitignore`
-- [ ] Create `config/database.php` — PDO connection singleton
-- [ ] Create `config/constants.php` — app-wide constants (JWT expiry, upload limits, etc.)
-- [ ] Create `api/helpers/response.php` — standard JSON response helper (`success()`, `error()`)
-- [ ] Create `api/middleware/auth.php` — JWT verification middleware
-- [ ] Enable CORS headers in a global `api/.htaccess` or bootstrap file
+- [x] Verify XAMPP is running Apache 2.4+ and MySQL 8.x — PHP 8.2.12 · MariaDB 10.4.32
+- [x] Create MySQL database: `odmis_db`
+- [ ] ~~Create a dedicated DB user with limited privileges (not root)~~ — Skipped: `mysql.db` Aria table corrupted on local XAMPP; using `root` for dev. Fix before production.
+- [x] Create `/api/` folder at project root for all backend endpoints
+- [x] Create `/config/` folder for DB connection and constants
+- [x] Create `/uploads/` folder for user photo uploads (set permissions)
+- [x] Install Composer (PHP dependency manager) — v2.9.5
+- [x] Install PHP libraries via Composer:
+  - [x] `firebase/php-jwt` v7.1.0 — JWT token generation and verification
+  - [ ] ~~`PHPMailer/PHPMailer`~~ — Skipped (email feature not needed)
+  - [x] `mpdf/mpdf` v8.3.1 — PDF report generation
+- [x] Create `config/env.php` for secrets (DB credentials, JWT secret, upload limits)
+- [x] Add `config/env.php` to `.gitignore`
+- [x] Create `config/database.php` — PDO connection singleton (tested ✅)
+- [x] Constants merged into `config/env.php` (JWT expiry, upload limits, app URL)
+- [x] Create `api/helpers/response.php` — standard JSON response helper (`success()`, `error()`)
+- [x] Create `api/middleware/auth.php` — JWT verification middleware (`require_auth()`, `require_admin()`)
+- [x] Enable CORS headers in `api/.htaccess` + OPTIONS preflight handler
 
 ---
 
 ## Phase 2 — Database Schema
 
 ### 2.1 Users Table
-- [ ] Create `users` table:
+- [x] Create `users` table:
   ```sql
   id, username (unique), email (unique), password_hash,
   role (enum: admin/user), full_name, contact_number,
   date_of_birth, address, status (enum: active/inactive),
   security_question, security_answer_hash, created_at, updated_at
   ```
-- [ ] Add index on `username` and `email`
+- [x] Add unique index on `username` and `email`
 
 ### 2.2 Disaster Incidents Table
-- [ ] Create `incidents` table:
+- [x] Create `incidents` table:
   ```sql
   id, incident_code (unique), disaster_type, title, description,
   location, barangay, municipality, incident_date, incident_time,
-  severity (enum: low/moderate/high/critical), status (enum: active/resolved),
-  reported_by (FK → users.id), created_at, updated_at
+  severity (enum: Low/Moderate/High/Critical), status (enum: Active/Resolved),
+  reported_by, created_at, updated_at
   ```
 
 ### 2.3 Evacuation Centers Table
-- [ ] Create `evacuation_centers` table:
+- [x] Create `evacuation_centers` table:
   ```sql
-  id, center_name, location, capacity, occupied_slots,
-  contact_person, contact_number, status (enum: open/closed),
-  created_at, updated_at
+  id, center_code (unique), center_name, location, barangay,
+  capacity, occupied_slots, contact_person, contact_number,
+  status (enum: Open/Closed), created_at, updated_at
   ```
 
 ### 2.4 Relief Operations Table
-- [ ] Create `relief_operations` table:
+- [x] Create `relief_operations` table:
   ```sql
   id, batch_number (unique), operation_date, barangay,
-  relief_type, quantity, status, notes, created_at, updated_at
+  relief_type, quantity, unit, status (enum: Pending/In Progress/Completed),
+  distributed_by, notes, created_at, updated_at
   ```
 
 ### 2.5 Announcements Table
-- [ ] Create `announcements` table:
+- [x] Create `announcements` table:
   ```sql
-  id, title, body, source, published_by (FK → users.id),
+  id, title, body, category, published_by (FK → users.id),
   published_at, is_active, created_at, updated_at
   ```
 
 ### 2.6 Disaster Alerts Table
-- [ ] Create `disaster_alerts` table:
+- [x] Create `disaster_alerts` table:
   ```sql
-  id, alert_type, severity (enum: safe/warning/high_risk/critical),
-  message, issued_by (FK → users.id), issued_at, expires_at,
-  is_active, created_at
+  id, alert_type, title, description, affected_areas,
+  severity (enum: Low/Moderate/High/Critical), status (enum: Active/Resolved),
+  issued_by (FK → users.id), issued_at, expires_at, created_at, updated_at
   ```
 
 ### 2.7 User Reports Table
-- [ ] Create `user_reports` table:
+- [x] Create `user_reports` table:
   ```sql
   id, user_id (FK → users.id), incident_type, description,
-  location, report_date, photo_path, status (enum: pending/reviewed/resolved),
+  location, report_date, photo_path, status (enum: Pending/Reviewed/Resolved),
   reviewed_by (FK → users.id), created_at, updated_at
   ```
 
 ### 2.8 Migrations
-- [ ] Write SQL migration file: `database/migrations/001_create_tables.sql`
-- [ ] Write SQL seed file: `database/seeds/001_sample_data.sql` (port mock-data.js data)
-- [ ] Test: run migrations and seeds on fresh `odmis_db`
+- [x] Write SQL migration file: `database/migrations/001_create_tables.sql`
+- [x] Write SQL seed file: `database/seeds/001_sample_data.sql` (ported from mock-data.js, passwords bcrypt-hashed)
+- [x] Test: migrations and seeds ran successfully on `odmis_db` — 5 users · 10 incidents · 5 evac centers · 8 relief ops · 6 announcements · 6 alerts ✅
 
 ---
 
@@ -288,8 +289,8 @@
 
 | Phase | Title                        | Status      |
 |-------|------------------------------|-------------|
-| 1     | Environment & Setup          | ⬜ Not Started |
-| 2     | Database Schema              | ⬜ Not Started |
+| 1     | Environment & Setup          | ✅ Done        |
+| 2     | Database Schema              | ✅ Done        |
 | 3     | Authentication API           | ⬜ Not Started |
 | 4     | Core CRUD APIs               | ⬜ Not Started |
 | 5     | File Uploads                 | ⬜ Not Started |
