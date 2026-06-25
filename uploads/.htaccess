@@ -1,0 +1,7 @@
+# Block direct browser access and PHP execution in uploads directory
+Options -Indexes
+php_flag engine off
+
+<FilesMatch "\.php$">
+    Require all denied
+</FilesMatch>

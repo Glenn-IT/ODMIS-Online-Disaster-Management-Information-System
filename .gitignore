@@ -1,0 +1,22 @@
+# Composer
+/vendor/
+
+# Environment / secrets
+/config/env.php
+/.env
+
+# Uploads
+/uploads/reports/*
+!/uploads/reports/.gitkeep
+
+# mPDF temp files
+/vendor/mpdf/mpdf/tmp/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
