@@ -1,5 +1,5 @@
 <?php
-define('CURRENT_VERSION', 'v1.05');
+define('CURRENT_VERSION', 'v1.06');
 
 $loginPath = (
     strpos($_SERVER['PHP_SELF'], '/admin/') !== false ||
