@@ -301,7 +301,7 @@
                 </div>
               </div>
               <div class="mb-3 text-end">
-                <a href="forgot-password.html" class="auth-links" style="font-size:.8rem;">
+                <a href="forgot-password.php" class="auth-links" style="font-size:.8rem;">
                   <i class="fas fa-key me-1"></i>Forgot Password?
                 </a>
               </div>
@@ -335,7 +335,7 @@
                 </div>
               </div>
               <div class="mb-3 text-end">
-                <a href="forgot-password.html" class="auth-links" style="font-size:.8rem;">
+                <a href="forgot-password.php" class="auth-links" style="font-size:.8rem;">
                   <i class="fas fa-key me-1"></i>Forgot Password?
                 </a>
               </div>
@@ -344,7 +344,7 @@
               </button>
               <div class="auth-links mt-3">
                 Don't have an account?
-                <a href="register.html"><i class="fas fa-user-plus me-1"></i>Register</a>
+                <a href="register.php"><i class="fas fa-user-plus me-1"></i>Register</a>
               </div>
             </form>
           </div>
@@ -383,8 +383,8 @@
       const session = Auth.getSession();
       if (session && session.username) {
         window.location.href = session.role === 'admin'
-          ? 'admin/dashboard.html'
-          : 'user/dashboard.html';
+          ? 'admin/dashboard.php'
+          : 'user/dashboard.php';
       }
     })();
 
@@ -452,8 +452,8 @@
         showToast('Login successful! Redirecting…', 'success');
         setTimeout(function () {
           window.location.href = data.role === 'admin'
-            ? 'admin/dashboard.html'
-            : 'user/dashboard.html';
+            ? 'admin/dashboard.php'
+            : 'user/dashboard.php';
         }, 800);
       } catch (err) {
         showToast(err.message || 'Login failed.', 'error');

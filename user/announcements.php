@@ -1,3 +1,4 @@
+<?php require_once '../components/under-construction.php'; ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -30,12 +31,12 @@
   </div>
   <nav class="sidebar-nav">
     <ul class="list-unstyled mb-0">
-      <li class="sidebar-nav-item"><a href="dashboard.html" class="sidebar-nav-link" data-page="dashboard"><i class="fas fa-tachometer-alt nav-icon"></i><span class="nav-label">Dashboard</span></a></li>
-      <li class="sidebar-nav-item"><a href="report-incident.html" class="sidebar-nav-link" data-page="report-incident"><i class="fas fa-plus-circle nav-icon"></i><span class="nav-label">Report Incident</span></a></li>
-      <li class="sidebar-nav-item"><a href="alerts.html" class="sidebar-nav-link" data-page="alerts"><i class="fas fa-bell nav-icon"></i><span class="nav-label">Disaster Alerts</span></a></li>
-      <li class="sidebar-nav-item"><a href="evacuation-centers.html" class="sidebar-nav-link" data-page="evacuation-centers"><i class="fas fa-house-damage nav-icon"></i><span class="nav-label">Evacuation Centers</span></a></li>
-      <li class="sidebar-nav-item"><a href="announcements.html" class="sidebar-nav-link active" data-page="announcements"><i class="fas fa-bullhorn nav-icon"></i><span class="nav-label">Announcements</span></a></li>
-      <li class="sidebar-nav-item"><a href="profile.html" class="sidebar-nav-link" data-page="profile"><i class="fas fa-user nav-icon"></i><span class="nav-label">Profile</span></a></li>
+      <li class="sidebar-nav-item"><a href="dashboard.php" class="sidebar-nav-link" data-page="dashboard"><i class="fas fa-tachometer-alt nav-icon"></i><span class="nav-label">Dashboard</span></a></li>
+      <li class="sidebar-nav-item"><a href="report-incident.php" class="sidebar-nav-link" data-page="report-incident"><i class="fas fa-plus-circle nav-icon"></i><span class="nav-label">Report Incident</span></a></li>
+      <li class="sidebar-nav-item"><a href="alerts.php" class="sidebar-nav-link" data-page="alerts"><i class="fas fa-bell nav-icon"></i><span class="nav-label">Disaster Alerts</span></a></li>
+      <li class="sidebar-nav-item"><a href="evacuation-centers.php" class="sidebar-nav-link" data-page="evacuation-centers"><i class="fas fa-house-damage nav-icon"></i><span class="nav-label">Evacuation Centers</span></a></li>
+      <li class="sidebar-nav-item"><a href="announcements.php" class="sidebar-nav-link active" data-page="announcements"><i class="fas fa-bullhorn nav-icon"></i><span class="nav-label">Announcements</span></a></li>
+      <li class="sidebar-nav-item"><a href="profile.php" class="sidebar-nav-link" data-page="profile"><i class="fas fa-user nav-icon"></i><span class="nav-label">Profile</span></a></li>
     </ul>
   </nav>
   <div class="sidebar-footer">
@@ -63,7 +64,7 @@
         <i class="fas fa-chevron-down ms-1" style="font-size:.65rem;color:var(--color-gray)"></i>
       </div>
       <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="min-width:180px;font-size:var(--font-size-sm)">
-        <li><a class="dropdown-item" href="profile.html"><i class="fas fa-user me-2 text-muted"></i>Profile</a></li>
+        <li><a class="dropdown-item" href="profile.php"><i class="fas fa-user me-2 text-muted"></i>Profile</a></li>
         <li><hr class="dropdown-divider my-1"></li>
         <li><a class="dropdown-item text-danger" href="#" data-action="logout"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
       </ul>

@@ -49,20 +49,20 @@ const Auth = (function () {
   function isUser()   { const s = getSession(); return !!s && s.role === 'user';  }
 
   function requireAuth() {
-    if (!isAuthenticated()) { _go('login.html'); return false; }
+    if (!isAuthenticated()) { _go('login.php'); return false; }
     return true;
   }
 
   function requireAdmin() {
-    if (!isAuthenticated()) { _go('login.html'); return false; }
-    if (!isAdmin())         { _go('user/dashboard.html'); return false; }
+    if (!isAuthenticated()) { _go('login.php'); return false; }
+    if (!isAdmin())         { _go('user/dashboard.php'); return false; }
     return true;
   }
 
   function requireUser() {
-    if (!isAuthenticated()) { _go('login.html'); return false; }
+    if (!isAuthenticated()) { _go('login.php'); return false; }
     if (!isUser()) {
-      _go(isAdmin() ? 'admin/dashboard.html' : 'login.html');
+      _go(isAdmin() ? 'admin/dashboard.php' : 'login.php');
       return false;
     }
     return true;
@@ -70,7 +70,7 @@ const Auth = (function () {
 
   function logout() {
     ApiClient.clearToken();
-    _go('login.html');
+    _go('login.php');
   }
 
   // No-op: session comes from JWT; cannot be patched client-side

@@ -476,7 +476,7 @@ const App = (function () {
       if (!href || href === '#') return;
 
       // Extract the filename from the href
-      const hrefFile = href.split('/').pop().replace('.html', '');
+      const hrefFile = href.split('/').pop().replace('.php', '');
       if (hrefFile && path.includes(hrefFile)) {
         link.classList.add('active');
       }
@@ -500,7 +500,7 @@ const App = (function () {
               Auth.logout();
             } else {
               localStorage.removeItem('odmis_session');
-              window.location.href = '../login.html';
+              window.location.href = '../login.php';
             }
           },
           {

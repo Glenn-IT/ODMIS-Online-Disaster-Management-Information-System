@@ -1,3 +1,4 @@
+<?php require_once '../components/under-construction.php'; ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -186,43 +187,43 @@
   <nav class="sidebar-nav">
     <ul class="list-unstyled mb-0">
       <li class="sidebar-nav-item">
-        <a href="dashboard.html" class="sidebar-nav-link" data-page="dashboard">
+        <a href="dashboard.php" class="sidebar-nav-link" data-page="dashboard">
           <i class="fas fa-tachometer-alt nav-icon"></i>
           <span class="nav-label">Dashboard</span>
         </a>
       </li>
       <li class="sidebar-nav-item">
-        <a href="incidents.html" class="sidebar-nav-link" data-page="incidents">
+        <a href="incidents.php" class="sidebar-nav-link" data-page="incidents">
           <i class="fas fa-exclamation-triangle nav-icon"></i>
           <span class="nav-label">Incidents</span>
         </a>
       </li>
       <li class="sidebar-nav-item">
-        <a href="evacuation.html" class="sidebar-nav-link" data-page="evacuation">
+        <a href="evacuation.php" class="sidebar-nav-link" data-page="evacuation">
           <i class="fas fa-house-damage nav-icon"></i>
           <span class="nav-label">Evacuation Centers</span>
         </a>
       </li>
       <li class="sidebar-nav-item">
-        <a href="residents.html" class="sidebar-nav-link" data-page="residents">
+        <a href="residents.php" class="sidebar-nav-link" data-page="residents">
           <i class="fas fa-users nav-icon"></i>
           <span class="nav-label">Residents</span>
         </a>
       </li>
       <li class="sidebar-nav-item">
-        <a href="relief.html" class="sidebar-nav-link" data-page="relief">
+        <a href="relief.php" class="sidebar-nav-link" data-page="relief">
           <i class="fas fa-box-open nav-icon"></i>
           <span class="nav-label">Relief Operations</span>
         </a>
       </li>
       <li class="sidebar-nav-item">
-        <a href="reports.html" class="sidebar-nav-link" data-page="reports">
+        <a href="reports.php" class="sidebar-nav-link" data-page="reports">
           <i class="fas fa-chart-bar nav-icon"></i>
           <span class="nav-label">Reports</span>
         </a>
       </li>
       <li class="sidebar-nav-item">
-        <a href="settings.html" class="sidebar-nav-link" data-page="settings">
+        <a href="settings.php" class="sidebar-nav-link" data-page="settings">
           <i class="fas fa-cog nav-icon"></i>
           <span class="nav-label">Settings</span>
         </a>
@@ -262,7 +263,7 @@
         <i class="fas fa-chevron-down ms-1" style="font-size:0.65rem; color:var(--color-gray);"></i>
       </div>
       <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="min-width:180px; font-size:var(--font-size-sm);">
-        <li><a class="dropdown-item" href="settings.html"><i class="fas fa-cog me-2 text-muted"></i>Settings</a></li>
+        <li><a class="dropdown-item" href="settings.php"><i class="fas fa-cog me-2 text-muted"></i>Settings</a></li>
         <li><hr class="dropdown-divider my-1"></li>
         <li><a class="dropdown-item text-danger" href="#" data-action="logout"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
       </ul>

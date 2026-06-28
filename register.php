@@ -336,7 +336,7 @@
 
           <div class="auth-links mt-3">
             Already have an account?
-            <a href="login.html"><i class="fas fa-sign-in-alt me-1"></i>Sign In</a>
+            <a href="login.php"><i class="fas fa-sign-in-alt me-1"></i>Sign In</a>
           </div>
         </form>
       </div>
@@ -370,8 +370,8 @@
       const session = Auth.getSession();
       if (session && session.username) {
         window.location.href = session.role === 'admin'
-          ? 'admin/dashboard.html'
-          : 'user/dashboard.html';
+          ? 'admin/dashboard.php'
+          : 'user/dashboard.php';
       }
     })();
 
@@ -493,7 +493,7 @@
         });
 
         showToast('Account created successfully! Redirecting to login…', 'success');
-        setTimeout(function () { window.location.href = 'login.html'; }, 2000);
+        setTimeout(function () { window.location.href = 'login.php'; }, 2000);
       } catch (err) {
         // Surface server-side field errors if present
         if (err.errors) {

@@ -298,7 +298,7 @@
 
           <div class="auth-links mt-3">
             Remember your password?
-            <a href="login.html"><i class="fas fa-sign-in-alt me-1"></i>Back to Login</a>
+            <a href="login.php"><i class="fas fa-sign-in-alt me-1"></i>Back to Login</a>
           </div>
         </div>
 
@@ -397,7 +397,7 @@
               <i class="fas fa-info-circle me-1"></i>
               Redirecting to login in <span id="countdown">3</span> second(s)…
             </div>
-            <a href="login.html" class="btn-primary-custom d-inline-block mt-3" style="text-decoration:none;padding:.55rem 1.5rem;width:auto;">
+            <a href="login.php" class="btn-primary-custom d-inline-block mt-3" style="text-decoration:none;padding:.55rem 1.5rem;width:auto;">
               <i class="fas fa-sign-in-alt me-2"></i>Go to Login Now
             </a>
           </div>
@@ -614,7 +614,7 @@
         var timer   = setInterval(function () {
           secs--;
           if (counter) counter.textContent = secs;
-          if (secs <= 0) { clearInterval(timer); window.location.href = 'login.html?reset=1'; }
+          if (secs <= 0) { clearInterval(timer); window.location.href = 'login.php?reset=1'; }
         }, 1000);
       } catch (err) {
         showToast(err.message || 'Password reset failed. Please try again.', 'error');
