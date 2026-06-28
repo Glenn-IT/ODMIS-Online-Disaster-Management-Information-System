@@ -11,7 +11,7 @@ try {
 
     // Public: default to active alerts only; admin can pass ?all=1
     if (empty($_GET['all'])) {
-        $where[] = "status = 'Active'";
+        $where[] = "da.status = 'Active'";
     }
     if (!empty($_GET['type'])) {
         $where[]  = 'alert_type = ?';

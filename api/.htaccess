@@ -10,3 +10,6 @@ Header always set Access-Control-Max-Age "86400"
 RewriteEngine On
 RewriteCond %{REQUEST_METHOD} OPTIONS
 RewriteRule ^ - [R=204,L]
+
+# Pass Authorization header to PHP (Apache strips it by default)
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
