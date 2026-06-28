@@ -528,7 +528,7 @@
             <div class="col-md-6">
               <label class="form-label" for="fieldMunicipality">Municipality</label>
               <input type="text" id="fieldMunicipality" name="municipality" class="form-control"
-                     placeholder="e.g. Sta. Cruz, Davao del Sur" value="Sta. Cruz, Davao del Sur" />
+                     placeholder="e.g. Sto. Niño, Cagayan" value="Sto. Niño, Cagayan" />
             </div>
 
             <!-- Date -->
@@ -891,7 +891,7 @@
       el.classList.remove('is-invalid','is-valid');
     });
     document.getElementById('fieldIncidentId').value      = '(auto-generated)';
-    document.getElementById('fieldMunicipality').value   = 'Sta. Cruz, Davao del Sur';
+    document.getElementById('fieldMunicipality').value   = 'Sto. Niño, Cagayan';
     document.getElementById('incidentModalLabel').innerHTML = '<i class="fas fa-plus-circle me-2"></i>Add New Incident';
     document.getElementById('btnSaveIncident').innerHTML    = '<i class="fas fa-save me-1"></i>Save Incident';
     _incidentModal.show();

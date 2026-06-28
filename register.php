@@ -344,7 +344,7 @@
       <!-- Footer -->
       <div class="reg-footer">
         <i class="fas fa-shield-halved me-1"></i>
-        &copy; 2025 DRRM Office. All rights reserved.
+        &copy; 2026 DRRM Office. All rights reserved.
       </div>
     </div>
   </div>

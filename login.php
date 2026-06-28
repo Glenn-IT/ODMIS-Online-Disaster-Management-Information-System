@@ -250,7 +250,7 @@
         </div>
         <h1>ODMIS</h1>
         <p class="subtitle">Online Disaster Management Information System</p>
-        <span class="gov-label"><i class="fas fa-landmark me-1"></i>DRRM Office — Sta. Cruz, Davao del Sur</span>
+        <span class="gov-label"><i class="fas fa-landmark me-1"></i>DRRM Office — Sto. Niño, Cagayan, Region II, 3525</span>
       </div>
 
       <!-- Body -->
@@ -355,7 +355,7 @@
       <!-- Footer -->
       <div class="login-footer">
         <i class="fas fa-shield-halved me-1"></i>
-        &copy; 2025 DRRM Office. All rights reserved.
+        &copy; 2026 DRRM Office. All rights reserved.
         &mdash; For emergencies call <strong>911</strong>
       </div>
     </div><!-- /.login-card -->
