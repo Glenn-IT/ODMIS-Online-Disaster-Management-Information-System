@@ -436,7 +436,8 @@
 
       setLoading(btnId, true);
       try {
-        const data = await ApiClient.post('/auth/login.php', { username, password });
+        const res  = await ApiClient.post('/auth/login.php', { username, password });
+        const data = res.data;
 
         // Enforce role-specific login tab
         if (expectedRole && data.role !== expectedRole) {
