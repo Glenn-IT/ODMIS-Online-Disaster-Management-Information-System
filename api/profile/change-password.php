@@ -7,7 +7,7 @@ method_required('PUT');
 $token_user = require_auth();
 
 $body         = get_json_body();
-$old_password = $body['old_password'] ?? '';
+$old_password = $body['current_password'] ?? '';
 $new_password = $body['new_password'] ?? '';
 
 if ($old_password === '' || $new_password === '') {
