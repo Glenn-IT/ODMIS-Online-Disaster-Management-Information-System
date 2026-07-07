@@ -25,6 +25,24 @@ try {
         if ($check->fetch()) error('Email is already in use by another account.', 409);
     }
 
+    // Security question change requires verifying the current answer
+    if (isset($body['security_question']) || isset($body['security_answer'])) {
+        if (empty($body['security_question']) || empty($body['security_answer'])) {
+            error('Security question and answer are required.');
+        }
+
+        $current = $pdo->prepare('SELECT security_answer_hash FROM users WHERE id = ? LIMIT 1');
+        $current->execute([$token_user->sub]);
+        $row = $current->fetch();
+
+        if ($row && $row['security_answer_hash']) {
+            $current_answer = $body['current_security_answer'] ?? '';
+            if ($current_answer === '' || !password_verify(strtolower(trim($current_answer)), $row['security_answer_hash'])) {
+                error('Current security answer is incorrect.', 401);
+            }
+        }
+    }
+
     $fields = [];
     $params = [];
     $map = [
@@ -40,6 +58,13 @@ try {
             $fields[] = "$col = ?";
             $params[] = $fn === 'sanitize' ? sanitize($body[$col]) : $fn($body[$col]);
         }
+    }
+
+    if (isset($body['security_question']) && isset($body['security_answer'])) {
+        $fields[] = 'security_question = ?';
+        $params[] = sanitize($body['security_question']);
+        $fields[] = 'security_answer_hash = ?';
+        $params[] = password_hash(strtolower(trim($body['security_answer'])), PASSWORD_BCRYPT);
     }
 
     if (!$fields) error('No fields to update.');

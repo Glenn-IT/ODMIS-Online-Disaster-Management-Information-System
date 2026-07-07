@@ -431,6 +431,7 @@
   <script>
     // ── State ─────────────────────────────────────────────────────
     var _resolvedUsername = '';
+    var _resolvedUserId = null;
 
     // ── Toast helper ─────────────────────────────────────────────
     function showToast(message, type) {
@@ -573,9 +574,10 @@
       }
       setBtnLoading('btnStep2', true, '<i class="fas fa-check me-2"></i>Verify Answer');
       try {
-        await ApiClient.post('/auth/forgot-password.php', {
+        var res = await ApiClient.post('/auth/forgot-password.php', {
           step: 2, username: _resolvedUsername, security_answer: answer
         });
+        _resolvedUserId = res.data.user_id;
         document.getElementById('fpNewPassword').value     = '';
         document.getElementById('fpConfirmPassword').value = '';
         checkStrength('');
@@ -606,7 +608,7 @@
       setBtnLoading('btnStep3', true, '<i class="fas fa-save me-2"></i>Save New Password');
       try {
         await ApiClient.post('/auth/forgot-password.php', {
-          step: 3, username: _resolvedUsername, new_password: newPw
+          step: 3, user_id: _resolvedUserId, new_password: newPw
         });
         goToStep('success');
         var secs    = 3;
