@@ -76,14 +76,14 @@ Each version is a **permanent snapshot** tagged in Git.
 
 | Version | Tag Name | Commit Hash |
 |---------|----------|-------------|
-| v1.00 | v1.00 | 4c6a869c52454df68594a90471494705e8f23042 |
+| v1.00 | v1.00 | dc03d978f2d3a8507c356a27f3d0f55b5d8576cc |
 | v1.01 | v1.01 | f3142c17c93be5f2319a988a7cd83a761bcd62db |
 | v1.02 | v1.02 | 4be925ac920c058739faf00da1c92dd0e19dbae3 |
 | v1.03 | v1.03 | eec8e8910d5e213a9af0de43a2ba78b03775cbb7 |
 | v1.04 | v1.04 | cefbc927eaf4a7ccf5c3a50c571bbc4f76e571d6 |
 | v1.05 | v1.05 | 14f0346b8c5b63464661fc1516e48ca8e62c4783 |
 | v1.06 | v1.06 | f1f0f62556596eda3a0d1b97f656fa833927dfed |
-| v1.07 | v1.07 | 23b1355fd28fef214276b0b1595ca7c6bf528b07 |
+| v1.07 | v1.07 | 5de787cf48d86547e643b90a699772bda89d67b2 |
 | v1.08 | v1.08 | a5fade15e9f6c514bc1260769b74579ac99dc70a |
 | v1.09 | v1.09 | 93a8fd416c8040a5d1c990723c6232b867846a87 |
 | v1.10 | v1.10 | 56a111418795d7b3a9bfb7c45a38e88e62833aac |
