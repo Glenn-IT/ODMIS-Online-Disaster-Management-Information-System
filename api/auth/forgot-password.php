@@ -35,7 +35,7 @@ if ($step === 1) {
 // ── Step 2: Verify security answer ───────────────────────────
 if ($step === 2) {
     $username = sanitize($body['username'] ?? '');
-    $answer   = $body['answer'] ?? '';
+    $answer   = $body['security_answer'] ?? '';
 
     if ($username === '' || $answer === '') {
         error('Username and security answer are required.');
