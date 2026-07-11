@@ -91,7 +91,7 @@ Each version is a **permanent snapshot** tagged in Git.
 | v1.11 | v1.11 | 39cbaf6636710f7f468a1dee41999216ba063256 |
 | v1.12 | v1.12 | 2688c15022872d245ae5c563965cd1993f71e66f |
 | v1.13 | v1.13 | eeda9c9ed5009ee8b1508c4c9d3338a034b60663 |
-| v2.00 | v2.00 | 545e2c25e9690a780f2f4c47fea48350c496cb48 |
+| v2.00 | v2.00 | af4f45e3b18053b06ac35d369bcd33dbf576c27a |
 
 ---
 
