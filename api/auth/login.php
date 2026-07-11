@@ -20,7 +20,7 @@ if ($username === '' || $password === '') {
 // ── Query user ────────────────────────────────────────────────
 try {
     $pdo  = Database::connect();
-    $stmt = $pdo->prepare('SELECT id, username, email, password_hash, role, full_name, status FROM users WHERE username = ? LIMIT 1');
+    $stmt = $pdo->prepare('SELECT id, username, email, password_hash, role, full_name, status FROM users WHERE BINARY username = ? LIMIT 1');
     $stmt->execute([$username]);
     $user = $stmt->fetch();
 } catch (PDOException $e) {
