@@ -77,7 +77,7 @@ Each version is a **permanent snapshot** tagged in Git.
 
 | Version | Tag Name | Commit Hash |
 |---------|----------|-------------|
-| v1.00 | v1.00 | dc03d978f2d3a8507c356a27f3d0f55b5d8576cc |
+| v1.00 | v1.00 | ba772ccd9b0543e390947ad9afda7b5a1addec7a |
 | v1.01 | v1.01 | f3142c17c93be5f2319a988a7cd83a761bcd62db |
 | v1.02 | v1.02 | 4be925ac920c058739faf00da1c92dd0e19dbae3 |
 | v1.03 | v1.03 | eec8e8910d5e213a9af0de43a2ba78b03775cbb7 |
