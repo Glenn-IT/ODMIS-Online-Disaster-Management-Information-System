@@ -18,6 +18,7 @@
 | v1.11 | User: Evacuation Centers (view) | `user/evacuation-centers.php` | Remaining user pages |
 | v1.12 | User: Report Incident | `user/report-incident.php` | `user/profile.php` |
 | v1.13 | User: Profile — **Full System** | `user/profile.php` | None |
+| v2.00 | Fresh restart: Public (Login/Register/Forgot Password) + Admin Dashboard + User Dashboard | `login.php`, `register.php`, `forgot-password.php`, `index.php`, `admin/dashboard.php`, `user/dashboard.php` | All other admin & user pages |
 
 ---
 
