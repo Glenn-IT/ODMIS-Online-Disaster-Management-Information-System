@@ -424,8 +424,76 @@
       }
     }
 
+    // ── Failed-attempt lockout (3 attempts → 30s lock) ─────────────
+    const MAX_ATTEMPTS    = 3;
+    const LOCKOUT_SECONDS = 30;
+
+    function attemptKey(formKey) {
+      return 'loginAttempts_' + formKey;
+    }
+
+    function getAttemptState(formKey) {
+      try {
+        return JSON.parse(sessionStorage.getItem(attemptKey(formKey))) || { count: 0, lockUntil: 0 };
+      } catch (e) {
+        return { count: 0, lockUntil: 0 };
+      }
+    }
+
+    function setAttemptState(formKey, state) {
+      sessionStorage.setItem(attemptKey(formKey), JSON.stringify(state));
+    }
+
+    function clearAttemptState(formKey) {
+      sessionStorage.removeItem(attemptKey(formKey));
+    }
+
+    function isLocked(formKey) {
+      const state = getAttemptState(formKey);
+      return state.lockUntil > Date.now();
+    }
+
+    function startLockCountdown(btnId, formKey) {
+      const btn = document.getElementById(btnId);
+      if (!btn.dataset.original) btn.dataset.original = btn.innerHTML;
+      btn.disabled = true;
+
+      const tick = function () {
+        const state     = getAttemptState(formKey);
+        const remaining = Math.max(0, Math.ceil((state.lockUntil - Date.now()) / 1000));
+        if (remaining <= 0) {
+          clearAttemptState(formKey);
+          btn.disabled = false;
+          btn.innerHTML = btn.dataset.original;
+          return;
+        }
+        btn.innerHTML = '<i class="fas fa-lock me-2"></i>Locked (' + remaining + 's)';
+        setTimeout(tick, 1000);
+      };
+      tick();
+    }
+
+    function registerFailedAttempt(btnId, formKey) {
+      const state = getAttemptState(formKey);
+      state.count += 1;
+      if (state.count >= MAX_ATTEMPTS) {
+        state.lockUntil = Date.now() + LOCKOUT_SECONDS * 1000;
+        state.count = 0;
+        setAttemptState(formKey, state);
+        startLockCountdown(btnId, formKey);
+        showToast('Too many failed attempts. Login locked for ' + LOCKOUT_SECONDS + ' seconds.', 'error');
+      } else {
+        setAttemptState(formKey, state);
+      }
+    }
+
     // ── Handle login ─────────────────────────────────────────────
-    async function handleLogin(usernameId, passwordId, btnId, expectedRole) {
+    async function handleLogin(usernameId, passwordId, btnId, expectedRole, formKey) {
+      if (isLocked(formKey)) {
+        startLockCountdown(btnId, formKey);
+        return;
+      }
+
       const username = document.getElementById(usernameId).value.trim();
       const password = document.getElementById(passwordId).value;
 
@@ -445,9 +513,11 @@
             ? 'Access denied. Administrator privileges are required.'
             : 'Access denied. This login is for registered users only.';
           showToast(msg, 'error');
+          registerFailedAttempt(btnId, formKey);
           return;
         }
 
+        clearAttemptState(formKey);
         ApiClient.setToken(data.token);
         showToast('Login successful! Redirecting…', 'success');
         setTimeout(function () {
@@ -457,21 +527,28 @@
         }, 800);
       } catch (err) {
         showToast(err.message || 'Login failed.', 'error');
+        registerFailedAttempt(btnId, formKey);
       } finally {
-        setLoading(btnId, false);
+        if (!isLocked(formKey)) setLoading(btnId, false);
       }
     }
 
     // ── Form submit listeners ─────────────────────────────────────
     document.getElementById('adminForm').addEventListener('submit', function (e) {
       e.preventDefault();
-      handleLogin('adminUsername', 'adminPassword', 'adminSubmit', 'admin');
+      handleLogin('adminUsername', 'adminPassword', 'adminSubmit', 'admin', 'admin');
     });
 
     document.getElementById('userForm').addEventListener('submit', function (e) {
       e.preventDefault();
-      handleLogin('userUsername', 'userPassword', 'userSubmit', 'user');
+      handleLogin('userUsername', 'userPassword', 'userSubmit', 'user', 'user');
     });
+
+    // ── Resume lockout countdown if page reloaded mid-lock ─────────
+    (function () {
+      if (isLocked('admin')) startLockCountdown('adminSubmit', 'admin');
+      if (isLocked('user'))  startLockCountdown('userSubmit', 'user');
+    })();
 
     // ── Clear error styling on tab switch ────────────────────────
     document.querySelectorAll('#loginTabs button').forEach(function (tab) {
