@@ -473,7 +473,7 @@
       tick();
     }
 
-    function registerFailedAttempt(btnId, formKey) {
+    function registerFailedAttempt(btnId, formKey, baseMessage) {
       const state = getAttemptState(formKey);
       state.count += 1;
       if (state.count >= MAX_ATTEMPTS) {
@@ -484,6 +484,9 @@
         showToast('Too many failed attempts. Login locked for ' + LOCKOUT_SECONDS + ' seconds.', 'error');
       } else {
         setAttemptState(formKey, state);
+        const remainingAttempts = MAX_ATTEMPTS - state.count;
+        const attemptsMsg = remainingAttempts + ' attempt' + (remainingAttempts === 1 ? '' : 's') + ' remaining before lockout.';
+        showToast((baseMessage ? baseMessage + ' ' : '') + attemptsMsg, 'error');
       }
     }
 
@@ -512,8 +515,7 @@
           const msg = expectedRole === 'admin'
             ? 'Access denied. Administrator privileges are required.'
             : 'Access denied. This login is for registered users only.';
-          showToast(msg, 'error');
-          registerFailedAttempt(btnId, formKey);
+          registerFailedAttempt(btnId, formKey, msg);
           return;
         }
 
@@ -526,8 +528,7 @@
             : 'user/dashboard.php';
         }, 800);
       } catch (err) {
-        showToast(err.message || 'Login failed.', 'error');
-        registerFailedAttempt(btnId, formKey);
+        registerFailedAttempt(btnId, formKey, err.message || 'Login failed.');
       } finally {
         if (!isLocked(formKey)) setLoading(btnId, false);
       }
