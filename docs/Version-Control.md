@@ -19,6 +19,7 @@
 | v1.12 | User: Report Incident | `user/report-incident.php` | `user/profile.php` |
 | v1.13 | User: Profile — **Full System** | `user/profile.php` | None |
 | v2.00 | Fresh restart: Public (Login/Register/Forgot Password) + Admin Dashboard + User Dashboard | `login.php`, `register.php`, `forgot-password.php`, `index.php`, `admin/dashboard.php`, `user/dashboard.php` | All other admin & user pages |
+| v3.00 | Admin: Incidents Management + Admin: Resident Reports Review + User: Report Incident | `admin/incidents.php`, `admin/resident-reports.php`, `user/report-incident.php` | All other admin & user pages |
 
 ---
 
@@ -92,6 +93,7 @@ Each version is a **permanent snapshot** tagged in Git.
 | v1.12 | v1.12 | 2688c15022872d245ae5c563965cd1993f71e66f |
 | v1.13 | v1.13 | eeda9c9ed5009ee8b1508c4c9d3338a034b60663 |
 | v2.00 | v2.00 | 33f02aff4e2103de132d28ad2dec86c97ba81a05 |
+| v3.00 | v3.00 | _pending — filled in after tagging_ |
 
 ---
 
