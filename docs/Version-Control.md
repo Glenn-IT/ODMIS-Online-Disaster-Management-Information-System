@@ -93,7 +93,7 @@ Each version is a **permanent snapshot** tagged in Git.
 | v1.12 | v1.12 | 2688c15022872d245ae5c563965cd1993f71e66f |
 | v1.13 | v1.13 | eeda9c9ed5009ee8b1508c4c9d3338a034b60663 |
 | v2.00 | v2.00 | 33f02aff4e2103de132d28ad2dec86c97ba81a05 |
-| v3.00 | v3.00 | _pending — filled in after tagging_ |
+| v3.00 | v3.00 | 21cd9669acdc3d4141b569f80527360fa7d111b8 |
 
 ---
 
