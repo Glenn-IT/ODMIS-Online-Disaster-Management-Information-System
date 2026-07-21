@@ -3,7 +3,7 @@ require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../api/helpers/response.php';
 require_once __DIR__ . '/../../api/middleware/auth.php';
 
-method_required('PUT');
+method_required('PUT', 'PATCH');
 require_admin();
 
 $id = (int) ($_GET['id'] ?? 0);
@@ -22,9 +22,14 @@ if (isset($body['status'])        && !in_array($body['status'],        $allowed_
 try {
     $pdo  = Database::connect();
 
-    $check = $pdo->prepare('SELECT id FROM incidents WHERE id = ? LIMIT 1');
+    $check = $pdo->prepare('SELECT id, status FROM incidents WHERE id = ? LIMIT 1');
     $check->execute([$id]);
-    if (!$check->fetch()) error('Incident not found.', 404);
+    $existing = $check->fetch();
+    if (!$existing) error('Incident not found.', 404);
+
+    if (!empty($body['toggle_status'])) {
+        $body['status'] = $existing['status'] === 'Resolved' ? 'Active' : 'Resolved';
+    }
 
     $fields = [];
     $params = [];

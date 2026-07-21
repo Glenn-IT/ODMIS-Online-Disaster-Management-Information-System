@@ -11,7 +11,7 @@ $token_user = require_auth();
 $is_multipart = str_contains($_SERVER['CONTENT_TYPE'] ?? '', 'multipart/form-data');
 $body = $is_multipart ? $_POST : get_json_body();
 
-$required = ['incident_type', 'description', 'location', 'report_date'];
+$required = ['incident_type', 'title', 'description', 'location', 'barangay', 'incident_date'];
 $missing  = array_filter($required, fn($f) => empty(trim($body[$f] ?? '')));
 if ($missing) error('Missing required fields.', 400, array_values($missing));
 
@@ -47,15 +47,19 @@ if ($is_multipart && !empty($_FILES['photo']['name'])) {
 try {
     $pdo  = Database::connect();
     $stmt = $pdo->prepare(
-        'INSERT INTO user_reports (user_id, incident_type, description, location, report_date, photo_path, status)
-         VALUES (?, ?, ?, ?, ?, ?, \'Pending\')'
+        'INSERT INTO user_reports (user_id, incident_type, title, description, location, barangay, municipality, report_date, incident_time, photo_path, status)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, \'Pending\')'
     );
     $stmt->execute([
         $token_user->sub,
         $body['incident_type'],
+        sanitize($body['title']),
         sanitize($body['description']),
         sanitize($body['location']),
-        $body['report_date'],
+        sanitize($body['barangay']),
+        sanitize($body['municipality'] ?? 'Sto. Niño, Cagayan'),
+        $body['incident_date'],
+        $body['incident_time'] ?: null,
         $photo_path,
     ]);
 

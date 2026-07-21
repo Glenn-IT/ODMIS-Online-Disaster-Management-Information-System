@@ -254,23 +254,23 @@ document.addEventListener('DOMContentLoaded', async function () {
   });
 
   // ── Load data ──────────────────────────────────────────────
-  let alerts = [], announcements = [], evacuationCtrs = [], summary = {};
+  let alerts = [], announcements = [], evacuationCtrs = [], myReports = [];
   try {
-    const [aRes, annRes, evacRes, sumRes] = await Promise.all([
+    const [aRes, annRes, evacRes, repRes] = await Promise.all([
       ApiClient.get('/alerts/index.php'),
       ApiClient.get('/announcements/index.php'),
       ApiClient.get('/evacuation/index.php'),
-      ApiClient.get('/analytics/summary.php')
+      ApiClient.get('/user-reports/index.php')
     ]);
-    alerts        = Array.isArray(aRes.data)    ? aRes.data    : [];
-    announcements = Array.isArray(annRes.data)  ? annRes.data  : [];
-    evacuationCtrs= Array.isArray(evacRes.data) ? evacRes.data : [];
-    summary       = sumRes.data || {};
+    alerts        = Array.isArray(aRes.data)   ? aRes.data   : [];
+    announcements = Array.isArray(annRes.data) ? annRes.data : [];
+    evacuationCtrs= Array.isArray(evacRes.data)? evacRes.data: [];
+    myReports     = Array.isArray(repRes.data) ? repRes.data : [];
   } catch (err) { console.error('Dashboard load error:', err.message); }
 
   // ── Stat Cards ─────────────────────────────────────────────
   const activeAlerts = alerts.filter(a => (a.severity || '').toLowerCase() !== 'safe' && a.status !== 'Resolved');
-  document.getElementById('statMyReports').textContent    = summary.my_reports   || 0;
+  document.getElementById('statMyReports').textContent    = myReports.length;
   document.getElementById('statActiveAlerts').textContent = activeAlerts.length;
   document.getElementById('statEvacCenters').textContent  = evacuationCtrs.length;
   document.getElementById('notifBadge').textContent       = activeAlerts.length;

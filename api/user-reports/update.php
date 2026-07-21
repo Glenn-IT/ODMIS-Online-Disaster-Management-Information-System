@@ -36,9 +36,13 @@ try {
     $params = [];
     $map = [
         'incident_type' => fn($v) => $v,
+        'title'         => 'sanitize',
         'description'   => 'sanitize',
         'location'      => 'sanitize',
+        'barangay'      => 'sanitize',
+        'municipality'  => 'sanitize',
         'report_date'   => fn($v) => $v,
+        'incident_time' => fn($v) => $v ?: null,
     ];
 
     foreach ($map as $col => $fn) {

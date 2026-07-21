@@ -273,6 +273,8 @@ const App = (function () {
    * @param {number}  minWidth  - Minimum required width in px (default 1366).
    */
   function initMobileGuard(adminPage, minWidth) {
+    return; // disabled
+
     adminPage = (adminPage === undefined) ? true : adminPage;
     minWidth  = minWidth || 1366;
 

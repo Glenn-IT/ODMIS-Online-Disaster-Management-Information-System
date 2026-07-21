@@ -111,12 +111,43 @@
                 <label class="form-label fw-semibold">Barangay <span class="text-danger">*</span></label>
                 <select class="form-select" id="incidentBarangay" required>
                   <option value="">-- Select Barangay --</option>
-                  <option value="Minanga">Minanga</option>
+                  <option value="Abariongan Ruar">Abariongan Ruar</option>
+                  <option value="Abariongan Uneg">Abariongan Uneg</option>
+                  <option value="Abarriongan">Abarriongan</option>
+                  <option value="Balagan">Balagan</option>
+                  <option value="Balanni">Balanni</option>
+                  <option value="Cabayo">Cabayo</option>
+                  <option value="Calapangan">Calapangan</option>
+                  <option value="Calassitan">Calassitan</option>
+                  <option value="Campo">Campo</option>
+                  <option value="Centro Norte">Centro Norte</option>
+                  <option value="Centro Sur">Centro Sur</option>
+                  <option value="Dungao">Dungao</option>
+                  <option value="Lattac">Lattac</option>
+                  <option value="Lipatan">Lipatan</option>
                   <option value="Lubo">Lubo</option>
-                  <option value="Sto. Niño">Sto. Niño</option>
-                  <option value="Poblacion">Poblacion</option>
+                  <option value="Mabitbitnong">Mabitbitnong</option>
+                  <option value="Masical">Masical</option>
+                  <option value="Matalao">Matalao</option>
+                  <option value="Nag-uma">Nag-uma</option>
+                  <option value="Namuccayan">Namuccayan</option>
+                  <option value="Niug Norte">Niug Norte</option>
+                  <option value="Niug Sur">Niug Sur</option>
+                  <option value="Palusao">Palusao</option>
+                  <option value="San Manuel">San Manuel</option>
+                  <option value="San Roque">San Roque</option>
+                  <option value="Santa Felicitas">Santa Felicitas</option>
+                  <option value="Santa Maria">Santa Maria</option>
+                  <option value="Sidiran">Sidiran</option>
+                  <option value="Tabang">Tabang</option>
+                  <option value="Tamucco">Tamucco</option>
+                  <option value="Virginia">Virginia</option>
                 </select>
                 <div class="invalid-feedback">Please select a barangay.</div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Municipality</label>
+                <input type="text" class="form-control" id="incidentMunicipality" value="Sto. Niño, Cagayan" readonly />
               </div>
               <div class="col-12">
                 <label class="form-label fw-semibold">Incident Title <span class="text-danger">*</span></label>
@@ -329,9 +360,9 @@ document.addEventListener('DOMContentLoaded', async function () {
     tbody.innerHTML = _myReports.map(r => {
       let statusBadge = '';
       const s = (r.status || '').toLowerCase();
-      if (s === 'pending')           statusBadge = '<span class="badge status-badge-pending">Pending</span>';
-      else if (s === 'under review') statusBadge = '<span class="badge status-badge-review">Under Review</span>';
-      else if (s === 'resolved')     statusBadge = '<span class="badge status-badge-resolved">Resolved</span>';
+      if (s === 'pending')       statusBadge = '<span class="badge status-badge-pending">Pending</span>';
+      else if (s === 'reviewed') statusBadge = '<span class="badge status-badge-review">Under Review</span>';
+      else if (s === 'resolved') statusBadge = '<span class="badge status-badge-resolved">Resolved</span>';
       else statusBadge = `<span class="badge bg-secondary">${r.status}</span>`;
       const submittedDate = r.created_at ? new Date(r.created_at).toLocaleDateString('en-PH', { year:'numeric', month:'short', day:'numeric' }) : '';
       return `<tr>
@@ -352,9 +383,9 @@ document.addEventListener('DOMContentLoaded', async function () {
     if (!r) return;
     let statusBadge = '';
     const s = (r.status || '').toLowerCase();
-    if (s === 'pending')           statusBadge = '<span class="badge status-badge-pending">Pending</span>';
-    else if (s === 'under review') statusBadge = '<span class="badge status-badge-review">Under Review</span>';
-    else if (s === 'resolved')     statusBadge = '<span class="badge status-badge-resolved">Resolved</span>';
+    if (s === 'pending')       statusBadge = '<span class="badge status-badge-pending">Pending</span>';
+    else if (s === 'reviewed') statusBadge = '<span class="badge status-badge-review">Under Review</span>';
+    else if (s === 'resolved') statusBadge = '<span class="badge status-badge-resolved">Resolved</span>';
     else statusBadge = `<span class="badge bg-secondary">${r.status}</span>`;
 
     document.getElementById('viewReportBody').innerHTML = `
@@ -366,7 +397,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         <div class="col-12"><label class="fw-semibold text-muted small">Title</label><div>${r.title}</div></div>
         <div class="col-12"><label class="fw-semibold text-muted small">Description</label><div class="p-2 bg-light rounded" style="font-size:.875rem">${r.description}</div></div>
         <div class="col-md-6"><label class="fw-semibold text-muted small">Location</label><div>${r.location}</div></div>
-        <div class="col-md-3"><label class="fw-semibold text-muted small">Date</label><div>${r.incident_date}</div></div>
+        <div class="col-md-3"><label class="fw-semibold text-muted small">Date</label><div>${r.report_date}</div></div>
         <div class="col-md-3"><label class="fw-semibold text-muted small">Time</label><div>${r.incident_time || '—'}</div></div>
         <div class="col-12"><label class="fw-semibold text-muted small">Submitted At</label><div>${r.created_at ? new Date(r.created_at).toLocaleString('en-PH') : '—'}</div></div>
       </div>`;
@@ -383,6 +414,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     const desc     = document.getElementById('incidentDescription').value.trim();
     const location = document.getElementById('incidentLocation').value.trim();
     const barangay = document.getElementById('incidentBarangay').value;
+    const municipality = document.getElementById('incidentMunicipality').value;
     const date     = document.getElementById('incidentDate').value;
     const time     = document.getElementById('incidentTime').value;
     const photoEl  = document.getElementById('incidentPhoto');
@@ -395,6 +427,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     fd.append('description',    desc);
     fd.append('location',       location);
     fd.append('barangay',       barangay);
+    fd.append('municipality',   municipality);
     fd.append('incident_date',  date);
     fd.append('incident_time',  time);
     if (photoEl && photoEl.files[0]) fd.append('photo', photoEl.files[0]);

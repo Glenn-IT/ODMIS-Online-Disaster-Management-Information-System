@@ -186,6 +186,12 @@
         </a>
       </li>
       <li class="sidebar-nav-item">
+        <a href="resident-reports.php" class="sidebar-nav-link" data-page="resident-reports">
+          <i class="fas fa-clipboard-list nav-icon"></i>
+          <span class="nav-label">Resident Reports</span>
+        </a>
+      </li>
+      <li class="sidebar-nav-item">
         <a href="evacuation.php" class="sidebar-nav-link" data-page="evacuation">
           <i class="fas fa-house-damage nav-icon"></i>
           <span class="nav-label">Evacuation Centers</span>
@@ -488,7 +494,7 @@
                 Incident Title <span class="text-danger">*</span>
               </label>
               <input type="text" id="fieldTitle" name="title" class="form-control"
-                     placeholder="e.g. Flash Flood along Minanga River" required />
+                     placeholder="e.g. Flash Flood on Palusao Bridge" required />
               <div class="invalid-feedback">Please enter the incident title.</div>
             </div>
 
@@ -516,10 +522,37 @@
               </label>
               <select id="fieldBarangay" name="barangay" class="form-select" required>
                 <option value="">— Select Barangay —</option>
-                <option value="Minanga">Minanga</option>
+                <option value="Abariongan Ruar">Abariongan Ruar</option>
+                <option value="Abariongan Uneg">Abariongan Uneg</option>
+                <option value="Abarriongan">Abarriongan</option>
+                <option value="Balagan">Balagan</option>
+                <option value="Balanni">Balanni</option>
+                <option value="Cabayo">Cabayo</option>
+                <option value="Calapangan">Calapangan</option>
+                <option value="Calassitan">Calassitan</option>
+                <option value="Campo">Campo</option>
+                <option value="Centro Norte">Centro Norte</option>
+                <option value="Centro Sur">Centro Sur</option>
+                <option value="Dungao">Dungao</option>
+                <option value="Lattac">Lattac</option>
+                <option value="Lipatan">Lipatan</option>
                 <option value="Lubo">Lubo</option>
-                <option value="Sto. Niño">Sto. Niño</option>
-                <option value="Poblacion">Poblacion</option>
+                <option value="Mabitbitnong">Mabitbitnong</option>
+                <option value="Masical">Masical</option>
+                <option value="Matalao">Matalao</option>
+                <option value="Nag-uma">Nag-uma</option>
+                <option value="Namuccayan">Namuccayan</option>
+                <option value="Niug Norte">Niug Norte</option>
+                <option value="Niug Sur">Niug Sur</option>
+                <option value="Palusao">Palusao</option>
+                <option value="San Manuel">San Manuel</option>
+                <option value="San Roque">San Roque</option>
+                <option value="Santa Felicitas">Santa Felicitas</option>
+                <option value="Santa Maria">Santa Maria</option>
+                <option value="Sidiran">Sidiran</option>
+                <option value="Tabang">Tabang</option>
+                <option value="Tamucco">Tamucco</option>
+                <option value="Virginia">Virginia</option>
               </select>
               <div class="invalid-feedback">Please select a barangay.</div>
             </div>
@@ -528,7 +561,7 @@
             <div class="col-md-6">
               <label class="form-label" for="fieldMunicipality">Municipality</label>
               <input type="text" id="fieldMunicipality" name="municipality" class="form-control"
-                     placeholder="e.g. Sto. Niño, Cagayan" value="Sto. Niño, Cagayan" />
+                     placeholder="e.g. Sto. Niño, Cagayan" value="Sto. Niño, Cagayan" readonly />
             </div>
 
             <!-- Date -->
@@ -944,6 +977,10 @@
       incident_date: document.getElementById('fieldDate').value,
       incident_time: document.getElementById('fieldTime').value
     };
+
+    if (!_editingId) {
+      payload.incident_code = App.generateId('INC', _allIncidents.map(function(i){ return { id: i.incident_code }; }));
+    }
 
     var btn = document.getElementById('btnSaveIncident');
     btn.disabled = true;

@@ -112,6 +112,12 @@
         </a>
       </li>
       <li class="sidebar-nav-item">
+        <a href="resident-reports.php" class="sidebar-nav-link" data-page="resident-reports">
+          <i class="fas fa-clipboard-list nav-icon"></i>
+          <span class="nav-label">Resident Reports</span>
+        </a>
+      </li>
+      <li class="sidebar-nav-item">
         <a href="evacuation.php" class="sidebar-nav-link" data-page="evacuation">
           <i class="fas fa-house-damage nav-icon"></i>
           <span class="nav-label">Evacuation Centers</span>
