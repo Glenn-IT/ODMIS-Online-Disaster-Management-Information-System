@@ -310,15 +310,15 @@ document.addEventListener('DOMContentLoaded', async function () {
       <div class="alert-border-card ${severityBorderClass(a.severity)}">
         <div class="d-flex align-items-start justify-content-between gap-2">
           <div class="d-flex align-items-center gap-2 mb-1">
-            <i class="fas ${alertTypeIcon(a.disaster_type || a.type)} text-secondary"></i>
+            <i class="fas ${alertTypeIcon(a.alert_type)} text-secondary"></i>
             <strong style="font-size:.9rem">${a.title || 'Alert'}</strong>
           </div>
           <span class="badge ${severityBadgeClass(a.severity)} flex-shrink-0">${a.severity || ''}</span>
         </div>
         <p class="mb-1 text-muted" style="font-size:.82rem">${(a.description || '').substring(0, 120)}${(a.description || '').length > 120 ? '...' : ''}</p>
         <div class="d-flex flex-wrap gap-3" style="font-size:.78rem;color:#666">
-          <span><i class="fas fa-map-marker-alt me-1"></i>${a.affected_barangays || a.barangay || '—'}</span>
-          <span><i class="fas fa-clock me-1"></i>${a.date_issued || a.created_at || ''}</span>
+          <span><i class="fas fa-map-marker-alt me-1"></i>${a.affected_areas || '—'}</span>
+          <span><i class="fas fa-clock me-1"></i>${a.issued_at || a.created_at || ''}</span>
         </div>
       </div>`).join('');
   }

@@ -113,7 +113,6 @@
             <option value="High">High</option>
             <option value="Moderate">Moderate</option>
             <option value="Low">Low</option>
-            <option value="Safe">Safe</option>
           </select>
         </div>
       </div>
@@ -224,7 +223,7 @@ document.addEventListener('DOMContentLoaded', async function () {
   // ── Render ─────────────────────────────────────────────────
   function renderAlerts() {
     let filtered = allAlerts;
-    if (currentType !== 'all')     filtered = filtered.filter(a => (a.disaster_type || a.type) === currentType);
+    if (currentType !== 'all')     filtered = filtered.filter(a => a.alert_type === currentType);
     if (currentSeverity !== 'all') filtered = filtered.filter(a => a.severity === currentSeverity);
 
     document.getElementById('alertCount').textContent     = filtered.length;
@@ -237,8 +236,8 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
 
     grid.innerHTML = filtered.map(a => {
-      const aType = a.disaster_type || a.type || '';
-      const areas = a.affected_barangays || a.barangay || '—';
+      const aType = a.alert_type || '';
+      const areas = a.affected_areas || '—';
       return `
       <div class="col-md-6">
         <div class="alert-card ${severityTheme(a.severity)}">
@@ -264,7 +263,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             </div>
           </div>
           <div class="alert-card-footer text-muted">
-            <i class="fas fa-clock me-1"></i>Issued: ${a.date_issued || a.created_at || '—'}
+            <i class="fas fa-clock me-1"></i>Issued: ${a.issued_at || a.created_at || '—'}
           </div>
         </div>
       </div>`;
