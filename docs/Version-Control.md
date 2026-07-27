@@ -20,6 +20,7 @@
 | v1.13 | User: Profile — **Full System** | `user/profile.php` | None |
 | v2.00 | Fresh restart: Public (Login/Register/Forgot Password) + Admin Dashboard + User Dashboard | `login.php`, `register.php`, `forgot-password.php`, `index.php`, `admin/dashboard.php`, `user/dashboard.php` | All other admin & user pages |
 | v3.00 | Admin: Incidents Management + Admin: Resident Reports Review + User: Report Incident | `admin/incidents.php`, `admin/resident-reports.php`, `user/report-incident.php` | All other admin & user pages |
+| v4.00 | All v3.00 pages + User: Disaster Alerts (incidents now surface to residents; type filter fixed) | All v3.00 pages, plus `user/alerts.php` | `admin/evacuation.php`, `admin/relief.php`, `admin/reports.php`, `admin/residents.php`, `admin/settings.php`, `user/announcements.php`, `user/evacuation-centers.php`, `user/profile.php` |
 
 ---
 
@@ -94,6 +95,7 @@ Each version is a **permanent snapshot** tagged in Git.
 | v1.13 | v1.13 | eeda9c9ed5009ee8b1508c4c9d3338a034b60663 |
 | v2.00 | v2.00 | 33f02aff4e2103de132d28ad2dec86c97ba81a05 |
 | v3.00 | v3.00 | 21cd9669acdc3d4141b569f80527360fa7d111b8 |
+| v4.00 | v4.00 | _(filled in after tagging)_ |
 
 ---
 
