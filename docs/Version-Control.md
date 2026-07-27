@@ -95,7 +95,7 @@ Each version is a **permanent snapshot** tagged in Git.
 | v1.13 | v1.13 | eeda9c9ed5009ee8b1508c4c9d3338a034b60663 |
 | v2.00 | v2.00 | 33f02aff4e2103de132d28ad2dec86c97ba81a05 |
 | v3.00 | v3.00 | 21cd9669acdc3d4141b569f80527360fa7d111b8 |
-| v4.00 | v4.00 | _(filled in after tagging)_ |
+| v4.00 | v4.00 | fbd53de3cacaffea5c39ba83487937a6c58f651f |
 
 ---
 
