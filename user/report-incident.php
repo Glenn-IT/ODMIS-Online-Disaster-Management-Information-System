@@ -160,9 +160,18 @@
                 <div class="invalid-feedback">Description must be at least 20 characters.</div>
               </div>
               <div class="col-12">
-                <label class="form-label fw-semibold">Location / Address <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" id="incidentLocation" placeholder="Specific address or landmark" required />
-                <div class="invalid-feedback">Please provide the location.</div>
+                <label class="form-label fw-semibold">Zone <span class="text-danger">*</span></label>
+                <select class="form-select" id="incidentLocation" required>
+                  <option value="">— Select Zone —</option>
+                  <option value="Zone 1">Zone 1</option>
+                  <option value="Zone 2">Zone 2</option>
+                  <option value="Zone 3">Zone 3</option>
+                  <option value="Zone 4">Zone 4</option>
+                  <option value="Zone 5">Zone 5</option>
+                  <option value="Zone 6">Zone 6</option>
+                  <option value="Zone 7">Zone 7</option>
+                </select>
+                <div class="invalid-feedback">Please select a zone.</div>
               </div>
               <div class="col-md-6">
                 <label class="form-label fw-semibold">Date of Incident <span class="text-danger">*</span></label>
@@ -235,7 +244,7 @@
               <th>Report ID</th>
               <th>Type</th>
               <th>Title</th>
-              <th>Location</th>
+              <th>Zone</th>
               <th>Date Submitted</th>
               <th>Status</th>
               <th>Actions</th>
@@ -396,7 +405,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         <div class="col-md-6"><label class="fw-semibold text-muted small">Barangay</label><div>${r.barangay}</div></div>
         <div class="col-12"><label class="fw-semibold text-muted small">Title</label><div>${r.title}</div></div>
         <div class="col-12"><label class="fw-semibold text-muted small">Description</label><div class="p-2 bg-light rounded" style="font-size:.875rem">${r.description}</div></div>
-        <div class="col-md-6"><label class="fw-semibold text-muted small">Location</label><div>${r.location}</div></div>
+        <div class="col-md-6"><label class="fw-semibold text-muted small">Zone</label><div>${r.location}</div></div>
         <div class="col-md-3"><label class="fw-semibold text-muted small">Date</label><div>${r.report_date}</div></div>
         <div class="col-md-3"><label class="fw-semibold text-muted small">Time</label><div>${r.incident_time || '—'}</div></div>
         <div class="col-12"><label class="fw-semibold text-muted small">Submitted At</label><div>${r.created_at ? new Date(r.created_at).toLocaleString('en-PH') : '—'}</div></div>

@@ -354,6 +354,21 @@
       </select>
     </div>
 
+    <!-- Zone -->
+    <div class="filter-group">
+      <span class="filter-label"><i class="fas fa-map-marked-alt me-1"></i>Zone</span>
+      <select id="filterZone" class="form-select form-select-sm">
+        <option value="">All Zones</option>
+        <option value="Zone 1">Zone 1</option>
+        <option value="Zone 2">Zone 2</option>
+        <option value="Zone 3">Zone 3</option>
+        <option value="Zone 4">Zone 4</option>
+        <option value="Zone 5">Zone 5</option>
+        <option value="Zone 6">Zone 6</option>
+        <option value="Zone 7">Zone 7</option>
+      </select>
+    </div>
+
     <!-- Reset button -->
     <div class="filter-group" style="flex: 0; min-width: auto;">
       <span class="filter-label">&nbsp;</span>
@@ -400,7 +415,7 @@
               <th>Incident ID</th>
               <th>Disaster Type</th>
               <th>Title</th>
-              <th>Location</th>
+              <th>Zone / Barangay</th>
               <th>Date</th>
               <th>Severity</th>
               <th>Status</th>
@@ -505,14 +520,22 @@
                         placeholder="Describe the incident in detail…"></textarea>
             </div>
 
-            <!-- Location / Address -->
+            <!-- Zone -->
             <div class="col-md-6">
               <label class="form-label" for="fieldLocation">
-                Location / Address <span class="text-danger">*</span>
+                Zone <span class="text-danger">*</span>
               </label>
-              <input type="text" id="fieldLocation" name="location" class="form-control"
-                     placeholder="e.g. Sitio Pag-asa, near bridge" required />
-              <div class="invalid-feedback">Please enter the incident location.</div>
+              <select id="fieldLocation" name="location" class="form-select" required>
+                <option value="">— Select Zone —</option>
+                <option value="Zone 1">Zone 1</option>
+                <option value="Zone 2">Zone 2</option>
+                <option value="Zone 3">Zone 3</option>
+                <option value="Zone 4">Zone 4</option>
+                <option value="Zone 5">Zone 5</option>
+                <option value="Zone 6">Zone 6</option>
+                <option value="Zone 7">Zone 7</option>
+              </select>
+              <div class="invalid-feedback">Please select a zone.</div>
             </div>
 
             <!-- Barangay -->
@@ -644,7 +667,7 @@
 
         <div class="section-title mt-4">Location Details</div>
         <div class="info-row">
-          <span class="info-label view-field-label">Location / Address</span>
+          <span class="info-label view-field-label">Zone</span>
           <span class="info-value view-field-value" id="viewLocation">—</span>
         </div>
         <div class="info-row">
@@ -807,6 +830,7 @@
     var severity = document.getElementById('filterSeverity').value || '';
     var status   = document.getElementById('filterStatus').value   || '';
     var barangay = document.getElementById('filterBarangay').value || '';
+    var zone     = document.getElementById('filterZone').value     || '';
 
     _filtered = _allIncidents.filter(function(inc) {
       if (search) {
@@ -818,6 +842,7 @@
       if (severity && inc.severity      !== severity) return false;
       if (status   && inc.status        !== status)   return false;
       if (barangay && inc.barangay      !== barangay) return false;
+      if (zone     && inc.location      !== zone)     return false;
       return true;
     });
 
@@ -870,7 +895,7 @@
         '<td style="max-width:220px;"><span class="fw-600" title="' + esc(inc.title) + '">' + esc(inc.title || '—') + '</span></td>' +
         '<td style="max-width:160px;" class="text-muted">' +
           '<i class="fas fa-map-marker-alt me-1" style="color:var(--color-accent);font-size:0.75rem;"></i>' +
-          esc(inc.barangay || inc.location || '—') +
+          esc([inc.location, inc.barangay].filter(Boolean).join(' — ') || '—') +
         '</td>' +
         '<td class="text-muted">' + formatDateDisplay(inc.incident_date) + '</td>' +
         '<td>' + severityBadge(inc.severity) + '</td>' +
@@ -916,6 +941,22 @@
   }
 
   // ── ADD / EDIT MODAL ──────────────────────────────────────
+  // Older records store free text in `location` instead of a zone. Keep that value
+  // selectable so editing an old incident does not silently wipe it.
+  function setZoneValue(select, value) {
+    var legacy = select.querySelector('option[data-legacy]');
+    if (legacy) select.removeChild(legacy);
+    value = value || '';
+    if (value && !select.querySelector('option[value="' + CSS.escape(value) + '"]')) {
+      var opt = document.createElement('option');
+      opt.value = value;
+      opt.textContent = value + ' (legacy)';
+      opt.setAttribute('data-legacy', '');
+      select.appendChild(opt);
+    }
+    select.value = value;
+  }
+
   function openAddModal() {
     _editingId = null;
     var form = document.getElementById('incidentForm');
@@ -923,6 +964,7 @@
     form.querySelectorAll('.is-invalid, .is-valid').forEach(function(el){
       el.classList.remove('is-invalid','is-valid');
     });
+    setZoneValue(document.getElementById('fieldLocation'), '');
     document.getElementById('fieldIncidentId').value      = '(auto-generated)';
     document.getElementById('fieldMunicipality').value   = 'Sto. Niño, Cagayan';
     document.getElementById('incidentModalLabel').innerHTML = '<i class="fas fa-plus-circle me-2"></i>Add New Incident';
@@ -944,7 +986,7 @@
     document.getElementById('fieldSeverity').value      = inc.severity       || '';
     document.getElementById('fieldTitle').value         = inc.title          || '';
     document.getElementById('fieldDescription').value   = inc.description    || '';
-    document.getElementById('fieldLocation').value      = inc.location       || '';
+    setZoneValue(document.getElementById('fieldLocation'), inc.location);
     document.getElementById('fieldBarangay').value      = inc.barangay       || '';
     document.getElementById('fieldMunicipality').value  = inc.municipality   || '';
     document.getElementById('fieldDate').value          = inc.incident_date  || '';
@@ -1102,6 +1144,7 @@
     document.getElementById('filterSeverity').value = '';
     document.getElementById('filterStatus').value   = '';
     document.getElementById('filterBarangay').value = '';
+    document.getElementById('filterZone').value     = '';
     filterIncidents();
   }
 
@@ -1145,7 +1188,7 @@
     });
 
     // 10. Filter event listeners
-    ['filterSearch','filterType','filterSeverity','filterStatus','filterBarangay'].forEach(function(id) {
+    ['filterSearch','filterType','filterSeverity','filterStatus','filterBarangay','filterZone'].forEach(function(id) {
       var el = document.getElementById(id);
       if (!el) return;
       el.addEventListener('input',  filterIncidents);
