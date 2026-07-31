@@ -21,6 +21,7 @@
 | v2.00 | Fresh restart: Public (Login/Register/Forgot Password) + Admin Dashboard + User Dashboard | `login.php`, `register.php`, `forgot-password.php`, `index.php`, `admin/dashboard.php`, `user/dashboard.php` | All other admin & user pages |
 | v3.00 | Admin: Incidents Management + Admin: Resident Reports Review + User: Report Incident | `admin/incidents.php`, `admin/resident-reports.php`, `user/report-incident.php` | All other admin & user pages |
 | v4.00 | All v3.00 pages + User: Disaster Alerts (incidents now surface to residents; type filter fixed) | All v3.00 pages, plus `user/alerts.php` | `admin/evacuation.php`, `admin/relief.php`, `admin/reports.php`, `admin/residents.php`, `admin/settings.php`, `user/announcements.php`, `user/evacuation-centers.php`, `user/profile.php` |
+| v4.Recommendation | All v4.00 pages + zone selection for incident reporting/filtering | Same pages as v4.00, with zone-selection enhancement on `admin/incidents.php` and `user/report-incident.php` | Same gated pages as v4.00 |
 
 ---
 
@@ -96,6 +97,7 @@ Each version is a **permanent snapshot** tagged in Git.
 | v2.00 | v2.00 | 33f02aff4e2103de132d28ad2dec86c97ba81a05 |
 | v3.00 | v3.00 | 21cd9669acdc3d4141b569f80527360fa7d111b8 |
 | v4.00 | v4.00 | fbd53de3cacaffea5c39ba83487937a6c58f651f |
+| v4.Recommendation | v4.Recommendation | 6c4732e95aa1d057470f33b9b6519ba932b4fa82 |
 
 ---
 
