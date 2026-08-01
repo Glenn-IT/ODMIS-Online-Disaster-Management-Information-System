@@ -244,6 +244,7 @@
               <th>Report ID</th>
               <th>Type</th>
               <th>Title</th>
+              <th>Barangay</th>
               <th>Zone</th>
               <th>Date Submitted</th>
               <th>Status</th>
@@ -251,7 +252,7 @@
             </tr>
           </thead>
           <tbody id="myReportsTbody">
-            <tr><td colspan="7" class="text-center text-muted py-4">No reports submitted yet.</td></tr>
+            <tr><td colspan="8" class="text-center text-muted py-4">No reports submitted yet.</td></tr>
           </tbody>
         </table>
       </div>
@@ -362,7 +363,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     document.getElementById('myReportsCount').textContent = _myReports.length;
     const tbody = document.getElementById('myReportsTbody');
     if (_myReports.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4"><i class="fas fa-inbox me-2"></i>No reports submitted yet.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4"><i class="fas fa-inbox me-2"></i>No reports submitted yet.</td></tr>';
       return;
     }
 
@@ -378,6 +379,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         <td><span class="badge bg-light text-dark">${r.report_code || r.id}</span></td>
         <td>${r.incident_type || ''}</td>
         <td>${r.title || ''}</td>
+        <td>${r.barangay || ''}</td>
         <td>${r.location || ''}</td>
         <td>${submittedDate}</td>
         <td>${statusBadge}</td>
