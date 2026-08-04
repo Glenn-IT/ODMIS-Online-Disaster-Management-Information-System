@@ -99,7 +99,7 @@ Each version is a **permanent snapshot** tagged in Git.
 | v3.00 | v3.00 | 21cd9669acdc3d4141b569f80527360fa7d111b8 |
 | v4.00 | v4.00 | fbd53de3cacaffea5c39ba83487937a6c58f651f |
 | v4.Recommendation | v4.Recommendation | a5e6c3a409133194353fdded101713004f939a26 |
-| v5.00 | v5.00 | [placeholder] |
+| v5.00 | v5.00 | 50e9fe575dcee1966c5a6d1a48a2367d46dde431 |
 
 ---
 
