@@ -212,6 +212,12 @@
         </a>
       </li>
       <li class="sidebar-nav-item">
+        <a href="announcements.php" class="sidebar-nav-link" data-page="announcements">
+          <i class="fas fa-bullhorn nav-icon"></i>
+          <span class="nav-label">Announcements</span>
+        </a>
+      </li>
+      <li class="sidebar-nav-item">
         <a href="reports.php" class="sidebar-nav-link" data-page="reports">
           <i class="fas fa-chart-bar nav-icon"></i>
           <span class="nav-label">Reports</span>

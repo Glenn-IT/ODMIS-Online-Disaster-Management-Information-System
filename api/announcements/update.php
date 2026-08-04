@@ -23,7 +23,7 @@ try {
         'title'        => 'sanitize',
         'body'         => 'sanitize',
         'category'     => 'sanitize',
-        'published_at' => fn($v) => $v,
+        'published_at' => fn($v) => !empty($v) ? $v : date('Y-m-d'),
         'is_active'    => fn($v) => (int) $v,
     ];
 

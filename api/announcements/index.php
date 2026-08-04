@@ -6,8 +6,12 @@ method_required('GET');
 
 try {
     $pdo    = Database::connect();
-    $where  = ['a.is_active = 1'];
+    $where  = [];
     $params = [];
+
+    if (empty($_GET['all'])) {
+        $where[] = 'a.is_active = 1';
+    }
 
     if (!empty($_GET['category'])) {
         $where[]  = 'a.category = ?';
@@ -17,9 +21,11 @@ try {
     $sql = 'SELECT a.id, a.title, a.body, a.category, a.published_at, a.is_active,
                    u.full_name AS published_by_name
             FROM announcements a
-            LEFT JOIN users u ON u.id = a.published_by
-            WHERE ' . implode(' AND ', $where) . '
-            ORDER BY a.published_at DESC';
+            LEFT JOIN users u ON u.id = a.published_by';
+    if ($where) {
+        $sql .= ' WHERE ' . implode(' AND ', $where);
+    }
+    $sql .= ' ORDER BY a.published_at DESC';
 
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);

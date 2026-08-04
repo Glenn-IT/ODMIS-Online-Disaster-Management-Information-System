@@ -22,7 +22,7 @@ try {
         sanitize($body['body']),
         sanitize($body['category'] ?? ''),
         $token_user->sub,
-        $body['published_at'] ?? date('Y-m-d'),
+        !empty($body['published_at']) ? $body['published_at'] : date('Y-m-d'),
     ]);
 
     $new = $pdo->prepare('SELECT * FROM announcements WHERE id = ? LIMIT 1');
