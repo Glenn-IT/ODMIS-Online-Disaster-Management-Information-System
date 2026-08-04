@@ -332,7 +332,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     return 'bg-info';
   }
   const annEl = document.getElementById('announcementsList');
-  const recentAnns = [...announcements].sort((a, b) => new Date(b.date_posted || b.created_at) - new Date(a.date_posted || a.created_at)).slice(0, 3);
+  const recentAnns = [...announcements].sort((a, b) => new Date(b.published_at) - new Date(a.published_at)).slice(0, 3);
   if (recentAnns.length === 0) {
     annEl.innerHTML = '<div class="text-center text-muted py-3">No announcements yet.</div>';
   } else {
@@ -342,10 +342,10 @@ document.addEventListener('DOMContentLoaded', async function () {
           <div class="card-body">
             <div class="d-flex align-items-start justify-content-between mb-2 gap-2">
               <span class="badge ${annCategoryClass(a.category)}">${a.category || 'General'}</span>
-              <small class="text-muted">${a.date_posted || a.created_at || ''}</small>
+              <small class="text-muted">${a.published_at || ''}</small>
             </div>
             <h6 class="fw-bold mb-2" style="font-size:.875rem">${a.title || ''}</h6>
-            <p class="announcement-excerpt mb-0">${(a.content || '').substring(0, 150)}${(a.content || '').length > 150 ? '...' : ''}</p>
+            <p class="announcement-excerpt mb-0">${(a.body || '').substring(0, 150)}${(a.body || '').length > 150 ? '...' : ''}</p>
           </div>
         </div>
       </div>`).join('') + '</div>';

@@ -48,8 +48,7 @@ try {
                CONCAT_WS(', ', NULLIF(i.location, ''), NULLIF(i.barangay, '')) AS affected_areas,
                i.severity,
                i.status,
-               DATE_FORMAT(TIMESTAMP(i.incident_date, COALESCE(i.incident_time, '00:00:00')),
-                           '%Y-%m-%d %H:%i:%s') AS issued_at,
+               TIMESTAMP(i.incident_date, COALESCE(NULLIF(i.incident_time, ''), '00:00:00')) AS issued_at,
                i.created_at,
                NULLIF(i.reported_by, '')  AS issued_by_name
           FROM incidents i

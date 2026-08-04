@@ -38,7 +38,7 @@ try {
         sanitize($body['barangay']),
         sanitize($body['municipality'] ?? 'Santo Niño (Faire)'),
         $body['incident_date'],
-        $body['incident_time'] ?? null,
+        !empty($body['incident_time']) ? $body['incident_time'] : null,
         $body['severity'],
         $body['status'] ?? 'Active',
         sanitize($body['reported_by'] ?? ''),

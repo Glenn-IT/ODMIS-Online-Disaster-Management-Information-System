@@ -206,10 +206,10 @@ document.addEventListener('DOMContentLoaded', async function () {
         if (!searchQuery) return true;
         const q = searchQuery.toLowerCase();
         return (a.title || '').toLowerCase().includes(q) ||
-               (a.content || '').toLowerCase().includes(q) ||
+               (a.body || '').toLowerCase().includes(q) ||
                (a.category || '').toLowerCase().includes(q);
       })
-      .sort((a, b) => new Date(b.date_posted || b.created_at) - new Date(a.date_posted || a.created_at));
+      .sort((a, b) => new Date(b.published_at) - new Date(a.published_at));
 
     document.getElementById('annCount').textContent = filtered.length;
     const list = document.getElementById('annList');
@@ -220,7 +220,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
 
     list.innerHTML = filtered.map((a, idx) => {
-      const isLong = (a.content || '').length > 300;
+      const isLong = (a.body || '').length > 300;
       return `
         <div class="ann-card">
           <div class="ann-card-header">
@@ -228,15 +228,15 @@ document.addEventListener('DOMContentLoaded', async function () {
               <span class="badge ${catBadgeClass(a.category)}">${a.category || 'General'}</span>
               <h6 class="mb-0 fw-bold" style="font-size:.95rem">${a.title || ''}</h6>
             </div>
-            <small class="text-muted flex-shrink-0"><i class="fas fa-calendar-alt me-1"></i>${a.date_posted || a.created_at || ''}</small>
+            <small class="text-muted flex-shrink-0"><i class="fas fa-calendar-alt me-1"></i>${a.published_at || ''}</small>
           </div>
           <div class="ann-card-body">
-            <div class="ann-content ${isLong ? 'ann-content-collapsed' : ''}" id="annContent${idx}" style="font-size:.875rem;line-height:1.65;white-space:pre-line">${a.content || ''}</div>
+            <div class="ann-content ${isLong ? 'ann-content-collapsed' : ''}" id="annContent${idx}" style="font-size:.875rem;line-height:1.65;white-space:pre-line">${a.body || ''}</div>
             ${isLong ? `<button class="btn btn-link btn-sm p-0 mt-2 text-primary read-more-btn" data-target="annContent${idx}" data-expanded="false"><i class="fas fa-chevron-down me-1"></i>Read More</button>` : ''}
           </div>
           <div class="ann-card-footer d-flex justify-content-between align-items-center">
-            <span><i class="fas fa-user-shield me-1"></i>Posted by: ${a.posted_by || 'DRRM Office'}</span>
-            <span><i class="fas fa-calendar me-1"></i>${a.date_posted || a.created_at || ''}</span>
+            <span><i class="fas fa-user-shield me-1"></i>Posted by: ${a.published_by_name || 'DRRM Office'}</span>
+            <span><i class="fas fa-calendar me-1"></i>${a.published_at || ''}</span>
           </div>
         </div>`;
     }).join('');

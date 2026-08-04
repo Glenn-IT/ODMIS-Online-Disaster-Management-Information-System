@@ -41,7 +41,7 @@ try {
         'barangay'      => 'sanitize',
         'municipality'  => 'sanitize',
         'incident_date' => fn($v) => $v,
-        'incident_time' => fn($v) => $v,
+        'incident_time' => fn($v) => !empty($v) ? $v : null,
         'severity'      => fn($v) => $v,
         'status'        => fn($v) => $v,
         'reported_by'   => 'sanitize',
