@@ -22,6 +22,7 @@
 | v3.00 | Admin: Incidents Management + Admin: Resident Reports Review + User: Report Incident | `admin/incidents.php`, `admin/resident-reports.php`, `user/report-incident.php` | All other admin & user pages |
 | v4.00 | All v3.00 pages + User: Disaster Alerts (incidents now surface to residents; type filter fixed) | All v3.00 pages, plus `user/alerts.php` | `admin/evacuation.php`, `admin/relief.php`, `admin/reports.php`, `admin/residents.php`, `admin/settings.php`, `user/announcements.php`, `user/evacuation-centers.php`, `user/profile.php` |
 | v4.Recommendation | All v4.00 pages + zone selection for incident reporting/filtering + Barangay column on My Submitted Reports | Same pages as v4.00, with zone-selection enhancement on `admin/incidents.php` and `user/report-incident.php`, and a Barangay column added to the My Submitted Reports table on `user/report-incident.php` | Same gated pages as v4.00 |
+| v5.00 | All v4.Recommendation pages + Admin Announcements Management + Resident Announcements Feed | Same pages as v4.Recommendation, plus `admin/announcements.php` and `user/announcements.php` | `admin/evacuation.php`, `admin/relief.php`, `admin/reports.php`, `admin/residents.php`, `admin/settings.php`, `user/evacuation-centers.php`, `user/profile.php` |
 
 ---
 
@@ -98,6 +99,7 @@ Each version is a **permanent snapshot** tagged in Git.
 | v3.00 | v3.00 | 21cd9669acdc3d4141b569f80527360fa7d111b8 |
 | v4.00 | v4.00 | fbd53de3cacaffea5c39ba83487937a6c58f651f |
 | v4.Recommendation | v4.Recommendation | a5e6c3a409133194353fdded101713004f939a26 |
+| v5.00 | v5.00 | [placeholder] |
 
 ---
 
