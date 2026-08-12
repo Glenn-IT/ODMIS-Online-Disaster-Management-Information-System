@@ -41,7 +41,6 @@
       <li class="sidebar-nav-item"><a href="report-incident.php" class="sidebar-nav-link" data-page="report-incident"><i class="fas fa-plus-circle nav-icon"></i><span class="nav-label">Report Incident</span></a></li>
       <li class="sidebar-nav-item"><a href="alerts.php" class="sidebar-nav-link" data-page="alerts"><i class="fas fa-bell nav-icon"></i><span class="nav-label">Disaster Alerts</span></a></li>
       <li class="sidebar-nav-item"><a href="evacuation-centers.php" class="sidebar-nav-link" data-page="evacuation-centers"><i class="fas fa-house-damage nav-icon"></i><span class="nav-label">Evacuation Centers</span></a></li>
-      <li class="sidebar-nav-item"><a href="announcements.php" class="sidebar-nav-link" data-page="announcements"><i class="fas fa-bullhorn nav-icon"></i><span class="nav-label">Announcements</span></a></li>
       <li class="sidebar-nav-item"><a href="profile.php" class="sidebar-nav-link active" data-page="profile"><i class="fas fa-user nav-icon"></i><span class="nav-label">Profile</span></a></li>
     </ul>
   </nav>

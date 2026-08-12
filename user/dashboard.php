@@ -15,7 +15,6 @@
     .alert-border-low,.alert-border-safe { border-left-color: #198754; }
     .emergency-contact-list li { display: flex; justify-content: space-between; align-items: center; padding: .45rem 0; border-bottom: 1px solid #f0f0f0; font-size: .875rem; }
     .emergency-contact-list li:last-child { border-bottom: none; }
-    .announcement-excerpt { font-size: .875rem; color: #555; }
   </style>
 </head>
 <body>
@@ -52,11 +51,6 @@
       <li class="sidebar-nav-item">
         <a href="evacuation-centers.php" class="sidebar-nav-link" data-page="evacuation-centers">
           <i class="fas fa-house-damage nav-icon"></i><span class="nav-label">Evacuation Centers</span>
-        </a>
-      </li>
-      <li class="sidebar-nav-item">
-        <a href="announcements.php" class="sidebar-nav-link" data-page="announcements">
-          <i class="fas fa-bullhorn nav-icon"></i><span class="nav-label">Announcements</span>
         </a>
       </li>
       <li class="sidebar-nav-item">
@@ -185,21 +179,6 @@
       </div>
     </div>
   </div>
-
-  <!-- ROW 3 — Recent Announcements -->
-  <div class="row g-3 mb-4">
-    <div class="col-12">
-      <div class="card shadow-sm">
-        <div class="card-header d-flex align-items-center justify-content-between py-3">
-          <h6 class="mb-0 fw-bold"><i class="fas fa-bullhorn text-warning me-2"></i>Recent Announcements</h6>
-          <a href="announcements.php" class="btn btn-outline-primary btn-sm">View All</a>
-        </div>
-        <div class="card-body" id="announcementsList">
-          <div class="text-center text-muted py-3"><i class="fas fa-spinner fa-spin me-2"></i>Loading announcements...</div>
-        </div>
-      </div>
-    </div>
-  </div>
 </main>
 
 <!-- ═══════════════════════════════════════
@@ -254,16 +233,14 @@ document.addEventListener('DOMContentLoaded', async function () {
   });
 
   // ── Load data ──────────────────────────────────────────────
-  let alerts = [], announcements = [], evacuationCtrs = [], myReports = [];
+  let alerts = [], evacuationCtrs = [], myReports = [];
   try {
-    const [aRes, annRes, evacRes, repRes] = await Promise.all([
+    const [aRes, evacRes, repRes] = await Promise.all([
       ApiClient.get('/alerts/index.php'),
-      ApiClient.get('/announcements/index.php'),
       ApiClient.get('/evacuation/index.php'),
       ApiClient.get('/user-reports/index.php')
     ]);
     alerts        = Array.isArray(aRes.data)   ? aRes.data   : [];
-    announcements = Array.isArray(annRes.data) ? annRes.data : [];
     evacuationCtrs= Array.isArray(evacRes.data)? evacRes.data: [];
     myReports     = Array.isArray(repRes.data) ? repRes.data : [];
   } catch (err) { console.error('Dashboard load error:', err.message); }
@@ -321,34 +298,6 @@ document.addEventListener('DOMContentLoaded', async function () {
           <span><i class="fas fa-clock me-1"></i>${a.issued_at || a.created_at || ''}</span>
         </div>
       </div>`).join('');
-  }
-
-  // ── Announcements section ──────────────────────────────────
-  function annCategoryClass(cat) {
-    const c = (cat || '').toLowerCase();
-    if (c.includes('evacuation') || c.includes('emergency')) return 'bg-danger';
-    if (c.includes('advisory') || c.includes('weather'))     return 'bg-warning text-dark';
-    if (c.includes('training') || c.includes('event'))       return 'bg-success';
-    return 'bg-info';
-  }
-  const annEl = document.getElementById('announcementsList');
-  const recentAnns = [...announcements].sort((a, b) => new Date(b.published_at) - new Date(a.published_at)).slice(0, 3);
-  if (recentAnns.length === 0) {
-    annEl.innerHTML = '<div class="text-center text-muted py-3">No announcements yet.</div>';
-  } else {
-    annEl.innerHTML = '<div class="row g-3">' + recentAnns.map(a => `
-      <div class="col-md-4">
-        <div class="card h-100 border-0 shadow-sm" style="border-left:4px solid var(--color-primary) !important">
-          <div class="card-body">
-            <div class="d-flex align-items-start justify-content-between mb-2 gap-2">
-              <span class="badge ${annCategoryClass(a.category)}">${a.category || 'General'}</span>
-              <small class="text-muted">${a.published_at || ''}</small>
-            </div>
-            <h6 class="fw-bold mb-2" style="font-size:.875rem">${a.title || ''}</h6>
-            <p class="announcement-excerpt mb-0">${(a.body || '').substring(0, 150)}${(a.body || '').length > 150 ? '...' : ''}</p>
-          </div>
-        </div>
-      </div>`).join('') + '</div>';
   }
 });
 </script>
