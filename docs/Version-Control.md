@@ -101,6 +101,7 @@ Each version is a **permanent snapshot** tagged in Git.
 | v4.00 | v4.00 | fbd53de3cacaffea5c39ba83487937a6c58f651f |
 | v4.Recommendation | v4.Recommendation | a5e6c3a409133194353fdded101713004f939a26 |
 | v5.00 | v5.00 | 875eaf32398060d74af9e0cf3b8367e0b6ddaa5a |
+| v6.00 | v6.00 | 0400f9754cb5799a4cbe6a8ca93bfeb622a31d92 |
 
 ---
 
