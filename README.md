@@ -116,10 +116,15 @@ ODMIS-Online-Disaster-Management-Information-System/
 
 ## Local Setup
 
+> 📖 **Full Setup Instructions:** See [`SETUP.md`](SETUP.md) for complete step-by-step instructions on cloning and setting up the project on new devices.
+
 1. Clone or copy the project into `C:\xampp\htdocs\`
-2. Start XAMPP Apache (MySQL not required for prototype)
-3. Open browser: `http://localhost/ODMIS-Online-Disaster-Management-Information-System/`
-4. Login with demo credentials above
+2. Install Composer dependencies: `composer install`
+3. Copy configuration template: copy `config/env.example.php` to `config/env.php`
+4. Start XAMPP Apache & MySQL services
+5. Import database dump `database/odmis_db-072726.sql` into MySQL database `odmis_db` via phpMyAdmin
+6. Open browser: `http://localhost/ODMIS-Online-Disaster-Management-Information-System/`
+7. Login with demo credentials above
 
 ---
 
@@ -127,6 +132,7 @@ ODMIS-Online-Disaster-Management-Information-System/
 
 | File | Description |
 |------|-------------|
+| [`SETUP.md`](SETUP.md) | **Step-by-step setup guide for cloned devices (Composer, Database, Config)** |
 | [`docs/audit.md`](docs/audit.md) | Full system audit — current state, data model, known issues, backend readiness |
 | [`docs/backend-checklist.md`](docs/backend-checklist.md) | 12-phase checklist for implementing PHP/MySQL backend |
 | [`docs/Prompt.md`](docs/Prompt.md) | Original frontend specification and design brief |
