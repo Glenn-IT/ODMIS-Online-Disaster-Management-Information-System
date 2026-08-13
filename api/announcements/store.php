@@ -8,8 +8,8 @@ $token_user = require_admin();
 
 $body     = get_json_body();
 $required = ['title', 'body'];
-$missing  = array_filter($required, fn($f) => empty(trim($body[$f] ?? '')));
-if ($missing) error('Missing required fields.', 400, array_values($missing));
+$missing  = array_filter($required, fn($f) => empty(trim((string)($body[$f] ?? ''))));
+if ($missing) error('Missing required fields: ' . implode(', ', array_values($missing)), 400, array_values($missing));
 
 try {
     $pdo  = Database::connect();

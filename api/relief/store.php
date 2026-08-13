@@ -6,17 +6,26 @@ require_once __DIR__ . '/../../api/middleware/auth.php';
 method_required('POST');
 require_admin();
 
-$body     = get_json_body();
+$body = get_json_body();
+$pdo  = Database::connect();
+
+// Auto-generate batch_number if missing or default placeholder
+if (empty($body['batch_number']) || trim($body['batch_number']) === '(auto-generated)') {
+    $maxStmt = $pdo->query('SELECT MAX(id) AS max_id FROM relief_operations');
+    $maxRow  = $maxStmt->fetch();
+    $nextId  = ($maxRow['max_id'] ?? 0) + 1;
+    $body['batch_number'] = 'BATCH-' . str_pad((string)$nextId, 3, '0', STR_PAD_LEFT);
+}
+
 $required = ['batch_number', 'operation_date', 'barangay', 'relief_type', 'quantity'];
-$missing  = array_filter($required, fn($f) => empty(trim($body[$f] ?? '')));
-if ($missing) error('Missing required fields.', 400, array_values($missing));
+$missing  = array_filter($required, fn($f) => empty(trim((string)($body[$f] ?? ''))));
+if ($missing) error('Missing required fields: ' . implode(', ', array_values($missing)), 400, array_values($missing));
 
 $allowed_statuses = ['Pending', 'In Progress', 'Completed'];
 $status = $body['status'] ?? 'Pending';
 if (!in_array($status, $allowed_statuses, true)) error('Invalid status.');
 
 try {
-    $pdo   = Database::connect();
     $check = $pdo->prepare('SELECT id FROM relief_operations WHERE batch_number = ? LIMIT 1');
     $check->execute([sanitize($body['batch_number'])]);
     if ($check->fetch()) error('Batch number already exists.', 409);

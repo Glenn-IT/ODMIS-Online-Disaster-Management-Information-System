@@ -12,8 +12,8 @@ $is_multipart = str_contains($_SERVER['CONTENT_TYPE'] ?? '', 'multipart/form-dat
 $body = $is_multipart ? $_POST : get_json_body();
 
 $required = ['incident_type', 'title', 'description', 'location', 'barangay', 'incident_date'];
-$missing  = array_filter($required, fn($f) => empty(trim($body[$f] ?? '')));
-if ($missing) error('Missing required fields.', 400, array_values($missing));
+$missing  = array_filter($required, fn($f) => empty(trim((string)($body[$f] ?? ''))));
+if ($missing) error('Missing required fields: ' . implode(', ', array_values($missing)), 400, array_values($missing));
 
 $allowed_types = ['Flood', 'Typhoon', 'Earthquake', 'Fire', 'Landslide', 'Other'];
 if (!in_array($body['incident_type'], $allowed_types, true)) error('Invalid incident type.');

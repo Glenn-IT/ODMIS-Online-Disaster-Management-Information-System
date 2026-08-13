@@ -35,7 +35,21 @@ const ApiClient = (function () {
     try { data = await res.json(); } catch (_) {}
 
     if (!res.ok) {
-      const e = new Error(data.message || 'Request failed (' + res.status + ')');
+      let msg = data.message || ('Request failed (' + res.status + ')');
+      if (data.errors) {
+        if (Array.isArray(data.errors) && data.errors.length > 0) {
+          const errList = data.errors.join(', ');
+          if (!msg.includes(errList)) {
+            msg += ' (' + errList + ')';
+          }
+        } else if (typeof data.errors === 'object' && data.errors !== null) {
+          const detailMsgs = Object.values(data.errors).join(', ');
+          if (detailMsgs && !msg.includes(detailMsgs)) {
+            msg += ': ' + detailMsgs;
+          }
+        }
+      }
+      const e = new Error(msg);
       e.status = res.status;
       e.errors = data.errors || null;
       throw e;

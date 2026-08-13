@@ -19,7 +19,7 @@ foreach ($required as $field) {
     }
 }
 if ($missing) {
-    error('Missing required fields.', 400, $missing);
+    error('Missing required fields: ' . implode(', ', $missing), 400, $missing);
 }
 
 $username        = sanitize($body['username']);

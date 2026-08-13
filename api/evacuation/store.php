@@ -6,10 +6,20 @@ require_once __DIR__ . '/../../api/middleware/auth.php';
 method_required('POST');
 require_admin();
 
-$body     = get_json_body();
+$body = get_json_body();
+$pdo  = Database::connect();
+
+// Auto-generate center_code if missing or default placeholder
+if (empty($body['center_code']) || trim($body['center_code']) === '(auto-generated)') {
+    $maxStmt = $pdo->query('SELECT MAX(id) AS max_id FROM evacuation_centers');
+    $maxRow  = $maxStmt->fetch();
+    $nextId  = ($maxRow['max_id'] ?? 0) + 1;
+    $body['center_code'] = 'EVC-' . str_pad((string)$nextId, 3, '0', STR_PAD_LEFT);
+}
+
 $required = ['center_code', 'center_name', 'location', 'barangay', 'capacity'];
-$missing  = array_filter($required, fn($f) => empty(trim($body[$f] ?? '')));
-if ($missing) error('Missing required fields.', 400, array_values($missing));
+$missing  = array_filter($required, fn($f) => empty(trim((string)($body[$f] ?? ''))));
+if ($missing) error('Missing required fields: ' . implode(', ', array_values($missing)), 400, array_values($missing));
 
 $capacity = (int) $body['capacity'];
 $occupied = (int) ($body['occupied_slots'] ?? 0);
@@ -17,7 +27,6 @@ if ($capacity < 1)          error('Capacity must be greater than 0.');
 if ($occupied > $capacity)  error('Occupied slots cannot exceed capacity.');
 
 try {
-    $pdo   = Database::connect();
     $check = $pdo->prepare('SELECT id FROM evacuation_centers WHERE center_code = ? LIMIT 1');
     $check->execute([sanitize($body['center_code'])]);
     if ($check->fetch()) error('Center code already exists.', 409);

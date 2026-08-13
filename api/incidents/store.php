@@ -7,10 +7,19 @@ method_required('POST');
 require_admin();
 
 $body = get_json_body();
+$pdo  = Database::connect();
+
+// Auto-generate incident_code if missing or default placeholder
+if (empty($body['incident_code']) || trim($body['incident_code']) === '(auto-generated)') {
+    $maxStmt = $pdo->query('SELECT MAX(id) AS max_id FROM incidents');
+    $maxRow  = $maxStmt->fetch();
+    $nextId  = ($maxRow['max_id'] ?? 0) + 1;
+    $body['incident_code'] = 'INC-' . str_pad((string)$nextId, 3, '0', STR_PAD_LEFT);
+}
 
 $required = ['incident_code', 'disaster_type', 'title', 'location', 'barangay', 'incident_date', 'severity'];
-$missing  = array_filter($required, fn($f) => empty(trim($body[$f] ?? '')));
-if ($missing) error('Missing required fields.', 400, array_values($missing));
+$missing  = array_filter($required, fn($f) => empty(trim((string)($body[$f] ?? ''))));
+if ($missing) error('Missing required fields: ' . implode(', ', array_values($missing)), 400, array_values($missing));
 
 $allowed_types      = ['Flood', 'Typhoon', 'Earthquake', 'Fire', 'Landslide'];
 $allowed_severities = ['Low', 'Moderate', 'High', 'Critical'];
@@ -19,8 +28,6 @@ if (!in_array($body['disaster_type'], $allowed_types, true))      error('Invalid
 if (!in_array($body['severity'],      $allowed_severities, true)) error('Invalid severity level.');
 
 try {
-    $pdo  = Database::connect();
-
     $check = $pdo->prepare('SELECT id FROM incidents WHERE incident_code = ? LIMIT 1');
     $check->execute([sanitize($body['incident_code'])]);
     if ($check->fetch()) error('Incident code already exists.', 409);

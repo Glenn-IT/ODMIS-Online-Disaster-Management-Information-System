@@ -332,10 +332,40 @@
       <span class="filter-label"><i class="fas fa-map-pin me-1"></i>Barangay</span>
       <select id="filterBarangay" class="form-select form-select-sm">
         <option value="">All Barangays</option>
-        <option value="Minanga">Minanga</option>
+        <option value="Abariongan Ruar">Abariongan Ruar</option>
+        <option value="Abariongan Uneg">Abariongan Uneg</option>
+        <option value="Abarriongan">Abarriongan</option>
+        <option value="Balagan">Balagan</option>
+        <option value="Balanni">Balanni</option>
+        <option value="Cabayo">Cabayo</option>
+        <option value="Calapangan">Calapangan</option>
+        <option value="Calassitan">Calassitan</option>
+        <option value="Campo">Campo</option>
+        <option value="Centro Norte">Centro Norte</option>
+        <option value="Centro Sur">Centro Sur</option>
+        <option value="Dungao">Dungao</option>
+        <option value="Lattac">Lattac</option>
+        <option value="Lipatan">Lipatan</option>
         <option value="Lubo">Lubo</option>
-        <option value="Sto. Niño">Sto. Niño</option>
+        <option value="Mabitbitnong">Mabitbitnong</option>
+        <option value="Masical">Masical</option>
+        <option value="Matalao">Matalao</option>
+        <option value="Minanga">Minanga</option>
+        <option value="Nag-uma">Nag-uma</option>
+        <option value="Namuccayan">Namuccayan</option>
+        <option value="Niug Norte">Niug Norte</option>
+        <option value="Niug Sur">Niug Sur</option>
+        <option value="Palusao">Palusao</option>
         <option value="Poblacion">Poblacion</option>
+        <option value="San Manuel">San Manuel</option>
+        <option value="San Roque">San Roque</option>
+        <option value="Santa Felicitas">Santa Felicitas</option>
+        <option value="Santa Maria">Santa Maria</option>
+        <option value="Sidiran">Sidiran</option>
+        <option value="Sto. Niño">Sto. Niño</option>
+        <option value="Tabang">Tabang</option>
+        <option value="Tamucco">Tamucco</option>
+        <option value="Virginia">Virginia</option>
       </select>
     </div>
 
@@ -503,10 +533,40 @@
               </label>
               <select class="form-select" id="fBarangay" required>
                 <option value="">Select Barangay</option>
-                <option value="Minanga">Minanga</option>
+                <option value="Abariongan Ruar">Abariongan Ruar</option>
+                <option value="Abariongan Uneg">Abariongan Uneg</option>
+                <option value="Abarriongan">Abarriongan</option>
+                <option value="Balagan">Balagan</option>
+                <option value="Balanni">Balanni</option>
+                <option value="Cabayo">Cabayo</option>
+                <option value="Calapangan">Calapangan</option>
+                <option value="Calassitan">Calassitan</option>
+                <option value="Campo">Campo</option>
+                <option value="Centro Norte">Centro Norte</option>
+                <option value="Centro Sur">Centro Sur</option>
+                <option value="Dungao">Dungao</option>
+                <option value="Lattac">Lattac</option>
+                <option value="Lipatan">Lipatan</option>
                 <option value="Lubo">Lubo</option>
-                <option value="Sto. Niño">Sto. Niño</option>
+                <option value="Mabitbitnong">Mabitbitnong</option>
+                <option value="Masical">Masical</option>
+                <option value="Matalao">Matalao</option>
+                <option value="Minanga">Minanga</option>
+                <option value="Nag-uma">Nag-uma</option>
+                <option value="Namuccayan">Namuccayan</option>
+                <option value="Niug Norte">Niug Norte</option>
+                <option value="Niug Sur">Niug Sur</option>
+                <option value="Palusao">Palusao</option>
                 <option value="Poblacion">Poblacion</option>
+                <option value="San Manuel">San Manuel</option>
+                <option value="San Roque">San Roque</option>
+                <option value="Santa Felicitas">Santa Felicitas</option>
+                <option value="Santa Maria">Santa Maria</option>
+                <option value="Sidiran">Sidiran</option>
+                <option value="Sto. Niño">Sto. Niño</option>
+                <option value="Tabang">Tabang</option>
+                <option value="Tamucco">Tamucco</option>
+                <option value="Virginia">Virginia</option>
               </select>
               <div class="invalid-feedback">Please select a barangay.</div>
             </div>
@@ -906,6 +966,7 @@ async function saveBatch() {
 
   const id      = document.getElementById('reliefId').value.trim();
   const payload = {
+    batch_number  : document.getElementById('fBatchNumber').value.trim(),
     operation_date: document.getElementById('fDate').value,
     barangay      : document.getElementById('fBarangay').value,
     relief_type   : document.getElementById('fReliefType').value,
