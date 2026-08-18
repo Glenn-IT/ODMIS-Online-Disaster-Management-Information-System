@@ -24,6 +24,7 @@
 | v4.Recommendation | All v4.00 pages + zone selection for incident reporting/filtering + Barangay column on My Submitted Reports | Same pages as v4.00, with zone-selection enhancement on `admin/incidents.php` and `user/report-incident.php`, and a Barangay column added to the My Submitted Reports table on `user/report-incident.php` | Same gated pages as v4.00 |
 | v5.00 | All v4.Recommendation pages + Admin Announcements Management + Resident Announcements Feed | Same pages as v4.Recommendation, plus `admin/announcements.php` and `user/announcements.php` | `admin/evacuation.php`, `admin/relief.php`, `admin/reports.php`, `admin/residents.php`, `admin/settings.php`, `user/evacuation-centers.php`, `user/profile.php` |
 | v6.00 | All v5.00 features + Admin Relief Operations Management + Unified 34-Barangay list + API Auto-code & exact error handling | Same pages as v5.00, plus `admin/relief.php` | `admin/evacuation.php`, `admin/reports.php`, `admin/residents.php`, `admin/settings.php`, `user/evacuation-centers.php`, `user/profile.php` |
+| v7.00 | All v6.00 features + Evacuation Centers (Admin Management & User View unlocked with Zone selection & updated placeholders) | Same pages as v6.00, plus `admin/evacuation.php` and `user/evacuation-centers.php` | `admin/reports.php`, `admin/residents.php`, `admin/settings.php`, `user/profile.php` |
 
 ---
 
