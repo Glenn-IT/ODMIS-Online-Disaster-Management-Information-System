@@ -1,4 +1,3 @@
-<?php require_once '../components/under-construction.php'; ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -232,7 +231,7 @@ document.addEventListener('DOMContentLoaded', async function () {
                 ${statusBadge(c.status)}
                 <span class="badge bg-info text-dark">Capacity: ${c.capacity}</span>
               </div>
-              <p class="mb-2 text-muted" style="font-size:.82rem"><i class="fas fa-map-marker-alt me-1"></i>${c.location || ''}</p>
+              <p class="mb-2 text-muted" style="font-size:.82rem"><i class="fas fa-map-marked-alt me-1"></i>${c.location || ''}</p>
               <div class="mb-1 d-flex justify-content-between" style="font-size:.8rem">
                 <span>Occupancy</span>
                 <span>${c.occupied_slots} / ${c.capacity} (${pct}%)</span>
@@ -270,7 +269,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         <div class="col-12"><h5 class="fw-bold">${c.center_name}</h5></div>
         <div class="col-md-6"><label class="fw-semibold text-muted small">Status</label><div>${statusBadge(c.status)}</div></div>
         <div class="col-md-6"><label class="fw-semibold text-muted small">Barangay</label><div>${c.barangay}</div></div>
-        <div class="col-12"><label class="fw-semibold text-muted small">Full Address</label><div>${c.location}</div></div>
+        <div class="col-md-6"><label class="fw-semibold text-muted small">Zone</label><div>${c.location}</div></div>
         <div class="col-md-4"><label class="fw-semibold text-muted small">Total Capacity</label><div class="fw-bold fs-5 text-primary">${c.capacity}</div></div>
         <div class="col-md-4"><label class="fw-semibold text-muted small">Currently Occupied</label><div class="fw-bold fs-5 text-warning">${c.occupied_slots}</div></div>
         <div class="col-md-4"><label class="fw-semibold text-muted small">Available Slots</label><div class="fw-bold fs-5 ${available > 0 ? 'text-success' : 'text-danger'}">${available}</div></div>

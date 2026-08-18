@@ -284,7 +284,7 @@ function initMockData() {
     {
       id            : 'EVC-001',
       name          : 'Santo Niño Municipal Gymnasium',
-      location      : 'Poblacion, Santo Niño (Faire), Cagayan',
+      location      : 'Zone 1',
       barangay      : 'Poblacion',
       capacity      : 500,
       occupied      : 180,
@@ -295,9 +295,9 @@ function initMockData() {
     },
     {
       id            : 'EVC-002',
-      name          : 'Minanga Elementary School',
-      location      : 'Purok 1, Minanga, Santo Niño (Faire), Cagayan',
-      barangay      : 'Minanga',
+      name          : 'Centro Sur Elementary School',
+      location      : 'Zone 2',
+      barangay      : 'Centro Sur',
       capacity      : 200,
       occupied      : 60,
       contactPerson : 'Leonora Espinosa',
@@ -308,7 +308,7 @@ function initMockData() {
     {
       id            : 'EVC-003',
       name          : 'Lubo Barangay Hall (Emergency Wing)',
-      location      : 'Purok 4, Lubo, Santo Niño (Faire), Cagayan',
+      location      : 'Zone 3',
       barangay      : 'Lubo',
       capacity      : 150,
       occupied      : 0,
@@ -320,7 +320,7 @@ function initMockData() {
     {
       id            : 'EVC-004',
       name          : 'Sto. Niño Multi-Purpose Hall',
-      location      : 'Purok 2, Sto. Niño, Santo Niño (Faire), Cagayan',
+      location      : 'Zone 4',
       barangay      : 'Sto. Niño',
       capacity      : 300,
       occupied      : 120,
@@ -332,7 +332,7 @@ function initMockData() {
     {
       id            : 'EVC-005',
       name          : 'Santo Niño National High School Covered Court',
-      location      : 'Poblacion, Santo Niño (Faire), Cagayan',
+      location      : 'Zone 5',
       barangay      : 'Poblacion',
       capacity      : 400,
       occupied      : 95,

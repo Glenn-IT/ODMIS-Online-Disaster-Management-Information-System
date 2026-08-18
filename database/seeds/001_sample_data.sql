@@ -116,23 +116,23 @@ INSERT INTO `evacuation_centers`
     (`id`, `center_code`, `center_name`, `location`, `barangay`, `capacity`, `occupied_slots`, `contact_person`, `contact_number`, `status`, `created_at`)
 VALUES
 (1, 'EVC-001', 'Santo Niño Municipal Gymnasium',
-    'Poblacion, Santo Niño (Faire), Cagayan',
+    'Zone 1',
     'Poblacion', 500, 180, 'Ricardo Bautista', '09221234572', 'Open', '2024-01-15 08:00:00'),
 
-(2, 'EVC-002', 'Minanga Elementary School',
-    'Purok 1, Minanga, Santo Niño (Faire), Cagayan',
-    'Minanga', 200, 60, 'Leonora Espinosa', '09231234573', 'Open', '2024-01-15 08:00:00'),
+(2, 'EVC-002', 'Centro Sur Elementary School',
+    'Zone 2',
+    'Centro Sur', 200, 60, 'Leonora Espinosa', '09231234573', 'Open', '2024-01-15 08:00:00'),
 
 (3, 'EVC-003', 'Lubo Barangay Hall (Emergency Wing)',
-    'Purok 4, Lubo, Santo Niño (Faire), Cagayan',
+    'Zone 3',
     'Lubo', 150, 0, 'Cornelio Manalo', '09241234574', 'Closed', '2024-01-20 08:00:00'),
 
 (4, 'EVC-004', 'Sto. Niño Multi-Purpose Hall',
-    'Purok 2, Sto. Niño, Santo Niño (Faire), Cagayan',
+    'Zone 4',
     'Sto. Niño', 300, 120, 'Erlinda Pascual', '09251234575', 'Open', '2024-02-01 08:00:00'),
 
 (5, 'EVC-005', 'Santo Niño National High School Covered Court',
-    'Poblacion, Santo Niño (Faire), Cagayan',
+    'Zone 5',
     'Poblacion', 400, 95, 'Principal Felix Navarro', '09261234576', 'Open', '2024-02-10 08:00:00');
 
 -- ─────────────────────────────────────────

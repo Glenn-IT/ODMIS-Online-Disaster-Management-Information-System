@@ -1,4 +1,3 @@
-<?php require_once '../components/under-construction.php'; ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -322,8 +321,22 @@
       <div class="search-wrapper">
         <i class="fas fa-search search-icon"></i>
         <input type="text" id="filterSearch" class="form-control form-control-sm"
-               placeholder="Search by name, location, contact…" />
+               placeholder="Search by name, zone, contact…" />
       </div>
+    </div>
+
+    <div class="filter-group">
+      <span class="filter-label"><i class="fas fa-map-marked-alt me-1"></i>Zone</span>
+      <select id="filterZone" class="form-select form-select-sm">
+        <option value="">All Zones</option>
+        <option value="Zone 1">Zone 1</option>
+        <option value="Zone 2">Zone 2</option>
+        <option value="Zone 3">Zone 3</option>
+        <option value="Zone 4">Zone 4</option>
+        <option value="Zone 5">Zone 5</option>
+        <option value="Zone 6">Zone 6</option>
+        <option value="Zone 7">Zone 7</option>
+      </select>
     </div>
 
     <div class="filter-group">
@@ -418,7 +431,7 @@
             <tr>
               <th>Center ID</th>
               <th>Center Name</th>
-              <th>Location / Barangay</th>
+              <th>Zone / Barangay</th>
               <th>Capacity</th>
               <th>Occupied</th>
               <th>Available</th>
@@ -499,21 +512,30 @@
               <label class="form-label fw-semibold" for="fName">
                 Center Name <span class="text-danger">*</span>
               </label>
-              <input type="text" class="form-control" id="fName" placeholder="e.g. Minanga Elementary School" required />
+              <input type="text" class="form-control" id="fName" placeholder="e.g. Centro Sur Elementary School" required />
               <div class="invalid-feedback">Center name is required.</div>
             </div>
 
-            <!-- Location -->
-            <div class="col-md-8">
+            <!-- Zone -->
+            <div class="col-md-6">
               <label class="form-label fw-semibold" for="fLocation">
-                Location / Address <span class="text-danger">*</span>
+                Zone <span class="text-danger">*</span>
               </label>
-              <input type="text" class="form-control" id="fLocation" placeholder="e.g. Brgy. Minanga, Bagabag, Nueva Vizcaya" required />
-              <div class="invalid-feedback">Location is required.</div>
+              <select class="form-select" id="fLocation" required>
+                <option value="">— Select Zone —</option>
+                <option value="Zone 1">Zone 1</option>
+                <option value="Zone 2">Zone 2</option>
+                <option value="Zone 3">Zone 3</option>
+                <option value="Zone 4">Zone 4</option>
+                <option value="Zone 5">Zone 5</option>
+                <option value="Zone 6">Zone 6</option>
+                <option value="Zone 7">Zone 7</option>
+              </select>
+              <div class="invalid-feedback">Please select a zone.</div>
             </div>
 
             <!-- Barangay -->
-            <div class="col-md-4">
+            <div class="col-md-6">
               <label class="form-label fw-semibold" for="fBarangay">
                 Barangay <span class="text-danger">*</span>
               </label>
@@ -641,7 +663,7 @@
         <!-- Fields grid -->
         <div class="row g-3">
           <div class="col-md-6">
-            <div class="view-field-label">Location / Address</div>
+            <div class="view-field-label">Zone</div>
             <div class="view-field-value mt-1" id="vLocation">—</div>
           </div>
           <div class="col-md-6">
@@ -813,6 +835,7 @@ async function loadCenters() {
 
 function filterCenters() {
   const search    = (document.getElementById('filterSearch').value || '').toLowerCase().trim();
+  const zoneVal   = document.getElementById('filterZone') ? document.getElementById('filterZone').value : '';
   const barangay  = document.getElementById('filterBarangay').value;
   const statusVal = document.getElementById('filterStatus').value;
 
@@ -823,9 +846,10 @@ function filterCenters() {
       (c.contact_person && c.contact_person.toLowerCase().includes(search)) ||
       (c.contact_number && c.contact_number.includes(search)) ||
       (c.center_code    && c.center_code.toLowerCase().includes(search));
+    const matchZone   = !zoneVal   || c.location === zoneVal;
     const matchBrgy   = !barangay  || c.barangay === barangay;
     const matchStatus = !statusVal || c.status   === statusVal;
-    return matchSearch && matchBrgy && matchStatus;
+    return matchSearch && matchZone && matchBrgy && matchStatus;
   });
 
   currentPage = 1;
@@ -927,12 +951,24 @@ function escHtml(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+// ── Helper to safely select Zone dropdown ───────────────────
+function setZoneValue(select, value) {
+  if (!select) return;
+  const exists = Array.from(select.options).some(opt => opt.value === value);
+  if (exists) {
+    select.value = value;
+  } else {
+    select.value = '';
+  }
+}
+
 // ── Open Add modal ─────────────────────────────────────────
 function openAddModal() {
   document.getElementById('evacModalTitle').innerHTML =
     '<i class="fas fa-plus-circle me-2"></i>Add Evacuation Center';
   document.getElementById('evacId').value      = '';
   document.getElementById('evacForm').reset();
+  setZoneValue(document.getElementById('fLocation'), '');
   document.getElementById('evacForm').classList.remove('was-validated');
   evacModalInst.show();
 }
@@ -945,7 +981,7 @@ function editCenter(id) {
     '<i class="fas fa-edit me-2"></i>Edit Evacuation Center';
   document.getElementById('evacId').value          = c.id;
   document.getElementById('fName').value           = c.center_name     || '';
-  document.getElementById('fLocation').value       = c.location        || '';
+  setZoneValue(document.getElementById('fLocation'), c.location || '');
   document.getElementById('fBarangay').value       = c.barangay        || '';
   document.getElementById('fCapacity').value       = c.capacity        || '';
   document.getElementById('fOccupied').value       = c.occupied_slots  || 0;
@@ -1136,10 +1172,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Filters
   document.getElementById('filterSearch').addEventListener('input', filterCenters);
+  document.getElementById('filterZone')?.addEventListener('change', filterCenters);
   document.getElementById('filterBarangay').addEventListener('change', filterCenters);
   document.getElementById('filterStatus').addEventListener('change', filterCenters);
   document.getElementById('btnResetFilters').addEventListener('click', () => {
     document.getElementById('filterSearch').value   = '';
+    if (document.getElementById('filterZone')) document.getElementById('filterZone').value = '';
     document.getElementById('filterBarangay').value = '';
     document.getElementById('filterStatus').value   = '';
     filterCenters();
