@@ -748,6 +748,31 @@ const App = (function () {
   /**
    * Wire up logout buttons/links to show a confirmation before logging out.
    */
+  function handleLogout(e) {
+    if (e && typeof e.preventDefault === 'function') {
+      e.preventDefault();
+    }
+    showConfirm(
+      'Are you sure you want to log out of ODMIS?',
+      function () {
+        if (typeof Auth !== 'undefined' && typeof Auth.logout === 'function') {
+          Auth.logout();
+        } else if (typeof ApiClient !== 'undefined' && typeof ApiClient.clearToken === 'function') {
+          ApiClient.clearToken();
+          window.location.href = '../login.php';
+        } else {
+          localStorage.clear();
+          window.location.href = '../login.php';
+        }
+      },
+      {
+        title        : 'Confirm Logout',
+        confirmLabel : 'Yes, Logout',
+        danger       : true
+      }
+    );
+  }
+
   function initLogout() {
     if (document.dataset.logoutDelegated) return;
     document.dataset.logoutDelegated = 'true';
@@ -761,26 +786,7 @@ const App = (function () {
           }
           return;
         }
-        e.preventDefault();
-        showConfirm(
-          'Are you sure you want to log out of ODMIS?',
-          function () {
-            if (typeof Auth !== 'undefined' && typeof Auth.logout === 'function') {
-              Auth.logout();
-            } else if (typeof ApiClient !== 'undefined' && typeof ApiClient.clearToken === 'function') {
-              ApiClient.clearToken();
-              window.location.href = '../login.php';
-            } else {
-              localStorage.clear();
-              window.location.href = '../login.php';
-            }
-          },
-          {
-            title        : 'Confirm Logout',
-            confirmLabel : 'Yes, Logout',
-            danger       : true
-          }
-        );
+        handleLogout(e);
       }
     });
   }
@@ -1097,6 +1103,7 @@ const App = (function () {
     updateNotifications  : _updateNotificationCount,
     showNotificationModal: showNotificationModal,
     markNotificationRead : _markNotifAsRead,
-    markAllNotificationsRead: _markAllNotifsAsRead
+    markAllNotificationsRead: _markAllNotifsAsRead,
+    handleLogout         : handleLogout
   };
 })();

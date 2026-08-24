@@ -238,7 +238,7 @@
         </li>
         <li><hr class="dropdown-divider my-1"></li>
         <li>
-          <a class="dropdown-item text-danger" href="#" data-action="logout">
+          <a class="dropdown-item text-danger" href="javascript:void(0)" data-action="logout" onclick="event.preventDefault(); App.handleLogout(event);">
             <i class="fas fa-sign-out-alt me-2"></i>Logout
           </a>
         </li>

@@ -66,7 +66,7 @@
       <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="min-width:180px;font-size:var(--font-size-sm)">
         <li><a class="dropdown-item" href="profile.php"><i class="fas fa-user me-2 text-muted"></i>Profile</a></li>
         <li><hr class="dropdown-divider my-1"></li>
-        <li><a class="dropdown-item text-danger" href="#" data-action="logout"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+        <li><a class="dropdown-item text-danger" href="javascript:void(0)" data-action="logout" onclick="event.preventDefault(); App.handleLogout(event);"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
       </ul>
     </div>
   </div>
