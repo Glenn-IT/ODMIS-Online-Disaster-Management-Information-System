@@ -750,7 +750,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (sa) sa.textContent = initLetter;
     if (sn) sn.textContent = session.fullName || session.username;
     if (na) na.textContent = initLetter;
-    if (nu) nu.textContent = session.username;
+    if (nu) nu.textContent = session.fullName || session.username;
   }
 
   // Modal instances

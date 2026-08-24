@@ -296,7 +296,7 @@ document.addEventListener('DOMContentLoaded', async function () {
       sidebarAvatar:    initial,
       sidebarName:      user.full_name || user.fullName || user.username,
       navAvatar:        initial,
-      navUsername:      user.username,
+      navUsername:      user.full_name || user.fullName || user.username,
       profileAvatarLg:  initial,
       profileFullName:  user.full_name || user.fullName || '—',
       profileUsername:  '@' + user.username,

@@ -1118,7 +1118,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (sidebarAvatar) sidebarAvatar.textContent = initLetter;
     if (sidebarName)   sidebarName.textContent   = session.fullName || session.username;
     if (navAvatar)     navAvatar.textContent      = initLetter;
-    if (navUsername)   navUsername.textContent    = session.username;
+    if (navUsername)   navUsername.textContent    = session.fullName || session.username;
   }
 
   // Modal instances

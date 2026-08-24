@@ -220,7 +220,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     if (sa) sa.textContent = initial;
     if (sn) sn.textContent = session.fullName || session.username;
     if (na) na.textContent = initial;
-    if (nu) nu.textContent = session.username;
+    if (nu) nu.textContent = session.fullName || session.username;
     if (wn) wn.textContent = session.fullName || session.username;
   }
 
