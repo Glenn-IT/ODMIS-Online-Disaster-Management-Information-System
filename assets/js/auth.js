@@ -13,6 +13,7 @@ const Auth = (function () {
   }
 
   function _go(rel) { window.location.href = _prefix() + rel; }
+  function _replace(rel) { window.location.replace(_prefix() + rel); }
 
   // ── Decode JWT payload (no sig verify — server verifies) ─
   function _decode(token) {
@@ -49,20 +50,20 @@ const Auth = (function () {
   function isUser()   { const s = getSession(); return !!s && s.role === 'user';  }
 
   function requireAuth() {
-    if (!isAuthenticated()) { _go('login.php'); return false; }
+    if (!isAuthenticated()) { _replace('login.php'); return false; }
     return true;
   }
 
   function requireAdmin() {
-    if (!isAuthenticated()) { _go('login.php'); return false; }
-    if (!isAdmin())         { _go('user/dashboard.php'); return false; }
+    if (!isAuthenticated()) { _replace('login.php'); return false; }
+    if (!isAdmin())         { _replace('user/dashboard.php'); return false; }
     return true;
   }
 
   function requireUser() {
-    if (!isAuthenticated()) { _go('login.php'); return false; }
+    if (!isAuthenticated()) { _replace('login.php'); return false; }
     if (!isUser()) {
-      _go(isAdmin() ? 'admin/dashboard.php' : 'login.php');
+      _replace(isAdmin() ? 'admin/dashboard.php' : 'login.php');
       return false;
     }
     return true;
@@ -76,8 +77,30 @@ const Auth = (function () {
       sessionStorage.removeItem('odmis_token');
       sessionStorage.removeItem('odmis_session');
     } catch (_) {}
-    _go('login.php');
+    _replace('login.php');
   }
+
+  // Handle browser Back/Forward navigation & bfcache restoration
+  window.addEventListener('pageshow', function (event) {
+    const p = window.location.pathname.toLowerCase();
+    if (p.includes('/admin/')) {
+      if (!isAuthenticated()) {
+        _replace('login.php');
+      } else if (!isAdmin()) {
+        _replace('user/dashboard.php');
+      }
+    } else if (p.includes('/user/')) {
+      if (!isAuthenticated()) {
+        _replace('login.php');
+      } else if (!isUser()) {
+        _replace('admin/dashboard.php');
+      }
+    } else if (p.includes('login.php')) {
+      if (isAuthenticated()) {
+        _replace(isAdmin() ? 'admin/dashboard.php' : 'user/dashboard.php');
+      }
+    }
+  });
 
   // No-op: session comes from JWT; cannot be patched client-side
   function updateSession() {}
