@@ -371,6 +371,7 @@ const App = (function () {
 
     _updateNotificationCount();
     _initNotificationClickListener();
+    initLogout();
   }
 
   async function _updateNotificationCount() {
@@ -748,18 +749,29 @@ const App = (function () {
    * Wire up logout buttons/links to show a confirmation before logging out.
    */
   function initLogout() {
-    const logoutTriggers = document.querySelectorAll('[data-action="logout"], #logoutBtn, #logoutLink, .logout-trigger');
+    if (document.dataset.logoutDelegated) return;
+    document.dataset.logoutDelegated = 'true';
 
-    logoutTriggers.forEach(function (el) {
-      el.addEventListener('click', function (e) {
+    document.addEventListener('click', function (e) {
+      const btn = e.target.closest('[data-action="logout"], #logoutBtn, #logoutLink, .logout-trigger, #confirmLogoutBtn');
+      if (btn) {
+        if (btn.id === 'confirmLogoutBtn') {
+          if (typeof Auth !== 'undefined' && typeof Auth.logout === 'function') {
+            Auth.logout();
+          }
+          return;
+        }
         e.preventDefault();
         showConfirm(
           'Are you sure you want to log out of ODMIS?',
           function () {
-            if (typeof Auth !== 'undefined') {
+            if (typeof Auth !== 'undefined' && typeof Auth.logout === 'function') {
               Auth.logout();
+            } else if (typeof ApiClient !== 'undefined' && typeof ApiClient.clearToken === 'function') {
+              ApiClient.clearToken();
+              window.location.href = '../login.php';
             } else {
-              localStorage.removeItem('odmis_session');
+              localStorage.clear();
               window.location.href = '../login.php';
             }
           },
@@ -769,7 +781,7 @@ const App = (function () {
             danger       : true
           }
         );
-      });
+      }
     });
   }
 

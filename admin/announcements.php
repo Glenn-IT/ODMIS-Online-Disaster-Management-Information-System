@@ -663,13 +663,7 @@ const ManagePage = (function() {
     document.getElementById('sidebarToggle').addEventListener('click', () => {
       document.body.classList.toggle('sidebar-collapsed');
     });
-    document.getElementById('confirmLogoutBtn').addEventListener('click', () => Auth.logout());
-    document.querySelectorAll('[data-action="logout"]').forEach(el => {
-      el.addEventListener('click', e => {
-        e.preventDefault();
-        _logoutModal.show();
-      });
-    });
+
 
     // Write click triggers
     document.getElementById('btnPostAnnouncement').addEventListener('click', openAddAnnModal);

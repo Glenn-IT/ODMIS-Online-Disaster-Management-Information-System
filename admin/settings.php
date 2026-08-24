@@ -492,13 +492,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     document.body.classList.toggle('sidebar-collapsed');
   });
 
-  document.getElementById('confirmLogoutBtn').addEventListener('click', () => Auth.logout());
-  document.querySelectorAll('[data-action="logout"]').forEach(el => {
-    el.addEventListener('click', (e) => {
-      e.preventDefault();
-      new bootstrap.Modal(document.getElementById('logoutModal')).show();
-    });
-  });
+
 
   function checkMobile() {
     const guard = document.getElementById('mobileGuard');

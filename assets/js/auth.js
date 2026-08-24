@@ -70,6 +70,12 @@ const Auth = (function () {
 
   function logout() {
     ApiClient.clearToken();
+    try {
+      localStorage.removeItem('odmis_token');
+      localStorage.removeItem('odmis_session');
+      sessionStorage.removeItem('odmis_token');
+      sessionStorage.removeItem('odmis_session');
+    } catch (_) {}
     _go('login.php');
   }
 

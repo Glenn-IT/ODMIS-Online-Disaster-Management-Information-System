@@ -766,13 +766,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.body.classList.remove('sidebar-collapsed');
   });
 
-  // Logout
-  document.getElementById('confirmLogoutBtn').addEventListener('click', () => {
-    if (typeof Auth !== 'undefined') Auth.logout();
-  });
-  document.querySelectorAll('[data-action="logout"]').forEach(el => {
-    el.addEventListener('click', e => { e.preventDefault(); logoutModalInst.show(); });
-  });
+
 
   // Mobile guard
   function checkMobile() {
