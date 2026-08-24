@@ -11,12 +11,19 @@ try {
     $where  = [];
     $params = [];
 
-    if (!empty($_GET['start']))    { $where[] = 'incident_date >= ?'; $params[] = $_GET['start']; }
-    if (!empty($_GET['end']))      { $where[] = 'incident_date <= ?'; $params[] = $_GET['end']; }
-    if (!empty($_GET['type']))     { $where[] = 'disaster_type = ?';  $params[] = $_GET['type']; }
-    if (!empty($_GET['barangay'])) { $where[] = 'barangay = ?';       $params[] = $_GET['barangay']; }
-    if (!empty($_GET['status']))   { $where[] = 'status = ?';         $params[] = $_GET['status']; }
-    if (!empty($_GET['severity'])) { $where[] = 'severity = ?';       $params[] = $_GET['severity']; }
+    $start    = !empty($_GET['date_from']) ? $_GET['date_from'] : (!empty($_GET['start']) ? $_GET['start'] : null);
+    $end      = !empty($_GET['date_to']) ? $_GET['date_to'] : (!empty($_GET['end']) ? $_GET['end'] : null);
+    $type     = !empty($_GET['disaster_type']) ? $_GET['disaster_type'] : (!empty($_GET['type']) ? $_GET['type'] : null);
+    $barangay = !empty($_GET['barangay']) ? $_GET['barangay'] : null;
+    $status   = !empty($_GET['status']) ? $_GET['status'] : null;
+    $severity = !empty($_GET['severity']) ? $_GET['severity'] : null;
+
+    if ($start)    { $where[] = 'incident_date >= ?';       $params[] = $start; }
+    if ($end)      { $where[] = 'incident_date <= ?';       $params[] = $end; }
+    if ($type)     { $where[] = 'disaster_type = ?';        $params[] = $type; }
+    if ($barangay) { $where[] = 'barangay = ?';             $params[] = $barangay; }
+    if ($status)   { $where[] = 'LOWER(status) = LOWER(?)'; $params[] = $status; }
+    if ($severity) { $where[] = 'severity = ?';             $params[] = $severity; }
 
     $sql  = 'SELECT * FROM incidents';
     $sql .= $where ? ' WHERE ' . implode(' AND ', $where) : '';
@@ -29,15 +36,15 @@ try {
     success([
         'count'   => count($data),
         'filters' => array_filter([
-            'start'    => $_GET['start']    ?? null,
-            'end'      => $_GET['end']      ?? null,
-            'type'     => $_GET['type']     ?? null,
-            'barangay' => $_GET['barangay'] ?? null,
-            'status'   => $_GET['status']   ?? null,
-            'severity' => $_GET['severity'] ?? null,
+            'start'         => $start,
+            'end'           => $end,
+            'disaster_type' => $type,
+            'barangay'      => $barangay,
+            'status'        => $status,
+            'severity'      => $severity,
         ]),
         'data' => $data,
     ], 'Incident report data retrieved.');
 } catch (PDOException $e) {
-    error('Database error.', 500);
+    error('Database error: ' . $e->getMessage(), 500);
 }

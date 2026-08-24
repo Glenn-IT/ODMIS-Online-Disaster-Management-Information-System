@@ -11,8 +11,15 @@ try {
     $where  = [];
     $params = [];
 
-    if (!empty($_GET['status']))   { $where[] = 'status = ?';   $params[] = $_GET['status']; }
-    if (!empty($_GET['barangay'])) { $where[] = 'barangay = ?'; $params[] = $_GET['barangay']; }
+    $status   = !empty($_GET['status']) ? $_GET['status'] : null;
+    $barangay = !empty($_GET['barangay']) ? $_GET['barangay'] : null;
+    $start    = !empty($_GET['date_from']) ? $_GET['date_from'] : (!empty($_GET['start']) ? $_GET['start'] : null);
+    $end      = !empty($_GET['date_to']) ? $_GET['date_to'] : (!empty($_GET['end']) ? $_GET['end'] : null);
+
+    if ($status)   { $where[] = 'LOWER(status) = LOWER(?)'; $params[] = $status; }
+    if ($barangay) { $where[] = 'barangay = ?';             $params[] = $barangay; }
+    if ($start)    { $where[] = 'DATE(created_at) >= ?';    $params[] = $start; }
+    if ($end)      { $where[] = 'DATE(created_at) <= ?';    $params[] = $end; }
 
     $sql  = 'SELECT *, (capacity - occupied_slots) AS available_slots FROM evacuation_centers';
     $sql .= $where ? ' WHERE ' . implode(' AND ', $where) : '';
@@ -31,11 +38,13 @@ try {
         'total_occupied'  => $total_occupied,
         'total_available' => $total_capacity - $total_occupied,
         'filters'         => array_filter([
-            'status'   => $_GET['status']   ?? null,
-            'barangay' => $_GET['barangay'] ?? null,
+            'status'   => $status,
+            'barangay' => $barangay,
+            'start'    => $start,
+            'end'      => $end,
         ]),
         'data' => $data,
     ], 'Evacuation center report data retrieved.');
 } catch (PDOException $e) {
-    error('Database error.', 500);
+    error('Database error: ' . $e->getMessage(), 500);
 }

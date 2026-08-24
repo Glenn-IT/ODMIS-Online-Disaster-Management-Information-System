@@ -1,4 +1,3 @@
-<?php require_once '../components/under-construction.php'; ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -392,12 +391,15 @@
 
         <!-- Action buttons -->
         <div class="col-auto ms-auto report-actions">
-          <div class="d-flex gap-2">
-            <button class="btn btn-primary btn-sm px-3" onclick="generateReport()">
+          <div class="d-flex gap-2 flex-wrap">
+            <button class="btn btn-primary btn-sm px-3" id="btnGenerateReport" onclick="generateReport()">
               <i class="fas fa-file-alt me-1"></i>Generate Report
             </button>
             <button class="btn btn-outline-secondary btn-sm px-3" onclick="printReport()">
               <i class="fas fa-print me-1"></i>Print
+            </button>
+            <button class="btn btn-outline-success btn-sm px-3" onclick="exportCSV()">
+              <i class="fas fa-file-csv me-1"></i>Export CSV
             </button>
             <button class="btn btn-outline-danger btn-sm px-3" onclick="exportPDF()">
               <i class="fas fa-file-pdf me-1"></i>Export PDF
@@ -512,10 +514,10 @@ let chartByBarangayInstance = null;
 
 /* ── Status options per report type ── */
 const STATUS_OPTIONS = {
-  incidents:  ['Active', 'Resolved', 'Monitoring', 'Closed'],
+  incidents:  ['Active', 'Resolved'],
   residents:  ['Active', 'Inactive'],
-  relief:     ['Pending', 'Distributed', 'Cancelled'],
-  evacuation: ['Open', 'Closed', 'Full']
+  relief:     ['Pending', 'In Progress', 'Completed'],
+  evacuation: ['Open', 'Closed']
 };
 
 /* ── Table column definitions ── */
@@ -565,20 +567,26 @@ document.addEventListener('DOMContentLoaded', function () {
   checkMobile();
   window.addEventListener('resize', checkMobile);
 
-  // Set default date range to cover all mock data
+  // Set default date range
   const today = new Date();
   document.getElementById('filterDateTo').value = formatDateInput(today);
   document.getElementById('filterDateFrom').value = '2024-01-01';
 
   // Populate status dropdown for initial type
   populateStatusOptions('incidents');
+
+  // Automatically generate the initial report
+  generateReport();
 });
 
 /* ────────────────────────────────────────────────────
    HELPERS
 ──────────────────────────────────────────────────── */
 function formatDateInput(d) {
-  return d.toISOString().split('T')[0];
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 function formatDateDisplay(str) {
@@ -586,6 +594,14 @@ function formatDateDisplay(str) {
   const d = new Date(str);
   if (isNaN(d)) return str;
   return d.toLocaleDateString('en-PH', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+function extractDataArray(res) {
+  if (!res) return [];
+  if (Array.isArray(res)) return res;
+  if (Array.isArray(res.data)) return res.data;
+  if (res.data && Array.isArray(res.data.data)) return res.data.data;
+  return [];
 }
 
 function showToast(message, type = 'info') {
@@ -617,6 +633,7 @@ function severityBadge(severity) {
   const map = {
     critical: 'badge-severity-critical',
     high:     'badge-severity-high',
+    moderate: 'badge-severity-medium',
     medium:   'badge-severity-medium',
     low:      'badge-severity-low'
   };
@@ -626,16 +643,18 @@ function severityBadge(severity) {
 
 function statusBadge(status) {
   const map = {
-    active:      'bg-success',
-    open:        'bg-success',
-    resolved:    'bg-primary',
-    monitoring:  'bg-info text-dark',
-    closed:      'bg-secondary',
-    inactive:    'bg-secondary',
-    pending:     'bg-warning text-dark',
-    distributed: 'bg-primary',
-    cancelled:   'bg-danger',
-    full:        'bg-warning text-dark'
+    active:        'bg-success',
+    open:          'bg-success',
+    resolved:      'bg-primary',
+    monitoring:    'bg-info text-dark',
+    closed:        'bg-secondary',
+    inactive:      'bg-danger',
+    pending:       'bg-warning text-dark',
+    'in progress': 'bg-info text-dark',
+    distributed:   'bg-primary',
+    completed:     'bg-success',
+    cancelled:     'bg-danger',
+    full:          'bg-warning text-dark'
   };
   const key = (status || '').toLowerCase();
   return `<span class="badge ${map[key] || 'bg-secondary'}">${status || '—'}</span>`;
@@ -659,8 +678,8 @@ function switchReportType(type) {
   // Update status options
   populateStatusOptions(type);
 
-  // Reset output
-  resetReportOutput();
+  // Generate report for the selected type
+  generateReport();
 }
 
 function resetReportOutput() {
@@ -680,16 +699,16 @@ async function generateReport() {
   const status   = document.getElementById('filterStatus').value;
   const disType  = document.getElementById('filterDisasterType').value;
 
-  const btn = document.querySelector('[onclick="generateReport()"]');
-  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Loading…'; }
+  const btn = document.getElementById('btnGenerateReport');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Generating…'; }
 
   try {
     let data = [];
     switch (currentReportType) {
       case 'incidents':  data = await loadIncidentsData(dateFrom, dateTo, barangay, status, disType); break;
-      case 'residents':  data = await loadResidentsData(barangay, status);                            break;
+      case 'residents':  data = await loadResidentsData(barangay, status, dateFrom, dateTo);          break;
       case 'relief':     data = await loadReliefData(dateFrom, dateTo, barangay, status);             break;
-      case 'evacuation': data = await loadEvacuationData(barangay, status);                           break;
+      case 'evacuation': data = await loadEvacuationData(barangay, status, dateFrom, dateTo);         break;
     }
     renderReportHeader(dateFrom, dateTo, barangay, status, disType, data.length);
     renderReportTable(data);
@@ -698,7 +717,7 @@ async function generateReport() {
   } catch (err) {
     showToast('Failed to generate report: ' + err.message, 'danger');
   } finally {
-    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-chart-bar me-1"></i>Generate Report'; }
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-file-alt me-1"></i>Generate Report'; }
   }
 }
 
@@ -707,39 +726,43 @@ async function generateReport() {
 ──────────────────────────────────────────────────── */
 async function loadIncidentsData(dateFrom, dateTo, barangay, status, disType) {
   let qs = '';
-  if (dateFrom) qs += '&date_from=' + encodeURIComponent(dateFrom);
-  if (dateTo)   qs += '&date_to='   + encodeURIComponent(dateTo);
+  if (dateFrom) qs += '&date_from=' + encodeURIComponent(dateFrom) + '&start=' + encodeURIComponent(dateFrom);
+  if (dateTo)   qs += '&date_to='   + encodeURIComponent(dateTo)   + '&end='   + encodeURIComponent(dateTo);
   if (barangay) qs += '&barangay='  + encodeURIComponent(barangay);
   if (status)   qs += '&status='    + encodeURIComponent(status);
-  if (disType)  qs += '&disaster_type=' + encodeURIComponent(disType);
+  if (disType)  qs += '&disaster_type=' + encodeURIComponent(disType) + '&type=' + encodeURIComponent(disType);
   const res = await ApiClient.get('/reports/incidents.php?' + qs.replace(/^&/, ''));
-  return Array.isArray(res.data) ? res.data : [];
+  return extractDataArray(res);
 }
 
-async function loadResidentsData(barangay, status) {
+async function loadResidentsData(barangay, status, dateFrom, dateTo) {
   let qs = '';
-  if (barangay) qs += '&barangay=' + encodeURIComponent(barangay);
-  if (status)   qs += '&status='   + encodeURIComponent(status);
+  if (barangay) qs += '&barangay='  + encodeURIComponent(barangay);
+  if (status)   qs += '&status='    + encodeURIComponent(status);
+  if (dateFrom) qs += '&date_from=' + encodeURIComponent(dateFrom) + '&start=' + encodeURIComponent(dateFrom);
+  if (dateTo)   qs += '&date_to='   + encodeURIComponent(dateTo)   + '&end='   + encodeURIComponent(dateTo);
   const res = await ApiClient.get('/reports/residents.php?' + qs.replace(/^&/, ''));
-  return Array.isArray(res.data) ? res.data : [];
+  return extractDataArray(res);
 }
 
 async function loadReliefData(dateFrom, dateTo, barangay, status) {
   let qs = '';
-  if (dateFrom) qs += '&date_from=' + encodeURIComponent(dateFrom);
-  if (dateTo)   qs += '&date_to='   + encodeURIComponent(dateTo);
+  if (dateFrom) qs += '&date_from=' + encodeURIComponent(dateFrom) + '&start=' + encodeURIComponent(dateFrom);
+  if (dateTo)   qs += '&date_to='   + encodeURIComponent(dateTo)   + '&end='   + encodeURIComponent(dateTo);
   if (barangay) qs += '&barangay='  + encodeURIComponent(barangay);
   if (status)   qs += '&status='    + encodeURIComponent(status);
   const res = await ApiClient.get('/reports/relief.php?' + qs.replace(/^&/, ''));
-  return Array.isArray(res.data) ? res.data : [];
+  return extractDataArray(res);
 }
 
-async function loadEvacuationData(barangay, status) {
+async function loadEvacuationData(barangay, status, dateFrom, dateTo) {
   let qs = '';
-  if (barangay) qs += '&barangay=' + encodeURIComponent(barangay);
-  if (status)   qs += '&status='   + encodeURIComponent(status);
+  if (barangay) qs += '&barangay='  + encodeURIComponent(barangay);
+  if (status)   qs += '&status='    + encodeURIComponent(status);
+  if (dateFrom) qs += '&date_from=' + encodeURIComponent(dateFrom) + '&start=' + encodeURIComponent(dateFrom);
+  if (dateTo)   qs += '&date_to='   + encodeURIComponent(dateTo)   + '&end='   + encodeURIComponent(dateTo);
   const res = await ApiClient.get('/reports/evacuation.php?' + qs.replace(/^&/, ''));
-  return Array.isArray(res.data) ? res.data : [];
+  return extractDataArray(res);
 }
 
 /* ────────────────────────────────────────────────────
@@ -933,12 +956,12 @@ async function exportPDF() {
   const status   = document.getElementById('filterStatus').value;
   const disType  = document.getElementById('filterDisasterType').value;
 
-  let qs = '?report=' + type;
-  if (dateFrom) qs += '&date_from=' + encodeURIComponent(dateFrom);
-  if (dateTo)   qs += '&date_to='   + encodeURIComponent(dateTo);
+  let qs = '?report=' + encodeURIComponent(type);
+  if (dateFrom) qs += '&date_from=' + encodeURIComponent(dateFrom) + '&start=' + encodeURIComponent(dateFrom);
+  if (dateTo)   qs += '&date_to='   + encodeURIComponent(dateTo)   + '&end='   + encodeURIComponent(dateTo);
   if (barangay) qs += '&barangay='  + encodeURIComponent(barangay);
   if (status)   qs += '&status='    + encodeURIComponent(status);
-  if (disType && type === 'incidents') qs += '&disaster_type=' + encodeURIComponent(disType);
+  if (disType && type === 'incidents') qs += '&disaster_type=' + encodeURIComponent(disType) + '&type=' + encodeURIComponent(disType);
 
   try {
     showToast('Generating PDF…', 'info');
@@ -956,12 +979,12 @@ async function exportCSV() {
   const status   = document.getElementById('filterStatus').value;
   const disType  = document.getElementById('filterDisasterType').value;
 
-  let qs = '?report=' + type;
-  if (dateFrom) qs += '&date_from=' + encodeURIComponent(dateFrom);
-  if (dateTo)   qs += '&date_to='   + encodeURIComponent(dateTo);
+  let qs = '?report=' + encodeURIComponent(type);
+  if (dateFrom) qs += '&date_from=' + encodeURIComponent(dateFrom) + '&start=' + encodeURIComponent(dateFrom);
+  if (dateTo)   qs += '&date_to='   + encodeURIComponent(dateTo)   + '&end='   + encodeURIComponent(dateTo);
   if (barangay) qs += '&barangay='  + encodeURIComponent(barangay);
   if (status)   qs += '&status='    + encodeURIComponent(status);
-  if (disType && type === 'incidents') qs += '&disaster_type=' + encodeURIComponent(disType);
+  if (disType && type === 'incidents') qs += '&disaster_type=' + encodeURIComponent(disType) + '&type=' + encodeURIComponent(disType);
 
   try {
     showToast('Generating CSV…', 'info');

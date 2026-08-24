@@ -11,10 +11,15 @@ try {
     $where  = [];
     $params = [];
 
-    if (!empty($_GET['start']))    { $where[] = 'operation_date >= ?'; $params[] = $_GET['start']; }
-    if (!empty($_GET['end']))      { $where[] = 'operation_date <= ?'; $params[] = $_GET['end']; }
-    if (!empty($_GET['barangay'])) { $where[] = 'barangay = ?';        $params[] = $_GET['barangay']; }
-    if (!empty($_GET['status']))   { $where[] = 'status = ?';          $params[] = $_GET['status']; }
+    $start    = !empty($_GET['date_from']) ? $_GET['date_from'] : (!empty($_GET['start']) ? $_GET['start'] : null);
+    $end      = !empty($_GET['date_to']) ? $_GET['date_to'] : (!empty($_GET['end']) ? $_GET['end'] : null);
+    $barangay = !empty($_GET['barangay']) ? $_GET['barangay'] : null;
+    $status   = !empty($_GET['status']) ? $_GET['status'] : null;
+
+    if ($start)    { $where[] = 'operation_date >= ?';      $params[] = $start; }
+    if ($end)      { $where[] = 'operation_date <= ?';      $params[] = $end; }
+    if ($barangay) { $where[] = 'barangay = ?';             $params[] = $barangay; }
+    if ($status)   { $where[] = 'LOWER(status) = LOWER(?)'; $params[] = $status; }
 
     $sql  = 'SELECT * FROM relief_operations';
     $sql .= $where ? ' WHERE ' . implode(' AND ', $where) : '';
@@ -30,13 +35,13 @@ try {
         'count'       => count($data),
         'total_items' => $total_qty,
         'filters'     => array_filter([
-            'start'    => $_GET['start']    ?? null,
-            'end'      => $_GET['end']      ?? null,
-            'barangay' => $_GET['barangay'] ?? null,
-            'status'   => $_GET['status']   ?? null,
+            'start'    => $start,
+            'end'      => $end,
+            'barangay' => $barangay,
+            'status'   => $status,
         ]),
         'data' => $data,
     ], 'Relief report data retrieved.');
 } catch (PDOException $e) {
-    error('Database error.', 500);
+    error('Database error: ' . $e->getMessage(), 500);
 }

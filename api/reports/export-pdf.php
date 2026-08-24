@@ -26,16 +26,24 @@ $headers = [];
 $rows    = [];
 $summary = '';
 
+$start    = !empty($_GET['date_from']) ? $_GET['date_from'] : (!empty($_GET['start']) ? $_GET['start'] : null);
+$end      = !empty($_GET['date_to']) ? $_GET['date_to'] : (!empty($_GET['end']) ? $_GET['end'] : null);
+$type     = !empty($_GET['disaster_type']) ? $_GET['disaster_type'] : (!empty($_GET['type']) ? $_GET['type'] : null);
+$barangay = !empty($_GET['barangay']) ? $_GET['barangay'] : null;
+$status   = !empty($_GET['status']) ? $_GET['status'] : null;
+$severity = !empty($_GET['severity']) ? $_GET['severity'] : null;
+
 switch ($report) {
     case 'incidents':
         $title = 'Disaster Incident Report';
         $where  = [];
         $params = [];
-        if (!empty($_GET['start']))    { $where[] = 'incident_date >= ?'; $params[] = $_GET['start']; }
-        if (!empty($_GET['end']))      { $where[] = 'incident_date <= ?'; $params[] = $_GET['end']; }
-        if (!empty($_GET['type']))     { $where[] = 'disaster_type = ?';  $params[] = $_GET['type']; }
-        if (!empty($_GET['barangay'])) { $where[] = 'barangay = ?';       $params[] = $_GET['barangay']; }
-        if (!empty($_GET['status']))   { $where[] = 'status = ?';         $params[] = $_GET['status']; }
+        if ($start)    { $where[] = 'incident_date >= ?';       $params[] = $start; }
+        if ($end)      { $where[] = 'incident_date <= ?';       $params[] = $end; }
+        if ($type)     { $where[] = 'disaster_type = ?';        $params[] = $type; }
+        if ($barangay) { $where[] = 'barangay = ?';             $params[] = $barangay; }
+        if ($status)   { $where[] = 'LOWER(status) = LOWER(?)'; $params[] = $status; }
+        if ($severity) { $where[] = 'severity = ?';             $params[] = $severity; }
 
         $sql  = 'SELECT incident_code, disaster_type, title, barangay, incident_date, incident_time, severity, status, reported_by FROM incidents';
         $sql .= $where ? ' WHERE ' . implode(' AND ', $where) : '';
@@ -55,7 +63,10 @@ switch ($report) {
         $title   = 'Registered Residents Report';
         $where   = ["role = 'user'"];
         $params  = [];
-        if (!empty($_GET['status'])) { $where[] = 'status = ?'; $params[] = $_GET['status']; }
+        if ($status)   { $where[] = 'LOWER(status) = LOWER(?)'; $params[] = $status; }
+        if ($barangay) { $where[] = 'address LIKE ?';           $params[] = '%' . $barangay . '%'; }
+        if ($start)    { $where[] = 'DATE(created_at) >= ?';    $params[] = $start; }
+        if ($end)      { $where[] = 'DATE(created_at) <= ?';    $params[] = $end; }
         $stmt = $pdo->prepare('SELECT full_name, username, email, contact_number, address, status, created_at FROM users WHERE ' . implode(' AND ', $where) . ' ORDER BY full_name ASC');
         $stmt->execute($params);
         $data    = $stmt->fetchAll();
@@ -64,7 +75,7 @@ switch ($report) {
             $rows[] = [$r['full_name'], $r['username'], $r['email'], $r['contact_number'],
                        $r['address'], ucfirst($r['status']), date('Y-m-d', strtotime($r['created_at']))];
         }
-        $active  = count(array_filter($data, fn($r) => $r['status'] === 'active'));
+        $active  = count(array_filter($data, fn($r) => strtolower($r['status'] ?? '') === 'active'));
         $summary = "Total: " . count($data) . "  |  Active: $active  |  Inactive: " . (count($data) - $active);
         break;
 
@@ -72,10 +83,10 @@ switch ($report) {
         $title  = 'Relief Operations Report';
         $where  = [];
         $params = [];
-        if (!empty($_GET['start']))    { $where[] = 'operation_date >= ?'; $params[] = $_GET['start']; }
-        if (!empty($_GET['end']))      { $where[] = 'operation_date <= ?'; $params[] = $_GET['end']; }
-        if (!empty($_GET['barangay'])) { $where[] = 'barangay = ?';        $params[] = $_GET['barangay']; }
-        if (!empty($_GET['status']))   { $where[] = 'status = ?';          $params[] = $_GET['status']; }
+        if ($start)    { $where[] = 'operation_date >= ?';      $params[] = $start; }
+        if ($end)      { $where[] = 'operation_date <= ?';      $params[] = $end; }
+        if ($barangay) { $where[] = 'barangay = ?';             $params[] = $barangay; }
+        if ($status)   { $where[] = 'LOWER(status) = LOWER(?)'; $params[] = $status; }
         $sql  = 'SELECT * FROM relief_operations';
         $sql .= $where ? ' WHERE ' . implode(' AND ', $where) : '';
         $sql .= ' ORDER BY operation_date DESC';
@@ -94,8 +105,10 @@ switch ($report) {
         $title   = 'Evacuation Centers Report';
         $where   = [];
         $params  = [];
-        if (!empty($_GET['status']))   { $where[] = 'status = ?';   $params[] = $_GET['status']; }
-        if (!empty($_GET['barangay'])) { $where[] = 'barangay = ?'; $params[] = $_GET['barangay']; }
+        if ($status)   { $where[] = 'LOWER(status) = LOWER(?)'; $params[] = $status; }
+        if ($barangay) { $where[] = 'barangay = ?';             $params[] = $barangay; }
+        if ($start)    { $where[] = 'DATE(created_at) >= ?';    $params[] = $start; }
+        if ($end)      { $where[] = 'DATE(created_at) <= ?';    $params[] = $end; }
         $sql  = 'SELECT *, (capacity - occupied_slots) AS available_slots FROM evacuation_centers';
         $sql .= $where ? ' WHERE ' . implode(' AND ', $where) : '';
         $sql .= ' ORDER BY center_name ASC';
@@ -116,8 +129,16 @@ switch ($report) {
 // ── Build HTML for mPDF ───────────────────────────────────────
 $generated = date('F d, Y  h:i A');
 $filter_str = '';
-foreach (['start', 'end', 'type', 'barangay', 'status', 'severity'] as $k) {
-    if (!empty($_GET[$k])) $filter_str .= ucfirst($k) . ': ' . htmlspecialchars($_GET[$k]) . '&nbsp;&nbsp;';
+$filter_items = [
+    'Date From'     => $start,
+    'Date To'       => $end,
+    'Disaster Type' => $type,
+    'Barangay'      => $barangay,
+    'Status'        => $status,
+    'Severity'      => $severity,
+];
+foreach ($filter_items as $k => $v) {
+    if (!empty($v)) $filter_str .= $k . ': ' . htmlspecialchars($v) . '&nbsp;&nbsp;';
 }
 
 $th_html = '';

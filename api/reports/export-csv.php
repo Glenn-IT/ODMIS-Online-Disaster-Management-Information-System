@@ -21,15 +21,23 @@ try {
 $headers = [];
 $rows    = [];
 
+$start    = !empty($_GET['date_from']) ? $_GET['date_from'] : (!empty($_GET['start']) ? $_GET['start'] : null);
+$end      = !empty($_GET['date_to']) ? $_GET['date_to'] : (!empty($_GET['end']) ? $_GET['end'] : null);
+$type     = !empty($_GET['disaster_type']) ? $_GET['disaster_type'] : (!empty($_GET['type']) ? $_GET['type'] : null);
+$barangay = !empty($_GET['barangay']) ? $_GET['barangay'] : null;
+$status   = !empty($_GET['status']) ? $_GET['status'] : null;
+$severity = !empty($_GET['severity']) ? $_GET['severity'] : null;
+
 switch ($report) {
     case 'incidents':
         $where  = [];
         $params = [];
-        if (!empty($_GET['start']))    { $where[] = 'incident_date >= ?'; $params[] = $_GET['start']; }
-        if (!empty($_GET['end']))      { $where[] = 'incident_date <= ?'; $params[] = $_GET['end']; }
-        if (!empty($_GET['type']))     { $where[] = 'disaster_type = ?';  $params[] = $_GET['type']; }
-        if (!empty($_GET['barangay'])) { $where[] = 'barangay = ?';       $params[] = $_GET['barangay']; }
-        if (!empty($_GET['status']))   { $where[] = 'status = ?';         $params[] = $_GET['status']; }
+        if ($start)    { $where[] = 'incident_date >= ?';       $params[] = $start; }
+        if ($end)      { $where[] = 'incident_date <= ?';       $params[] = $end; }
+        if ($type)     { $where[] = 'disaster_type = ?';        $params[] = $type; }
+        if ($barangay) { $where[] = 'barangay = ?';             $params[] = $barangay; }
+        if ($status)   { $where[] = 'LOWER(status) = LOWER(?)'; $params[] = $status; }
+        if ($severity) { $where[] = 'severity = ?';             $params[] = $severity; }
 
         $sql  = 'SELECT incident_code, disaster_type, title, description, location, barangay, municipality, incident_date, incident_time, severity, status, reported_by, created_at FROM incidents';
         $sql .= $where ? ' WHERE ' . implode(' AND ', $where) : '';
@@ -49,7 +57,10 @@ switch ($report) {
     case 'residents':
         $where  = ["role = 'user'"];
         $params = [];
-        if (!empty($_GET['status'])) { $where[] = 'status = ?'; $params[] = $_GET['status']; }
+        if ($status)   { $where[] = 'LOWER(status) = LOWER(?)'; $params[] = $status; }
+        if ($barangay) { $where[] = 'address LIKE ?';           $params[] = '%' . $barangay . '%'; }
+        if ($start)    { $where[] = 'DATE(created_at) >= ?';    $params[] = $start; }
+        if ($end)      { $where[] = 'DATE(created_at) <= ?';    $params[] = $end; }
         $stmt = $pdo->prepare('SELECT full_name, username, email, contact_number, date_of_birth, address, status, created_at FROM users WHERE ' . implode(' AND ', $where) . ' ORDER BY full_name ASC');
         $stmt->execute($params);
         $data = $stmt->fetchAll();
@@ -63,10 +74,10 @@ switch ($report) {
     case 'relief':
         $where  = [];
         $params = [];
-        if (!empty($_GET['start']))    { $where[] = 'operation_date >= ?'; $params[] = $_GET['start']; }
-        if (!empty($_GET['end']))      { $where[] = 'operation_date <= ?'; $params[] = $_GET['end']; }
-        if (!empty($_GET['barangay'])) { $where[] = 'barangay = ?';        $params[] = $_GET['barangay']; }
-        if (!empty($_GET['status']))   { $where[] = 'status = ?';          $params[] = $_GET['status']; }
+        if ($start)    { $where[] = 'operation_date >= ?';      $params[] = $start; }
+        if ($end)      { $where[] = 'operation_date <= ?';      $params[] = $end; }
+        if ($barangay) { $where[] = 'barangay = ?';             $params[] = $barangay; }
+        if ($status)   { $where[] = 'LOWER(status) = LOWER(?)'; $params[] = $status; }
         $sql  = 'SELECT batch_number, operation_date, barangay, relief_type, quantity, unit, status, distributed_by, notes, created_at FROM relief_operations';
         $sql .= $where ? ' WHERE ' . implode(' AND ', $where) : '';
         $sql .= ' ORDER BY operation_date DESC';
@@ -84,8 +95,10 @@ switch ($report) {
     case 'evacuation':
         $where  = [];
         $params = [];
-        if (!empty($_GET['status']))   { $where[] = 'status = ?';   $params[] = $_GET['status']; }
-        if (!empty($_GET['barangay'])) { $where[] = 'barangay = ?'; $params[] = $_GET['barangay']; }
+        if ($status)   { $where[] = 'LOWER(status) = LOWER(?)'; $params[] = $status; }
+        if ($barangay) { $where[] = 'barangay = ?';             $params[] = $barangay; }
+        if ($start)    { $where[] = 'DATE(created_at) >= ?';    $params[] = $start; }
+        if ($end)      { $where[] = 'DATE(created_at) <= ?';    $params[] = $end; }
         $sql  = 'SELECT center_code, center_name, location, barangay, capacity, occupied_slots, (capacity - occupied_slots) AS available_slots, contact_person, contact_number, status, created_at FROM evacuation_centers';
         $sql .= $where ? ' WHERE ' . implode(' AND ', $where) : '';
         $sql .= ' ORDER BY center_name ASC';
