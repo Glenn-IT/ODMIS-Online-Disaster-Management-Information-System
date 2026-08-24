@@ -299,6 +299,51 @@ const App = (function () {
   let _cachedNotifications = [];
   let _isFetchingNotifs = false;
 
+  function _getReadNotifStorageKey() {
+    const session = (typeof Auth !== 'undefined') ? Auth.getSession() : null;
+    const userId = session ? (session.id || session.user_id || session.username || 'user') : 'guest';
+    return 'odmis_read_notifs_' + userId;
+  }
+
+  function _getReadNotifIds() {
+    try {
+      const key = _getReadNotifStorageKey();
+      const raw = localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : [];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  function _markNotifAsRead(id) {
+    if (!id) return;
+    try {
+      const key = _getReadNotifStorageKey();
+      const readIds = _getReadNotifIds();
+      const strId = String(id);
+      if (!readIds.includes(strId)) {
+        readIds.push(strId);
+        localStorage.setItem(key, JSON.stringify(readIds));
+      }
+    } catch (_) {}
+    _updateNotificationCount();
+    _renderNotificationModalContent();
+  }
+
+  function _markAllNotifsAsRead() {
+    try {
+      const key = _getReadNotifStorageKey();
+      const readIds = _getReadNotifIds();
+      _cachedNotifications.forEach(n => {
+        const strId = String(n.id);
+        if (!readIds.includes(strId)) readIds.push(strId);
+      });
+      localStorage.setItem(key, JSON.stringify(readIds));
+    } catch (_) {}
+    _updateNotificationCount();
+    _renderNotificationModalContent();
+  }
+
   /**
    * Populate navbar with the current user's name and notification count.
    */
@@ -409,11 +454,14 @@ const App = (function () {
       });
 
       _cachedNotifications = notifs;
-      const count = notifs.length;
+
+      // Filter unread count
+      const readIds = _getReadNotifIds();
+      const unreadCount = notifs.filter(n => !readIds.includes(String(n.id))).length;
 
       badges.forEach(badge => {
-        badge.textContent = count > 99 ? '99+' : String(count);
-        badge.style.display = count > 0 ? 'inline-flex' : 'none';
+        badge.textContent = unreadCount > 99 ? '99+' : String(unreadCount);
+        badge.style.display = unreadCount > 0 ? 'inline-flex' : 'none';
       });
 
     } catch (err) {
@@ -446,11 +494,16 @@ const App = (function () {
       modalEl.innerHTML = `
         <div class="modal-dialog modal-dialog-scrollable modal-md modal-dialog-centered">
           <div class="modal-content shadow-lg border-0" style="border-radius:12px; overflow:hidden;">
-            <div class="modal-header text-white" style="background: linear-gradient(135deg, #283F24 0%, #467235 100%);">
-              <h5 class="modal-title fs-6 fw-bold d-flex align-items-center gap-2">
+            <div class="modal-header text-white d-flex align-items-center justify-content-between" style="background: linear-gradient(135deg, #283F24 0%, #467235 100%);">
+              <h5 class="modal-title fs-6 fw-bold mb-0 d-flex align-items-center gap-2">
                 <i class="fas fa-bell"></i> Notifications &amp; System Alerts
               </h5>
-              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+              <div class="d-flex align-items-center gap-2">
+                <button type="button" class="btn btn-xs btn-outline-light py-1 px-2" style="font-size:0.75rem;" onclick="App.markAllNotificationsRead()" title="Mark all as read">
+                  <i class="fas fa-check-double me-1"></i>Mark all as read
+                </button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
             </div>
             <div class="modal-body p-0" id="odmisNotifBody" style="max-height: 420px; overflow-y: auto;">
               <div class="p-4 text-center text-muted">
@@ -458,7 +511,7 @@ const App = (function () {
               </div>
             </div>
             <div class="modal-footer bg-light py-2 d-flex justify-content-between align-items-center">
-              <span class="text-muted small" id="odmisNotifFooterCount">0 Active Notifications</span>
+              <span class="text-muted small" id="odmisNotifFooterCount">0 Unread Notifications</span>
               <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Close</button>
             </div>
           </div>
@@ -471,9 +524,20 @@ const App = (function () {
 
     // Fetch live notifications asynchronously
     await _updateNotificationCount();
+    _renderNotificationModalContent();
+  }
 
+  function _renderNotificationModalContent() {
     const bodyEl = document.getElementById('odmisNotifBody');
     const footerCountEl = document.getElementById('odmisNotifFooterCount');
+    if (!bodyEl) return;
+
+    const readIds = _getReadNotifIds();
+    const unreadCount = _cachedNotifications.filter(n => !readIds.includes(String(n.id))).length;
+
+    if (footerCountEl) {
+      footerCountEl.textContent = `${unreadCount} Unread Notification${unreadCount !== 1 ? 's' : ''}`;
+    }
 
     if (!_cachedNotifications || !_cachedNotifications.length) {
       bodyEl.innerHTML = `
@@ -482,10 +546,10 @@ const App = (function () {
           <p class="mb-0 fw-semibold">No active notifications or alerts.</p>
           <small class="text-muted">You are all caught up!</small>
         </div>`;
-      footerCountEl.textContent = '0 Active Notifications';
     } else {
-      footerCountEl.textContent = `${_cachedNotifications.length} Active Notification${_cachedNotifications.length !== 1 ? 's' : ''}`;
       bodyEl.innerHTML = _cachedNotifications.map(item => {
+        const isRead = readIds.includes(String(item.id));
+
         const iconMap = {
           Flood: 'fa-water',
           Typhoon: 'fa-wind',
@@ -507,20 +571,31 @@ const App = (function () {
         const badgeBg = bgMap[item.severity] || '#6c757d';
 
         return `
-          <div class="p-3 border-bottom d-flex align-items-start gap-3 text-start" style="background:#fff; transition:background 0.15s;">
+          <div class="p-3 border-bottom d-flex align-items-start gap-3 text-start ${isRead ? 'opacity-75' : ''}" style="transition:background 0.15s; background:${isRead ? '#f8f9fa' : '#ffffff'};">
             <div class="flex-shrink-0 mt-1">
-              <span class="rounded-circle d-flex align-items-center justify-content-center text-white" style="width:38px; height:38px; background:${badgeBg}; font-size: 1.1rem;">
+              <span class="rounded-circle d-flex align-items-center justify-content-center text-white" style="width:38px; height:38px; background:${isRead ? '#6c757d' : badgeBg}; font-size: 1.1rem;">
                 <i class="fas ${icon}"></i>
               </span>
             </div>
             <div class="flex-grow-1">
               <div class="d-flex align-items-center justify-content-between mb-1">
-                <a href="${item.link}" class="fw-bold text-dark text-decoration-none small hover-primary" onclick="const m = bootstrap.Modal.getInstance(document.getElementById('odmisNotificationModal')); if (m) m.hide();">
+                <a href="${item.link}" class="fw-bold text-dark text-decoration-none small hover-primary" onclick="App.markNotificationRead('${_escapeHtml(item.id)}'); const m = bootstrap.Modal.getInstance(document.getElementById('odmisNotificationModal')); if (m) m.hide();">
                   ${_escapeHtml(item.title)}
                 </a>
-                <span class="badge ms-2" style="background:${badgeBg}; color:${item.severity==='Moderate'||item.severity==='Medium'?'#000':'#fff'}; font-size:0.68rem;">
-                  ${_escapeHtml(item.severity)}
-                </span>
+                <div class="d-flex align-items-center gap-1">
+                  <span class="badge" style="background:${badgeBg}; color:${item.severity==='Moderate'||item.severity==='Medium'?'#000':'#fff'}; font-size:0.68rem;">
+                    ${_escapeHtml(item.severity)}
+                  </span>
+                  ${isRead ? `
+                    <span class="badge bg-secondary text-white ms-1" style="font-size:0.65rem;">
+                      <i class="fas fa-check me-1"></i>Read
+                    </span>
+                  ` : `
+                    <button type="button" class="btn btn-xs btn-outline-success ms-1 py-0 px-2" style="font-size:0.68rem; line-height:1.4;" onclick="App.markNotificationRead('${_escapeHtml(item.id)}')" title="Mark as read">
+                      <i class="fas fa-check me-1"></i>Mark read
+                    </button>
+                  `}
+                </div>
               </div>
               <p class="mb-1 text-secondary small" style="font-size:0.82rem; line-height:1.35;">${_escapeHtml(item.description)}</p>
               <div class="d-flex align-items-center justify-content-between text-muted mt-2" style="font-size:0.75rem;">
@@ -1006,8 +1081,10 @@ const App = (function () {
     clearFormErrors : clearFormErrors,
     initDataTable   : initDataTable,
     printPage       : printPage,
-    escapeHtml      : _escapeHtml,
+    escapeHtml           : _escapeHtml,
     updateNotifications  : _updateNotificationCount,
-    showNotificationModal: showNotificationModal
+    showNotificationModal: showNotificationModal,
+    markNotificationRead : _markNotifAsRead,
+    markAllNotificationsRead: _markAllNotifsAsRead
   };
 })();
