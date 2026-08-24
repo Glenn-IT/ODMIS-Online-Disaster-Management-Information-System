@@ -297,57 +297,235 @@ const App = (function () {
 
   // ── Navbar ───────────────────────────────────────────────────
   /**
+  // ── Navbar & Notifications ─────────────────────────────────
+  let _cachedNotifications = [];
+  let _isFetchingNotifs = false;
+
+  /**
    * Populate navbar with the current user's name and notification count.
    */
   function initNavbar() {
-    // Populate user display name
     const session = (typeof Auth !== 'undefined') ? Auth.getSession() : null;
-    if (!session) return;
+    if (session) {
+      const displayName  = session.fullName || session.username || 'User';
+      const initials     = _getInitials(displayName);
 
-    const displayName  = session.fullName || session.username || 'User';
-    const initials     = _getInitials(displayName);
+      ['navbarAvatar', 'navAvatar', 'sidebarUserAvatar', 'sidebarAvatar'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = initials;
+      });
 
-    // Navbar avatar
-    const navAvatar = document.getElementById('navbarAvatar');
-    if (navAvatar) navAvatar.textContent = initials;
+      ['navbarUsername', 'navUsername', 'sidebarUserName', 'sidebarName'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = displayName;
+      });
 
-    // Navbar username label
-    const navUsername = document.getElementById('navbarUsername');
-    if (navUsername) navUsername.textContent = displayName;
-
-    // Sidebar user info
-    const sidebarAvatar = document.getElementById('sidebarUserAvatar');
-    if (sidebarAvatar) sidebarAvatar.textContent = initials;
-
-    const sidebarName = document.getElementById('sidebarUserName');
-    if (sidebarName) sidebarName.textContent = displayName;
-
-    const sidebarRole = document.getElementById('sidebarUserRole');
-    if (sidebarRole) {
-      sidebarRole.textContent = session.role === 'admin' ? 'Administrator' : 'Registered User';
+      const sidebarRole = document.getElementById('sidebarUserRole');
+      if (sidebarRole) {
+        sidebarRole.textContent = session.role === 'admin' ? 'Administrator' : 'Registered User';
+      }
     }
 
-    // Notification badge (count active incidents + active alerts)
     _updateNotificationCount();
+    _initNotificationClickListener();
   }
 
-  function _updateNotificationCount() {
-    const badge = document.getElementById('notificationCount');
-    if (!badge) return;
+  async function _updateNotificationCount() {
+    const badges = document.querySelectorAll('#notificationCount, #notifBadge, .notification-count');
+    if (!badges.length) return;
 
-    const incidents = getData(KEYS.INCIDENTS);
-    const alerts    = getData(KEYS.ALERTS);
+    if (_isFetchingNotifs) return;
+    _isFetchingNotifs = true;
 
-    const activeIncidents = incidents.filter(function (i) { return i.status === 'Active'; }).length;
-    const activeAlerts    = alerts.filter(function (a) { return a.status === 'Active'; }).length;
-    const total           = activeIncidents + activeAlerts;
+    try {
+      if (typeof ApiClient === 'undefined') return;
 
-    if (total > 0) {
-      badge.textContent = total > 99 ? '99+' : String(total);
-      badge.style.display = '';
-    } else {
-      badge.style.display = 'none';
+      const session = (typeof Auth !== 'undefined') ? Auth.getSession() : null;
+
+      // 1. Fetch active alerts & incidents via /api/alerts/index.php
+      let alerts = [];
+      try {
+        const aRes = await ApiClient.get('/alerts/index.php');
+        alerts = Array.isArray(aRes.data) ? aRes.data : [];
+      } catch (_) {}
+
+      // 2. Fetch user reports if logged in
+      let userReports = [];
+      if (session) {
+        try {
+          const rRes = await ApiClient.get('/user-reports/index.php');
+          userReports = Array.isArray(rRes.data) ? rRes.data : [];
+        } catch (_) {}
+      }
+
+      const notifs = [];
+
+      // Add Active Alerts & Incidents
+      alerts.forEach(a => {
+        if ((a.status || '').toLowerCase() === 'active') {
+          notifs.push({
+            id: a.uid || ('alert_' + (a.id || Math.random())),
+            title: a.title || 'Disaster Alert',
+            description: a.description || 'Active disaster alert in municipality.',
+            location: a.affected_areas || 'Santo Niño (Faire)',
+            severity: a.severity || 'Moderate',
+            type: a.alert_type || 'Alert',
+            date: a.issued_at || a.created_at,
+            source: a.source || 'alert',
+            link: session && session.role === 'admin' ? 'incidents.php' : 'alerts.php'
+          });
+        }
+      });
+
+      // Add User Reports
+      userReports.forEach(r => {
+        if (session && session.role === 'admin') {
+          if ((r.status || '').toLowerCase() === 'pending') {
+            notifs.push({
+              id: 'report_' + r.id,
+              title: `Resident Report: ${r.incident_type}`,
+              description: r.description || 'New resident incident report submitted.',
+              location: r.barangay || r.location || 'Santo Niño (Faire)',
+              severity: r.severity || 'Moderate',
+              type: 'Resident Report',
+              date: r.created_at,
+              source: 'report',
+              link: 'resident-reports.php'
+            });
+          }
+        } else if (session) {
+          if ((r.status || '').toLowerCase() !== 'resolved') {
+            notifs.push({
+              id: 'report_' + r.id,
+              title: `Report Status: ${r.incident_type} (${r.status})`,
+              description: r.description || 'Your submitted incident report status.',
+              location: r.barangay || r.location || 'Santo Niño (Faire)',
+              severity: r.severity || 'Moderate',
+              type: 'My Report',
+              date: r.created_at,
+              source: 'report',
+              link: 'report-incident.php'
+            });
+          }
+        }
+      });
+
+      _cachedNotifications = notifs;
+      const count = notifs.length;
+
+      badges.forEach(badge => {
+        badge.textContent = count > 99 ? '99+' : String(count);
+        badge.style.display = count > 0 ? 'inline-flex' : 'none';
+      });
+
+    } catch (err) {
+      console.warn('Failed to update notification count:', err.message);
+    } finally {
+      _isFetchingNotifs = false;
     }
+  }
+
+  function _initNotificationClickListener() {
+    const buttons = document.querySelectorAll('.navbar-icon-btn, #notifBtn, [title="Notifications"]');
+    buttons.forEach(btn => {
+      if (btn.dataset.notifBound) return;
+      btn.dataset.notifBound = 'true';
+      btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        showNotificationModal();
+      });
+    });
+  }
+
+  function showNotificationModal() {
+    let modalEl = document.getElementById('odmisNotificationModal');
+    if (!modalEl) {
+      modalEl = document.createElement('div');
+      modalEl.id = 'odmisNotificationModal';
+      modalEl.className = 'modal fade';
+      modalEl.setAttribute('tabindex', '-1');
+      modalEl.setAttribute('aria-hidden', 'true');
+      modalEl.innerHTML = `
+        <div class="modal-dialog modal-dialog-scrollable modal-md modal-dialog-centered">
+          <div class="modal-content shadow-lg border-0" style="border-radius:12px; overflow:hidden;">
+            <div class="modal-header text-white" style="background: linear-gradient(135deg, #283F24 0%, #467235 100%);">
+              <h5 class="modal-title fs-6 fw-bold d-flex align-items-center gap-2">
+                <i class="fas fa-bell"></i> Notifications &amp; System Alerts
+              </h5>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0" id="odmisNotifBody" style="max-height: 420px; overflow-y: auto;"></div>
+            <div class="modal-footer bg-light py-2 d-flex justify-content-between align-items-center">
+              <span class="text-muted small" id="odmisNotifFooterCount">0 Active Notifications</span>
+              <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>`;
+      document.body.appendChild(modalEl);
+    }
+
+    const bodyEl = document.getElementById('odmisNotifBody');
+    const footerCountEl = document.getElementById('odmisNotifFooterCount');
+
+    if (!_cachedNotifications || !_cachedNotifications.length) {
+      bodyEl.innerHTML = `
+        <div class="p-4 text-center text-muted">
+          <i class="fas fa-bell-slash d-block mb-2 text-secondary" style="font-size:2.2rem;"></i>
+          <p class="mb-0 fw-semibold">No active notifications or alerts.</p>
+          <small class="text-muted">You are all caught up!</small>
+        </div>`;
+      footerCountEl.textContent = '0 Active Notifications';
+    } else {
+      footerCountEl.textContent = `${_cachedNotifications.length} Active Notification${_cachedNotifications.length !== 1 ? 's' : ''}`;
+      bodyEl.innerHTML = _cachedNotifications.map(item => {
+        const iconMap = {
+          Flood: 'fa-water',
+          Typhoon: 'fa-wind',
+          Earthquake: 'fa-house-crack',
+          Fire: 'fa-fire',
+          Landslide: 'fa-hill-rockslide',
+          'Resident Report': 'fa-user-gear',
+          'My Report': 'fa-clipboard-list'
+        };
+        const icon = iconMap[item.type] || 'fa-triangle-exclamation';
+
+        const bgMap = {
+          Critical: '#dc3545',
+          High: '#fd7e14',
+          Moderate: '#ffc107',
+          Medium: '#ffc107',
+          Low: '#198754'
+        };
+        const badgeBg = bgMap[item.severity] || '#6c757d';
+
+        return `
+          <div class="p-3 border-bottom d-flex align-items-start gap-3 text-start" style="background:#fff; transition:background 0.15s;">
+            <div class="flex-shrink-0 mt-1">
+              <span class="rounded-circle d-flex align-items-center justify-content-center text-white" style="width:38px; height:38px; background:${badgeBg}; font-size: 1.1rem;">
+                <i class="fas ${icon}"></i>
+              </span>
+            </div>
+            <div class="flex-grow-1">
+              <div class="d-flex align-items-center justify-content-between mb-1">
+                <a href="${item.link}" class="fw-bold text-dark text-decoration-none small hover-primary" onclick="const m = bootstrap.Modal.getInstance(document.getElementById('odmisNotificationModal')); if (m) m.hide();">
+                  ${_escapeHtml(item.title)}
+                </a>
+                <span class="badge ms-2" style="background:${badgeBg}; color:${item.severity==='Moderate'||item.severity==='Medium'?'#000':'#fff'}; font-size:0.68rem;">
+                  ${_escapeHtml(item.severity)}
+                </span>
+              </div>
+              <p class="mb-1 text-secondary small" style="font-size:0.82rem; line-height:1.35;">${_escapeHtml(item.description)}</p>
+              <div class="d-flex align-items-center justify-content-between text-muted mt-2" style="font-size:0.75rem;">
+                <span><i class="fas fa-map-marker-alt me-1"></i>${_escapeHtml(item.location)}</span>
+                <span><i class="far fa-clock me-1"></i>${formatDate(item.date)}</span>
+              </div>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    const modalInst = bootstrap.Modal.getOrCreateInstance(modalEl);
+    modalInst.show();
   }
 
   function _getInitials(name) {
@@ -789,6 +967,12 @@ const App = (function () {
     }
   }
 
+  // Auto-run navbar and notification initialization on DOM content loaded
+  document.addEventListener('DOMContentLoaded', function () {
+    initNavbar();
+    setInterval(_updateNotificationCount, 30000);
+  });
+
   // ── Expose public API ─────────────────────────────────────────
   return {
     KEYS            : KEYS,
@@ -817,6 +1001,8 @@ const App = (function () {
     clearFormErrors : clearFormErrors,
     initDataTable   : initDataTable,
     printPage       : printPage,
-    escapeHtml      : _escapeHtml
+    escapeHtml      : _escapeHtml,
+    updateNotifications  : _updateNotificationCount,
+    showNotificationModal: showNotificationModal
   };
 })();
