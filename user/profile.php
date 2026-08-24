@@ -57,7 +57,7 @@
   <button class="navbar-hamburger" id="sidebarToggle"><i class="fas fa-bars"></i></button>
   <h1 class="navbar-page-title">My Profile</h1>
   <div class="navbar-right">
-    <button class="navbar-icon-btn position-relative" title="Notifications">
+    <button class="navbar-icon-btn position-relative" title="Notifications" onclick="App.showNotificationModal()">
       <i class="fas fa-bell"></i><span class="notification-count" id="notifBadge">0</span>
     </button>
     <div class="navbar-divider"></div>

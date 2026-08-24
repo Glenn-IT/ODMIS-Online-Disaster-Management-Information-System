@@ -222,7 +222,7 @@
   <button class="navbar-hamburger" id="sidebarToggle" title="Toggle Sidebar"><i class="fas fa-bars"></i></button>
   <h1 class="navbar-page-title">Settings</h1>
   <div class="navbar-right">
-    <button class="navbar-icon-btn position-relative" title="Notifications">
+    <button class="navbar-icon-btn position-relative" title="Notifications" onclick="App.showNotificationModal()">
       <i class="fas fa-bell"></i>
       <span class="notification-count" id="notificationCount">0</span>
     </button>

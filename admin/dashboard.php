@@ -181,7 +181,7 @@
 
   <div class="navbar-right">
     <!-- Notification bell -->
-    <button class="navbar-icon-btn position-relative" title="Notifications">
+    <button class="navbar-icon-btn position-relative" title="Notifications" onclick="App.showNotificationModal()">
       <i class="fas fa-bell"></i>
       <span class="notification-count" id="notificationCount">0</span>
     </button>

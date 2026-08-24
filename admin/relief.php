@@ -220,7 +220,7 @@
   <h1 class="navbar-page-title">Relief Operations</h1>
 
   <div class="navbar-right">
-    <button class="navbar-icon-btn position-relative" title="Notifications">
+    <button class="navbar-icon-btn position-relative" title="Notifications" onclick="App.showNotificationModal()">
       <i class="fas fa-bell"></i>
       <span class="notification-count" id="notificationCount">0</span>
     </button>

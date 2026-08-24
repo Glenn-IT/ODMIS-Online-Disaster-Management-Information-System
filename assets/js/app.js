@@ -295,8 +295,6 @@ const App = (function () {
     window.addEventListener('resize', _debounce(checkWidth, 150));
   }
 
-  // ── Navbar ───────────────────────────────────────────────────
-  /**
   // ── Navbar & Notifications ─────────────────────────────────
   let _cachedNotifications = [];
   let _isFetchingNotifs = false;
@@ -426,18 +424,18 @@ const App = (function () {
   }
 
   function _initNotificationClickListener() {
-    const buttons = document.querySelectorAll('.navbar-icon-btn, #notifBtn, [title="Notifications"]');
-    buttons.forEach(btn => {
-      if (btn.dataset.notifBound) return;
-      btn.dataset.notifBound = 'true';
-      btn.addEventListener('click', function (e) {
+    if (document.dataset.notifDelegated) return;
+    document.dataset.notifDelegated = 'true';
+    document.addEventListener('click', function (e) {
+      const btn = e.target.closest('.navbar-icon-btn, #notifBtn, [title="Notifications"], [data-action="notifications"]');
+      if (btn) {
         e.preventDefault();
         showNotificationModal();
-      });
+      }
     });
   }
 
-  function showNotificationModal() {
+  async function showNotificationModal() {
     let modalEl = document.getElementById('odmisNotificationModal');
     if (!modalEl) {
       modalEl = document.createElement('div');
@@ -454,7 +452,11 @@ const App = (function () {
               </h5>
               <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body p-0" id="odmisNotifBody" style="max-height: 420px; overflow-y: auto;"></div>
+            <div class="modal-body p-0" id="odmisNotifBody" style="max-height: 420px; overflow-y: auto;">
+              <div class="p-4 text-center text-muted">
+                <span class="spinner-border spinner-border-sm me-2"></span>Loading notifications…
+              </div>
+            </div>
             <div class="modal-footer bg-light py-2 d-flex justify-content-between align-items-center">
               <span class="text-muted small" id="odmisNotifFooterCount">0 Active Notifications</span>
               <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Close</button>
@@ -463,6 +465,12 @@ const App = (function () {
         </div>`;
       document.body.appendChild(modalEl);
     }
+
+    const modalInst = bootstrap.Modal.getOrCreateInstance(modalEl);
+    modalInst.show();
+
+    // Fetch live notifications asynchronously
+    await _updateNotificationCount();
 
     const bodyEl = document.getElementById('odmisNotifBody');
     const footerCountEl = document.getElementById('odmisNotifFooterCount');
@@ -523,9 +531,6 @@ const App = (function () {
           </div>`;
       }).join('');
     }
-
-    const modalInst = bootstrap.Modal.getOrCreateInstance(modalEl);
-    modalInst.show();
   }
 
   function _getInitials(name) {
