@@ -505,6 +505,7 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
 ═══════════════════════════════════════════════════ -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 <script src="../assets/js/api.js"></script>
 <script src="../assets/js/auth.js"></script>
 <script src="../assets/js/app.js"></script>
@@ -878,6 +879,8 @@ function renderIncidentCharts(data) {
   if (chartByTypeInstance)     { chartByTypeInstance.destroy();     chartByTypeInstance = null; }
   if (chartByBarangayInstance) { chartByBarangayInstance.destroy(); chartByBarangayInstance = null; }
 
+  const totalIncidents = data.length;
+
   // Aggregate by type
   const byType = {};
   data.forEach(r => {
@@ -892,11 +895,14 @@ function renderIncidentCharts(data) {
     byBarangay[b] = (byBarangay[b] || 0) + 1;
   });
 
-  const PALETTE = ['#467235','#FFBF00','#2ecc71','#e74c3c','#9b59b6','#3498db','#FFF78D','#1abc9c'];
+  const PALETTE = ['#467235','#FFBF00','#2ecc71','#e74c3c','#9b59b6','#3498db','#f39c12','#1abc9c'];
 
-  // Pie chart - by type
+  // Pie/Doughnut chart - by type (with numbers and percentages)
+  const datalabelsPlugin = (typeof ChartDataLabels !== 'undefined') ? [ChartDataLabels] : [];
+
   chartByTypeInstance = new Chart(document.getElementById('chartByType').getContext('2d'), {
     type: 'doughnut',
+    plugins: datalabelsPlugin,
     data: {
       labels: Object.keys(byType),
       datasets: [{
@@ -908,15 +914,51 @@ function renderIncidentCharts(data) {
     },
     options: {
       responsive: true,
+      maintainAspectRatio: true,
       plugins: {
-        legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 10 } }
+        legend: {
+          position: 'bottom',
+          labels: {
+            font: { size: 11 },
+            padding: 10,
+            generateLabels: function(chart) {
+              const original = Chart.overrides.doughnut.plugins.legend.labels.generateLabels(chart);
+              return original.map(item => {
+                const val = chart.data.datasets[0].data[item.index] || 0;
+                const pct = totalIncidents > 0 ? Math.round((val / totalIncidents) * 100) : 0;
+                item.text = `${item.text}: ${val} (${pct}%)`;
+                return item;
+              });
+            }
+          }
+        },
+        tooltip: {
+          callbacks: {
+            label: function(ctx) {
+              const val = ctx.parsed || 0;
+              const pct = totalIncidents > 0 ? ((val / totalIncidents) * 100).toFixed(1) : '0.0';
+              return ` ${ctx.label}: ${val} (${pct}%)`;
+            }
+          }
+        },
+        datalabels: {
+          color: '#fff',
+          font: { weight: 'bold', size: 11 },
+          formatter: (value) => {
+            if (value === 0) return '';
+            const pct = totalIncidents > 0 ? Math.round((value / totalIncidents) * 100) : 0;
+            return `${value}\n(${pct}%)`;
+          },
+          textAlign: 'center'
+        }
       }
     }
   });
 
-  // Bar chart - by barangay
+  // Bar chart - by barangay (with numbers and percentages)
   chartByBarangayInstance = new Chart(document.getElementById('chartByBarangay').getContext('2d'), {
     type: 'bar',
+    plugins: datalabelsPlugin,
     data: {
       labels: Object.keys(byBarangay),
       datasets: [{
@@ -928,9 +970,36 @@ function renderIncidentCharts(data) {
     },
     options: {
       responsive: true,
-      plugins: { legend: { display: false } },
+      maintainAspectRatio: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function(ctx) {
+              const val = ctx.parsed.y || 0;
+              const pct = totalIncidents > 0 ? ((val / totalIncidents) * 100).toFixed(1) : '0.0';
+              return ` Incidents: ${val} (${pct}% of total)`;
+            }
+          }
+        },
+        datalabels: {
+          anchor: 'end',
+          align: 'top',
+          color: '#467235',
+          font: { weight: 'bold', size: 10 },
+          formatter: (value) => {
+            if (value === 0) return '';
+            const pct = totalIncidents > 0 ? Math.round((value / totalIncidents) * 100) : 0;
+            return `${value} (${pct}%)`;
+          }
+        }
+      },
       scales: {
-        y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 11 } } },
+        y: {
+          beginAtZero: true,
+          ticks: { stepSize: 1, font: { size: 11 } },
+          grace: '15%'
+        },
         x: { ticks: { font: { size: 11 } } }
       }
     }

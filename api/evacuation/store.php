@@ -52,7 +52,14 @@ if ($missing) error('Missing required fields: ' . implode(', ', array_values($mi
 $capacity = (int) $body['capacity'];
 $occupied = (int) ($body['occupied_slots'] ?? 0);
 if ($capacity < 1)          error('Capacity must be greater than 0.');
+if ($occupied < 0)          error('Occupied slots cannot be negative.');
 if ($occupied > $capacity)  error('Occupied slots cannot exceed capacity.');
+
+// Automatically set status to Closed if occupied is equal to capacity
+$status = $body['status'] ?? 'Open';
+if ($occupied >= $capacity) {
+    $status = 'Closed';
+}
 
 try {
 
@@ -69,7 +76,7 @@ try {
         $occupied,
         sanitize($body['contact_person'] ?? ''),
         sanitize($body['contact_number'] ?? ''),
-        $body['status'] ?? 'Open',
+        $status,
     ]);
 
     $new = $pdo->prepare('SELECT *, (capacity - occupied_slots) AS available_slots FROM evacuation_centers WHERE id = ? LIMIT 1');

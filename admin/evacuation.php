@@ -600,7 +600,7 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
                 Occupied Slots <span class="text-danger">*</span>
               </label>
               <input type="number" class="form-control" id="fOccupied" min="0" placeholder="e.g. 230" required />
-              <div class="invalid-feedback">Occupied slots is required.</div>
+              <div class="invalid-feedback" id="fOccupiedFeedback">Occupied slots cannot exceed capacity.</div>
             </div>
 
             <!-- Status -->
@@ -610,6 +610,9 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
                 <option value="Open">Open</option>
                 <option value="Closed">Closed</option>
               </select>
+              <div class="form-text mt-1 text-warning fw-semibold" id="statusHelpText" style="display:none; font-size:0.75rem;">
+                <i class="fas fa-info-circle me-1"></i>Automatically set to Closed (Capacity full)
+              </div>
             </div>
 
             <!-- Contact Person -->
@@ -968,14 +971,65 @@ function setZoneValue(select, value) {
   }
 }
 
+// ── Sync Capacity & Status helper ──────────────────────────
+function syncCapacityAndStatus(isManualStatusChange = false) {
+  const capInput   = document.getElementById('fCapacity');
+  const occInput   = document.getElementById('fOccupied');
+  const statusEl   = document.getElementById('fStatus');
+  const occFb      = document.getElementById('fOccupiedFeedback');
+  const statusHelp = document.getElementById('statusHelpText');
+
+  const cap = parseInt(capInput.value, 10);
+  const occ = parseInt(occInput.value, 10);
+
+  if (!isNaN(cap) && cap > 0) {
+    occInput.max = cap;
+  } else {
+    occInput.removeAttribute('max');
+  }
+
+  if (!isNaN(cap) && !isNaN(occ)) {
+    if (occ > cap) {
+      occInput.setCustomValidity('Occupied slots cannot exceed capacity.');
+      if (occFb) occFb.textContent = `Occupied slots (${occ}) cannot exceed total capacity (${cap}).`;
+      occInput.classList.add('is-invalid');
+    } else {
+      occInput.setCustomValidity('');
+      occInput.classList.remove('is-invalid');
+      if (occFb) occFb.textContent = 'Occupied slots cannot exceed capacity.';
+    }
+
+    // Automatic status update if occupied equals or exceeds capacity
+    if (cap > 0 && occ >= cap) {
+      statusEl.value = 'Closed';
+      if (statusHelp) statusHelp.style.display = 'block';
+    } else if (cap > 0 && occ < cap) {
+      if (statusHelp && statusHelp.style.display !== 'none') {
+        statusEl.value = 'Open';
+        statusHelp.style.display = 'none';
+      }
+    }
+  } else {
+    if (statusHelp) statusHelp.style.display = 'none';
+  }
+}
+
 // ── Open Add modal ─────────────────────────────────────────
 function openAddModal() {
   document.getElementById('evacModalTitle').innerHTML =
     '<i class="fas fa-plus-circle me-2"></i>Add Evacuation Center';
-  document.getElementById('evacId').value      = '';
+  document.getElementById('evacId').value = '';
   document.getElementById('evacForm').reset();
   setZoneValue(document.getElementById('fLocation'), '');
+  document.getElementById('fStatus').value = 'Open';
+  const statusHelp = document.getElementById('statusHelpText');
+  if (statusHelp) statusHelp.style.display = 'none';
+  const occFb = document.getElementById('fOccupiedFeedback');
+  if (occFb) occFb.textContent = 'Occupied slots cannot exceed capacity.';
+  document.getElementById('fOccupied').classList.remove('is-invalid');
+  document.getElementById('fOccupied').setCustomValidity('');
   document.getElementById('evacForm').classList.remove('was-validated');
+  syncCapacityAndStatus();
   evacModalInst.show();
 }
 
@@ -995,12 +1049,14 @@ function editCenter(id) {
   document.getElementById('fContactPerson').value  = c.contact_person  || '';
   document.getElementById('fContactNumber').value  = c.contact_number  || '';
   document.getElementById('evacForm').classList.remove('was-validated');
+  syncCapacityAndStatus();
   evacModalInst.show();
 }
 
 // ── Save center ───────────────────────────────────────────
 async function saveCenter() {
   const form = document.getElementById('evacForm');
+  syncCapacityAndStatus();
   form.classList.add('was-validated');
   if (!form.checkValidity()) return;
 
@@ -1008,12 +1064,29 @@ async function saveCenter() {
   const cap     = parseInt(document.getElementById('fCapacity').value, 10);
   const occ     = parseInt(document.getElementById('fOccupied').value, 10) || 0;
 
+  if (cap < 1) {
+    showToast('Capacity must be at least 1.', 'danger');
+    return;
+  }
+
+  if (occ < 0) {
+    showToast('Occupied slots cannot be negative.', 'danger');
+    return;
+  }
+
   if (occ > cap) {
     document.getElementById('fOccupied').setCustomValidity('Occupied cannot exceed capacity.');
     document.getElementById('fOccupied').reportValidity();
+    showToast(`Occupied slots (${occ}) cannot exceed total capacity (${cap}).`, 'danger');
     return;
   }
   document.getElementById('fOccupied').setCustomValidity('');
+
+  // Status is automatically 'Closed' if occupied is equal to capacity
+  let finalStatus = document.getElementById('fStatus').value;
+  if (occ >= cap) {
+    finalStatus = 'Closed';
+  }
 
   const payload = {
     center_code   : document.getElementById('fCode') ? document.getElementById('fCode').value.trim() : '',
@@ -1022,7 +1095,7 @@ async function saveCenter() {
     barangay      : document.getElementById('fBarangay').value,
     capacity      : cap,
     occupied_slots: occ,
-    status        : document.getElementById('fStatus').value,
+    status        : finalStatus,
     contact_person: document.getElementById('fContactPerson').value.trim(),
     contact_number: document.getElementById('fContactNumber').value.trim()
   };
@@ -1160,6 +1233,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Save
   document.getElementById('btnSaveCenter').addEventListener('click', saveCenter);
+
+  // Real-time capacity & status sync
+  document.getElementById('fCapacity').addEventListener('input', () => syncCapacityAndStatus());
+  document.getElementById('fOccupied').addEventListener('input', () => syncCapacityAndStatus());
 
   // "Edit" from View modal
   document.getElementById('btnViewToEdit').addEventListener('click', () => {

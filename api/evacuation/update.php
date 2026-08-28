@@ -13,15 +13,22 @@ $body = get_json_body();
 
 try {
     $pdo   = Database::connect();
-    $check = $pdo->prepare('SELECT capacity FROM evacuation_centers WHERE id = ? LIMIT 1');
+    $check = $pdo->prepare('SELECT capacity, occupied_slots, status FROM evacuation_centers WHERE id = ? LIMIT 1');
     $check->execute([$id]);
     $existing = $check->fetch();
     if (!$existing) error('Evacuation center not found.', 404);
 
     $capacity = isset($body['capacity'])       ? (int) $body['capacity']       : (int) $existing['capacity'];
-    $occupied = isset($body['occupied_slots']) ? (int) $body['occupied_slots'] : null;
+    $occupied = isset($body['occupied_slots']) ? (int) $body['occupied_slots'] : (int) $existing['occupied_slots'];
 
-    if ($occupied !== null && $occupied > $capacity) error('Occupied slots cannot exceed capacity.');
+    if ($capacity < 1)         error('Capacity must be greater than 0.');
+    if ($occupied < 0)         error('Occupied slots cannot be negative.');
+    if ($occupied > $capacity) error('Occupied slots cannot exceed capacity.');
+
+    // Automatically set status to Closed if occupied is equal to capacity
+    if ($occupied >= $capacity) {
+        $body['status'] = 'Closed';
+    }
 
     $fields = [];
     $params = [];
