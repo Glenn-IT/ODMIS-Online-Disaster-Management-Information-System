@@ -20,11 +20,11 @@ if ($username === '' || $password === '') {
 // ── Query user ────────────────────────────────────────────────
 try {
     $pdo  = Database::connect();
-    $stmt = $pdo->prepare('SELECT id, username, email, password_hash, role, full_name, status FROM users WHERE BINARY username = ? LIMIT 1');
-    $stmt->execute([$username]);
+    $stmt = $pdo->prepare('SELECT id, username, email, password_hash, role, full_name, status FROM users WHERE LOWER(username) = LOWER(?) OR LOWER(email) = LOWER(?) LIMIT 1');
+    $stmt->execute([$username, $username]);
     $user = $stmt->fetch();
 } catch (PDOException $e) {
-    error('Database error.', 500);
+    error('Database error: ' . $e->getMessage(), 500);
 }
 
 // ── Validate credentials (generic message — no username hint) ─
