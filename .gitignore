@@ -1,9 +1,8 @@
 # Composer
-/vendor/
+
 
 # Environment / secrets
-/config/env.php
-/.env
+
 
 # Uploads
 /uploads/reports/*
