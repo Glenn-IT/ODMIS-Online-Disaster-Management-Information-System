@@ -94,7 +94,7 @@ const ApiClient = (function () {
   }
 
   return {
-    BASE      : BASE,
+    getBase   : getBase,
     TOKEN_KEY : TOKEN_KEY,
     getToken  : getToken,
     setToken  : setToken,
