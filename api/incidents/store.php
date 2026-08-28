@@ -9,12 +9,44 @@ require_admin();
 $body = get_json_body();
 $pdo  = Database::connect();
 
-// Auto-generate incident_code if missing or default placeholder
+// Helper to find the next available incident code
+function get_next_incident_code(PDO $pdo): string {
+    $stmt = $pdo->query("SELECT incident_code FROM incidents WHERE incident_code LIKE 'INC-%'");
+    $codes = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    $maxNum = 0;
+    foreach ($codes as $code) {
+        if (preg_match('/^INC-(\d+)$/', $code, $m)) {
+            $num = (int)$m[1];
+            if ($num > $maxNum) {
+                $maxNum = $num;
+            }
+        }
+    }
+    $maxId = (int)$pdo->query("SELECT IFNULL(MAX(id), 0) FROM incidents")->fetchColumn();
+    $next = max($maxNum, $maxId) + 1;
+
+    do {
+        $candidate = 'INC-' . str_pad((string)$next, 3, '0', STR_PAD_LEFT);
+        $check = $pdo->prepare('SELECT id FROM incidents WHERE incident_code = ? LIMIT 1');
+        $check->execute([$candidate]);
+        $exists = (bool)$check->fetch();
+        if ($exists) {
+            $next++;
+        }
+    } while ($exists);
+
+    return $candidate;
+}
+
+// Auto-generate incident_code if missing, placeholder, or already existing
 if (empty($body['incident_code']) || trim($body['incident_code']) === '(auto-generated)') {
-    $maxStmt = $pdo->query('SELECT MAX(id) AS max_id FROM incidents');
-    $maxRow  = $maxStmt->fetch();
-    $nextId  = ($maxRow['max_id'] ?? 0) + 1;
-    $body['incident_code'] = 'INC-' . str_pad((string)$nextId, 3, '0', STR_PAD_LEFT);
+    $body['incident_code'] = get_next_incident_code($pdo);
+} else {
+    $check = $pdo->prepare('SELECT id FROM incidents WHERE incident_code = ? LIMIT 1');
+    $check->execute([sanitize($body['incident_code'])]);
+    if ($check->fetch()) {
+        $body['incident_code'] = get_next_incident_code($pdo);
+    }
 }
 
 $required = ['incident_code', 'disaster_type', 'title', 'location', 'barangay', 'incident_date', 'severity'];
@@ -28,10 +60,6 @@ if (!in_array($body['disaster_type'], $allowed_types, true))      error('Invalid
 if (!in_array($body['severity'],      $allowed_severities, true)) error('Invalid severity level.');
 
 try {
-    $check = $pdo->prepare('SELECT id FROM incidents WHERE incident_code = ? LIMIT 1');
-    $check->execute([sanitize($body['incident_code'])]);
-    if ($check->fetch()) error('Incident code already exists.', 409);
-
     $stmt = $pdo->prepare(
         'INSERT INTO incidents (incident_code, disaster_type, title, description, location, barangay, municipality, incident_date, incident_time, severity, status, reported_by)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'

@@ -3,7 +3,7 @@ require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../api/helpers/response.php';
 require_once __DIR__ . '/../../api/middleware/auth.php';
 
-method_required('PUT');
+method_required('PUT', 'PATCH');
 require_admin();
 
 $id = (int) ($_GET['id'] ?? 0);
@@ -40,10 +40,10 @@ try {
     $stmt = $pdo->prepare('UPDATE announcements SET ' . implode(', ', $fields) . ' WHERE id = ?');
     $stmt->execute($params);
 
-    $updated = $pdo->prepare('SELECT * FROM announcements WHERE id = ? LIMIT 1');
+    $updated = $pdo->prepare('SELECT a.*, u.full_name AS published_by_name FROM announcements a LEFT JOIN users u ON u.id = a.published_by WHERE a.id = ? LIMIT 1');
     $updated->execute([$id]);
 
     success($updated->fetch(), 'Announcement updated.');
 } catch (PDOException $e) {
-    error('Database error.', 500);
+    error('Database error: ' . $e->getMessage(), 500);
 }

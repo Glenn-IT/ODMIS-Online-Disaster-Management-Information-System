@@ -9,12 +9,40 @@ require_admin();
 $body = get_json_body();
 $pdo  = Database::connect();
 
-// Auto-generate center_code if missing or default placeholder
+// Helper to find the next available center code
+function get_next_center_code(PDO $pdo): string {
+    $stmt = $pdo->query("SELECT center_code FROM evacuation_centers WHERE center_code LIKE 'EVC-%'");
+    $codes = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    $maxNum = 0;
+    foreach ($codes as $code) {
+        if (preg_match('/^EVC-(\d+)$/', $code, $m)) {
+            $num = (int)$m[1];
+            if ($num > $maxNum) $maxNum = $num;
+        }
+    }
+    $maxId = (int)$pdo->query("SELECT IFNULL(MAX(id), 0) FROM evacuation_centers")->fetchColumn();
+    $next = max($maxNum, $maxId) + 1;
+
+    do {
+        $candidate = 'EVC-' . str_pad((string)$next, 3, '0', STR_PAD_LEFT);
+        $check = $pdo->prepare('SELECT id FROM evacuation_centers WHERE center_code = ? LIMIT 1');
+        $check->execute([$candidate]);
+        $exists = (bool)$check->fetch();
+        if ($exists) $next++;
+    } while ($exists);
+
+    return $candidate;
+}
+
+// Auto-generate center_code if missing or default placeholder or collision
 if (empty($body['center_code']) || trim($body['center_code']) === '(auto-generated)') {
-    $maxStmt = $pdo->query('SELECT MAX(id) AS max_id FROM evacuation_centers');
-    $maxRow  = $maxStmt->fetch();
-    $nextId  = ($maxRow['max_id'] ?? 0) + 1;
-    $body['center_code'] = 'EVC-' . str_pad((string)$nextId, 3, '0', STR_PAD_LEFT);
+    $body['center_code'] = get_next_center_code($pdo);
+} else {
+    $check = $pdo->prepare('SELECT id FROM evacuation_centers WHERE center_code = ? LIMIT 1');
+    $check->execute([sanitize($body['center_code'])]);
+    if ($check->fetch()) {
+        $body['center_code'] = get_next_center_code($pdo);
+    }
 }
 
 $required = ['center_code', 'center_name', 'location', 'barangay', 'capacity'];
@@ -27,9 +55,6 @@ if ($capacity < 1)          error('Capacity must be greater than 0.');
 if ($occupied > $capacity)  error('Occupied slots cannot exceed capacity.');
 
 try {
-    $check = $pdo->prepare('SELECT id FROM evacuation_centers WHERE center_code = ? LIMIT 1');
-    $check->execute([sanitize($body['center_code'])]);
-    if ($check->fetch()) error('Center code already exists.', 409);
 
     $stmt = $pdo->prepare(
         'INSERT INTO evacuation_centers (center_code, center_name, location, barangay, capacity, occupied_slots, contact_person, contact_number, status)

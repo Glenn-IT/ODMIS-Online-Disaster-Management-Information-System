@@ -1012,6 +1012,7 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
     setZoneValue(document.getElementById('fieldLocation'), '');
     document.getElementById('fieldIncidentId').value      = '(auto-generated)';
     document.getElementById('fieldMunicipality').value   = 'Sto. Niño, Cagayan';
+    document.getElementById('fieldDate').value           = new Date().toISOString().split('T')[0];
     document.getElementById('incidentModalLabel').innerHTML = '<i class="fas fa-plus-circle me-2"></i>Add New Incident';
     document.getElementById('btnSaveIncident').innerHTML    = '<i class="fas fa-save me-1"></i>Save Incident';
     _incidentModal.show();
@@ -1060,14 +1061,10 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
       description  : document.getElementById('fieldDescription').value.trim(),
       location     : document.getElementById('fieldLocation').value.trim(),
       barangay     : document.getElementById('fieldBarangay').value.trim(),
-      municipality : document.getElementById('fieldMunicipality').value.trim(),
+      municipality : document.getElementById('fieldMunicipality').value.trim() || 'Sto. Niño, Cagayan',
       incident_date: document.getElementById('fieldDate').value,
       incident_time: document.getElementById('fieldTime').value
     };
-
-    if (!_editingId) {
-      payload.incident_code = App.generateId('INC', _allIncidents.map(function(i){ return { id: i.incident_code }; }));
-    }
 
     var btn = document.getElementById('btnSaveIncident');
     btn.disabled = true;
@@ -1214,8 +1211,6 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
     _viewModal     = new bootstrap.Modal(document.getElementById('viewIncidentModal'));
     _deleteModal   = new bootstrap.Modal(document.getElementById('deleteModal'));
 
-    await loadIncidents();
-
     // 6. Wire up Add Incident buttons
     document.getElementById('btnAddIncident').addEventListener('click', openAddModal);
     var btnAddEmpty = document.getElementById('btnAddFromEmpty');
@@ -1250,15 +1245,19 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
       renderTable();
     });
 
-    // 13. Clear invalid on field input
+    // 13. Clear invalid on field input and change
     document.getElementById('incidentForm').querySelectorAll('input, select, textarea').forEach(function(el) {
-      el.addEventListener('input', function() {
-        if (this.value.trim()) {
-          this.classList.remove('is-invalid');
-          this.classList.add('is-valid');
-        }
+      ['input', 'change'].forEach(function(evt) {
+        el.addEventListener(evt, function() {
+          if (this.value.trim()) {
+            this.classList.remove('is-invalid');
+            this.classList.add('is-valid');
+          }
+        });
       });
     });
+
+    await loadIncidents();
   });
 
 })();

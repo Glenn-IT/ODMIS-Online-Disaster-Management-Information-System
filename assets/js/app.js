@@ -472,9 +472,10 @@ const App = (function () {
     }
   }
 
+  let _notifDelegated = false;
   function _initNotificationClickListener() {
-    if (document.dataset.notifDelegated) return;
-    document.dataset.notifDelegated = 'true';
+    if (_notifDelegated) return;
+    _notifDelegated = true;
     document.addEventListener('click', function (e) {
       const btn = e.target.closest('.navbar-icon-btn, #notifBtn, [title="Notifications"], [data-action="notifications"]');
       if (btn) {
@@ -773,9 +774,10 @@ const App = (function () {
     );
   }
 
+  let _logoutDelegated = false;
   function initLogout() {
-    if (document.dataset.logoutDelegated) return;
-    document.dataset.logoutDelegated = 'true';
+    if (_logoutDelegated) return;
+    _logoutDelegated = true;
 
     document.addEventListener('click', function (e) {
       const btn = e.target.closest('[data-action="logout"], #logoutBtn, #logoutLink, .logout-trigger, #confirmLogoutBtn');

@@ -11,6 +11,15 @@ use Firebase\JWT\SignatureInvalidException;
 function require_auth(): object {
     $header = $_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '';
 
+    if (!$header && function_exists('apache_request_headers')) {
+        $headers = apache_request_headers();
+        $header = $headers['Authorization'] ?? $headers['authorization'] ?? '';
+    }
+    if (!$header && function_exists('getallheaders')) {
+        $headers = getallheaders();
+        $header = $headers['Authorization'] ?? $headers['authorization'] ?? '';
+    }
+
     if (!$header || !str_starts_with($header, 'Bearer ')) {
         error('Unauthorized: no token provided.', 401);
     }

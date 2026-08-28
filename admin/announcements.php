@@ -440,8 +440,13 @@ const ManagePage = (function() {
 
   // ── HELPERS & UTILITIES ──────────────────────────────────
   function esc(s) {
-    if (!s) return '—';
-    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    if (s === null || s === undefined || s === '') return '';
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
   }
 
   function formatDate(dStr) {
@@ -538,7 +543,7 @@ const ManagePage = (function() {
             <div class="d-flex justify-content-center gap-1">
               <button class="btn-action btn-view" onclick="ManagePage.toggleAnnStatus(${a.id}, ${a.is_active})" title="${toggleActionTitle}"><i class="fas ${toggleActionIcon}"></i></button>
               <button class="btn-action btn-edit" onclick="ManagePage.openEditAnnModal(${a.id})" title="Edit"><i class="fas fa-pencil-alt"></i></button>
-              <button class="btn-action btn-delete" onclick="ManagePage.confirmDelete(${a.id}, '${esc(a.title)}')" title="Delete"><i class="fas fa-trash"></i></button>
+              <button class="btn-action btn-delete" onclick="ManagePage.confirmDelete(${a.id})" title="Delete"><i class="fas fa-trash"></i></button>
             </div>
           </td>
         </tr>
@@ -564,10 +569,10 @@ const ManagePage = (function() {
     document.getElementById('annModalTitle').innerHTML = '<i class="fas fa-pencil-alt me-2"></i>Edit Announcement';
     document.getElementById('annForm').classList.remove('was-validated');
 
-    document.getElementById('annTitle').value = ann.title;
-    document.getElementById('annCategorySelect').value = ann.category;
+    document.getElementById('annTitle').value = ann.title || '';
+    document.getElementById('annCategorySelect').value = ann.category || '';
     document.getElementById('annDate').value = ann.published_at ? ann.published_at.split(' ')[0] : '';
-    document.getElementById('annBody').value = ann.body;
+    document.getElementById('annBody').value = ann.body || '';
     document.getElementById('annActive').checked = parseInt(ann.is_active) === 1;
     document.getElementById('annActiveWrapper').classList.remove('d-none');
     _annModal.show();
@@ -623,9 +628,11 @@ const ManagePage = (function() {
   }
 
   // ── DELETION LOGIC ───────────────────────────────────────
-  function confirmDelete(id, name) {
-    _deleteTarget = { id, name };
-    document.getElementById('deleteLabel').textContent = name;
+  function confirmDelete(id) {
+    const ann = _allAnnouncements.find(a => a.id === id);
+    const title = ann ? ann.title : 'Announcement #' + id;
+    _deleteTarget = { id, name: title };
+    document.getElementById('deleteLabel').textContent = title;
     _deleteModal.show();
   }
 
@@ -660,14 +667,13 @@ const ManagePage = (function() {
     _deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
     _logoutModal = new bootstrap.Modal(document.getElementById('logoutModal'));
 
-    // Load initial datasets
-    await loadAnnouncements();
-
     // Top Right profile actions
-    document.getElementById('sidebarToggle').addEventListener('click', () => {
-      document.body.classList.toggle('sidebar-collapsed');
-    });
-
+    var sidebarToggle = document.getElementById('sidebarToggle');
+    if (sidebarToggle) {
+      sidebarToggle.addEventListener('click', () => {
+        document.body.classList.toggle('sidebar-collapsed');
+      });
+    }
 
     // Write click triggers
     document.getElementById('btnPostAnnouncement').addEventListener('click', openAddAnnModal);
@@ -682,6 +688,9 @@ const ManagePage = (function() {
       document.getElementById('annCategory').value = '';
       filterAnnouncements();
     });
+
+    // Load initial datasets
+    await loadAnnouncements();
   });
 
   // Export functions to window namespace for inline button onclick triggers

@@ -6,8 +6,16 @@
 const ApiClient = (function () {
   'use strict';
 
-  const BASE      = '/ODMIS-Online-Disaster-Management-Information-System/api';
   const TOKEN_KEY = 'odmis_jwt';
+
+  function getBase() {
+    if (window.API_BASE) return window.API_BASE;
+    const p = window.location.pathname;
+    const match = p.match(/^(.*\/ODMIS-Online-Disaster-Management-Information-System)/i);
+    if (match) return match[1] + '/api';
+    if (p.includes('/admin/') || p.includes('/user/')) return '../api';
+    return 'api';
+  }
 
   function getToken()   { return localStorage.getItem(TOKEN_KEY); }
   function setToken(t)  { localStorage.setItem(TOKEN_KEY, t); }
@@ -22,9 +30,12 @@ const ApiClient = (function () {
     const opts = { method: method, headers: headers };
     if (body) opts.body = isFormData ? body : JSON.stringify(body);
 
+    const baseUrl = getBase();
+    const cleanPath = path.startsWith('/') ? path : '/' + path;
+
     let res;
     try {
-      res = await fetch(BASE + path, opts);
+      res = await fetch(baseUrl + cleanPath, opts);
     } catch (_) {
       const e = new Error('Network error — is the server running?');
       e.status = 0;
@@ -60,7 +71,9 @@ const ApiClient = (function () {
   // Download a file via fetch (PDF/CSV export) with auth header
   async function download(path) {
     const token = getToken();
-    const res   = await fetch(BASE + path, {
+    const baseUrl = getBase();
+    const cleanPath = path.startsWith('/') ? path : '/' + path;
+    const res   = await fetch(baseUrl + cleanPath, {
       headers: token ? { 'Authorization': 'Bearer ' + token } : {}
     });
     if (!res.ok) throw new Error('Download failed (' + res.status + ')');

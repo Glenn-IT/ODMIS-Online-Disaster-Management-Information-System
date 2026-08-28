@@ -13,22 +13,35 @@ if ($missing) error('Missing required fields: ' . implode(', ', array_values($mi
 
 try {
     $pdo  = Database::connect();
+
+    // Safely check published_by user exists in users table (respect foreign key constraint)
+    $userId = (int)($token_user->sub ?? 0);
+    $publishedBy = null;
+    if ($userId > 0) {
+        $userCheck = $pdo->prepare('SELECT id FROM users WHERE id = ? LIMIT 1');
+        $userCheck->execute([$userId]);
+        if ($userCheck->fetch()) {
+            $publishedBy = $userId;
+        }
+    }
+
     $stmt = $pdo->prepare(
         'INSERT INTO announcements (title, body, category, published_by, published_at, is_active)
-         VALUES (?, ?, ?, ?, ?, 1)'
+         VALUES (?, ?, ?, ?, ?, ?)'
     );
     $stmt->execute([
         sanitize($body['title']),
         sanitize($body['body']),
-        sanitize($body['category'] ?? ''),
-        $token_user->sub,
+        sanitize($body['category'] ?? 'General'),
+        $publishedBy,
         !empty($body['published_at']) ? $body['published_at'] : date('Y-m-d'),
+        isset($body['is_active']) ? (int)$body['is_active'] : 1
     ]);
 
-    $new = $pdo->prepare('SELECT * FROM announcements WHERE id = ? LIMIT 1');
+    $new = $pdo->prepare('SELECT a.*, u.full_name AS published_by_name FROM announcements a LEFT JOIN users u ON u.id = a.published_by WHERE a.id = ? LIMIT 1');
     $new->execute([(int) $pdo->lastInsertId()]);
 
     success($new->fetch(), 'Announcement created.', 201);
 } catch (PDOException $e) {
-    error('Database error.', 500);
+    error('Database error: ' . $e->getMessage(), 500);
 }
