@@ -682,7 +682,7 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
 
   // ── VIEW MODAL ────────────────────────────────────────────
   function viewReport(id) {
-    var r = _allReports.find(function(x){ return x.id === id; });
+    var r = _allReports.find(function(x){ return Number(x.id) === Number(id); });
     if (!r) { showToast('Report not found.', 'error'); return; }
     _viewingId = id;
 
@@ -731,7 +731,7 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
       await ApiClient.patch('/user-reports/update-status.php?id=' + id, { status: status });
       showToast('Report marked as ' + status + '.', 'success');
       await loadReports();
-      var r = _allReports.find(function(x){ return x.id === id; });
+      var r = _allReports.find(function(x){ return Number(x.id) === Number(id); });
       if (r && _viewingId === id) { viewReport(id); }
     } catch (err) {
       showToast(err.message || 'Status update failed.', 'error');

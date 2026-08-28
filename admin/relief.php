@@ -946,7 +946,7 @@ function openAddModal() {
 
 // ── Edit batch ─────────────────────────────────────────────
 function editBatch(id) {
-  const b = allBatches.find(x => x.id === id);
+  const b = allBatches.find(x => Number(x.id) === Number(id));
   if (!b) return;
   document.getElementById('reliefModalTitle').innerHTML =
     '<i class="fas fa-edit me-2"></i>Edit Relief Batch';
@@ -1004,7 +1004,7 @@ async function saveBatch() {
 
 // ── View batch ─────────────────────────────────────────────
 function viewBatch(id) {
-  const b = allBatches.find(x => x.id === id);
+  const b = allBatches.find(x => Number(x.id) === Number(id));
   if (!b) return;
   viewTargetId = id;
 
@@ -1035,7 +1035,7 @@ function viewBatch(id) {
 
 // ── Delete batch ───────────────────────────────────────────
 function deleteBatch(id) {
-  const b = allBatches.find(x => x.id === id);
+  const b = allBatches.find(x => Number(x.id) === Number(id));
   if (!b) return;
   deleteTargetId = id;
   document.getElementById('deleteTargetBatch').textContent = `"${b.batch_number}"`;

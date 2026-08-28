@@ -563,7 +563,7 @@ const ManagePage = (function() {
   }
 
   async function openEditAnnModal(id) {
-    const ann = _allAnnouncements.find(a => a.id === id);
+    const ann = _allAnnouncements.find(a => Number(a.id) === Number(id));
     if (!ann) return;
     _editingAnnId = id;
     document.getElementById('annModalTitle').innerHTML = '<i class="fas fa-pencil-alt me-2"></i>Edit Announcement';
@@ -629,7 +629,7 @@ const ManagePage = (function() {
 
   // ── DELETION LOGIC ───────────────────────────────────────
   function confirmDelete(id) {
-    const ann = _allAnnouncements.find(a => a.id === id);
+    const ann = _allAnnouncements.find(a => Number(a.id) === Number(id));
     const title = ann ? ann.title : 'Announcement #' + id;
     _deleteTarget = { id, name: title };
     document.getElementById('deleteLabel').textContent = title;

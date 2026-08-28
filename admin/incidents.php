@@ -1019,7 +1019,7 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
   }
 
   function editIncident(id) {
-    var inc = _allIncidents.find(function(i){ return i.id === id; });
+    var inc = _allIncidents.find(function(i){ return Number(i.id) === Number(id); });
     if (!inc) { showToast('Incident not found.', 'error'); return; }
     _editingId = id;
     var form = document.getElementById('incidentForm');
@@ -1088,7 +1088,7 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
 
   // ── VIEW MODAL ────────────────────────────────────────────
   function viewIncident(id) {
-    var inc = _allIncidents.find(function(i){ return i.id === id; });
+    var inc = _allIncidents.find(function(i){ return Number(i.id) === Number(id); });
     if (!inc) { showToast('Incident not found.', 'error'); return; }
     _viewingId = id;
     document.getElementById('viewId').textContent          = inc.incident_code || '—';
@@ -1108,7 +1108,7 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
   // ── DELETE ────────────────────────────────────────────────
   function confirmDelete(id) {
     _pendingDeleteId = id;
-    var inc = _allIncidents.find(function(i){ return i.id === id; });
+    var inc = _allIncidents.find(function(i){ return Number(i.id) === Number(id); });
     var label = document.getElementById('deleteIncidentIdLabel');
     if (label) label.textContent = inc ? (inc.incident_code + ' — ' + inc.title) : id;
     _deleteModal.show();

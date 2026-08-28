@@ -981,7 +981,7 @@ function openAddModal() {
 
 // ── Edit center ───────────────────────────────────────────
 function editCenter(id) {
-  const c = allCenters.find(x => x.id === id);
+  const c = allCenters.find(x => Number(x.id) === Number(id));
   if (!c) return;
   document.getElementById('evacModalTitle').innerHTML =
     '<i class="fas fa-edit me-2"></i>Edit Evacuation Center';
@@ -1048,7 +1048,7 @@ async function saveCenter() {
 
 // ── View center ────────────────────────────────────────────
 function viewCenter(id) {
-  const c = allCenters.find(x => x.id === id);
+  const c = allCenters.find(x => Number(x.id) === Number(id));
   if (!c) return;
   viewTargetId = id;
 
@@ -1086,7 +1086,7 @@ function viewCenter(id) {
 
 // ── Delete center ─────────────────────────────────────────
 function deleteCenter(id) {
-  const c = allCenters.find(x => x.id === id);
+  const c = allCenters.find(x => Number(x.id) === Number(id));
   if (!c) return;
   deleteTargetId = id;
   document.getElementById('deleteTargetName').textContent = `"${c.center_name}"`;

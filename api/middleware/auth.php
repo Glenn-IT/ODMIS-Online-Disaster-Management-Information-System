@@ -13,11 +13,27 @@ function require_auth(): object {
 
     if (!$header && function_exists('apache_request_headers')) {
         $headers = apache_request_headers();
-        $header = $headers['Authorization'] ?? $headers['authorization'] ?? '';
+        foreach ($headers as $k => $v) {
+            if (strcasecmp($k, 'Authorization') === 0) {
+                $header = $v;
+                break;
+            }
+        }
     }
     if (!$header && function_exists('getallheaders')) {
         $headers = getallheaders();
-        $header = $headers['Authorization'] ?? $headers['authorization'] ?? '';
+        foreach ($headers as $k => $v) {
+            if (strcasecmp($k, 'Authorization') === 0) {
+                $header = $v;
+                break;
+            }
+        }
+    }
+    if (!$header && isset($_SERVER['PHP_AUTH_DIGEST'])) {
+        $header = $_SERVER['PHP_AUTH_DIGEST'];
+    }
+    if (!$header && isset($_SERVER['HTTP_AUTHENTICATION'])) {
+        $header = $_SERVER['HTTP_AUTHENTICATION'];
     }
 
     if (!$header || !str_starts_with($header, 'Bearer ')) {

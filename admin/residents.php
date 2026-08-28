@@ -664,7 +664,7 @@ function goPage(p) { currentPage = p; renderTable(); }
 
 // ── View resident ─────────────────────────────────────────
 function viewResident(id) {
-  const u = allResidents.find(r => r.id === id);
+  const u = allResidents.find(r => Number(r.id) === Number(id));
   if (!u) return;
   viewTargetId = id;
 
@@ -701,7 +701,7 @@ function viewResident(id) {
 
 // ── Toggle status ─────────────────────────────────────────
 function promptToggleStatus(id) {
-  const u = allResidents.find(r => r.id === id);
+  const u = allResidents.find(r => Number(r.id) === Number(id));
   if (!u) return;
   toggleTargetId   = id;
   const userStatus = u.status || 'Active';
