@@ -510,13 +510,30 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
           <input type="hidden" id="evacId" />
 
           <div class="row g-3">
-            <!-- Center Name -->
-            <div class="col-12">
-              <label class="form-label fw-semibold" for="fName">
-                Center Name <span class="text-danger">*</span>
+            <!-- Building / Center / Place -->
+            <div class="col-md-6">
+              <label class="form-label fw-semibold" for="fBuildingType">
+                Building / Center / Place <span class="text-danger">*</span>
               </label>
-              <input type="text" class="form-control" id="fName" placeholder="e.g. Centro Sur Elementary School" required />
-              <div class="invalid-feedback">Center name is required.</div>
+              <select class="form-select" id="fBuildingType" required>
+                <option value="">— Select Building / Place —</option>
+                <option value="High School">High School</option>
+                <option value="Elementary School">Elementary School</option>
+                <option value="Barangay Hall">Barangay Hall</option>
+                <option value="Evacuation Center">Evacuation Center</option>
+                <option value="Day Care Center">Day Care Center</option>
+                <option value="Gymnasium">Gymnasium</option>
+              </select>
+              <div class="invalid-feedback">Please select a building / center / place.</div>
+            </div>
+
+            <!-- Center Name (Auto-Generated from Building/Place + Barangay) -->
+            <div class="col-md-6">
+              <label class="form-label fw-semibold" for="fName">
+                Center Name <small class="text-muted">(Auto-Generated)</small> <span class="text-danger">*</span>
+              </label>
+              <input type="text" class="form-control bg-light" id="fName" placeholder="e.g. Elementary School - Abariongan Uneg" readonly required />
+              <div class="invalid-feedback">Center name is required. Please select building and barangay.</div>
             </div>
 
             <!-- Zone -->
@@ -1008,12 +1025,33 @@ function syncCapacityAndStatus(isManualStatusChange = false) {
   }
 }
 
+// ── Auto-generate Center Name from Building Type & Barangay ──
+function updateGeneratedCenterName() {
+  const bldgEl = document.getElementById('fBuildingType');
+  const brgyEl = document.getElementById('fBarangay');
+  const nameInput = document.getElementById('fName');
+  const bldg = bldgEl ? bldgEl.value.trim() : '';
+  const brgy = brgyEl ? brgyEl.value.trim() : '';
+
+  if (bldg && brgy) {
+    nameInput.value = `${bldg} - ${brgy}`;
+  } else if (bldg) {
+    nameInput.value = bldg;
+  } else if (brgy) {
+    nameInput.value = brgy;
+  } else {
+    nameInput.value = '';
+  }
+}
+
 // ── Open Add modal ─────────────────────────────────────────
 function openAddModal() {
   document.getElementById('evacModalTitle').innerHTML =
     '<i class="fas fa-plus-circle me-2"></i>Add Evacuation Center';
   document.getElementById('evacId').value = '';
   document.getElementById('evacForm').reset();
+  if (document.getElementById('fBuildingType')) document.getElementById('fBuildingType').value = '';
+  document.getElementById('fName').value = '';
   setZoneValue(document.getElementById('fLocation'), '');
   document.getElementById('fStatus').value = 'Open';
   const statusHelp = document.getElementById('statusHelpText');
@@ -1035,6 +1073,20 @@ function editCenter(id) {
     '<i class="fas fa-edit me-2"></i>Edit Evacuation Center';
   document.getElementById('evacId').value          = c.id;
   document.getElementById('fName').value           = c.center_name     || '';
+
+  // Match standard building types if formatted like "Elementary School - Abariongan Uneg"
+  const standardTypes = ['High School', 'Elementary School', 'Barangay Hall', 'Evacuation Center', 'Day Care Center', 'Gymnasium'];
+  let matchedType = '';
+  for (const t of standardTypes) {
+    if ((c.center_name || '').startsWith(t)) {
+      matchedType = t;
+      break;
+    }
+  }
+  if (document.getElementById('fBuildingType')) {
+    document.getElementById('fBuildingType').value = matchedType;
+  }
+
   setZoneValue(document.getElementById('fLocation'), c.location || '');
   document.getElementById('fBarangay').value       = c.barangay        || '';
   document.getElementById('fCapacity').value       = c.capacity        || '';
@@ -1231,6 +1283,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Real-time capacity & status sync
   document.getElementById('fCapacity').addEventListener('input', () => syncCapacityAndStatus());
   document.getElementById('fOccupied').addEventListener('input', () => syncCapacityAndStatus());
+
+  // Real-time center name generation
+  document.getElementById('fBuildingType')?.addEventListener('change', updateGeneratedCenterName);
+  document.getElementById('fBarangay')?.addEventListener('change', updateGeneratedCenterName);
 
   // "Edit" from View modal
   document.getElementById('btnViewToEdit').addEventListener('click', () => {
