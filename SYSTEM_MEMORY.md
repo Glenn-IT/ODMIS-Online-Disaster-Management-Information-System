@@ -338,3 +338,41 @@ flowchart TD
 - **Admin Pages:** `admin/`
 - **User Pages:** `user/`
 - **Sync Checker:** `scripts/sync-check.php`
+
+---
+
+## 6. Official Barangay Directory (31 Barangays — Sto. Niño, Cagayan)
+
+The system is restricted to the following 31 official barangays:
+1. `Abariongan Ruar`
+2. `Abariongan Uneg`
+3. `Balagan`
+4. `Balanni`
+5. `Cabayo`
+6. `Calapangan`
+7. `Calassitan`
+8. `Campo`
+9. `Centro Norte`
+10. `Centro Sur`
+11. `Dungao`
+12. `Lattac`
+13. `Lipatan`
+14. `Lubo`
+15. `Mabitbitnong`
+16. `Masical`
+17. `Matalao`
+18. `Nag-uma`
+19. `Namuccayan`
+20. `Niug Norte`
+21. `Niug Sur`
+22. `Palusao`
+23. `Poblacion`
+24. `San Manuel`
+25. `San Roque`
+26. `Santa Felicitas`
+27. `Santa Maria`
+28. `Sidiran`
+29. `Tabang`
+30. `Tamucco`
+31. `Virginia`
+

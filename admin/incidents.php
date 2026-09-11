@@ -361,7 +361,6 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
         <option value="">All Barangays</option>
         <option value="Abariongan Ruar">Abariongan Ruar</option>
         <option value="Abariongan Uneg">Abariongan Uneg</option>
-        <option value="Abarriongan">Abarriongan</option>
         <option value="Balagan">Balagan</option>
         <option value="Balanni">Balanni</option>
         <option value="Cabayo">Cabayo</option>
@@ -377,7 +376,6 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
         <option value="Mabitbitnong">Mabitbitnong</option>
         <option value="Masical">Masical</option>
         <option value="Matalao">Matalao</option>
-        <option value="Minanga">Minanga</option>
         <option value="Nag-uma">Nag-uma</option>
         <option value="Namuccayan">Namuccayan</option>
         <option value="Niug Norte">Niug Norte</option>
@@ -389,7 +387,6 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
         <option value="Santa Felicitas">Santa Felicitas</option>
         <option value="Santa Maria">Santa Maria</option>
         <option value="Sidiran">Sidiran</option>
-        <option value="Sto. Niño">Sto. Niño</option>
         <option value="Tabang">Tabang</option>
         <option value="Tamucco">Tamucco</option>
         <option value="Virginia">Virginia</option>
@@ -589,7 +586,6 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
                 <option value="">— Select Barangay —</option>
                 <option value="Abariongan Ruar">Abariongan Ruar</option>
                 <option value="Abariongan Uneg">Abariongan Uneg</option>
-                <option value="Abarriongan">Abarriongan</option>
                 <option value="Balagan">Balagan</option>
                 <option value="Balanni">Balanni</option>
                 <option value="Cabayo">Cabayo</option>
@@ -605,7 +601,6 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
                 <option value="Mabitbitnong">Mabitbitnong</option>
                 <option value="Masical">Masical</option>
                 <option value="Matalao">Matalao</option>
-                <option value="Minanga">Minanga</option>
                 <option value="Nag-uma">Nag-uma</option>
                 <option value="Namuccayan">Namuccayan</option>
                 <option value="Niug Norte">Niug Norte</option>
@@ -617,7 +612,6 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
                 <option value="Santa Felicitas">Santa Felicitas</option>
                 <option value="Santa Maria">Santa Maria</option>
                 <option value="Sidiran">Sidiran</option>
-                <option value="Sto. Niño">Sto. Niño</option>
                 <option value="Tabang">Tabang</option>
                 <option value="Tamucco">Tamucco</option>
                 <option value="Virginia">Virginia</option>
