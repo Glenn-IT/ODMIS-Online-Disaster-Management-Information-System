@@ -222,7 +222,8 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
             </div>
             <div class="col-md-6">
               <label class="form-label fw-semibold">Contact Number</label>
-              <input type="text" class="form-control" id="editContact" placeholder="09XXXXXXXXX" />
+              <input type="tel" class="form-control" id="editContact" placeholder="09XXXXXXXXX" maxlength="11" inputmode="numeric" pattern="^09\d{9}$" oninput="this.value = this.value.replace(/\D/g, '').slice(0, 11)" />
+              <div class="form-text">Format: 11 digits starting with 09 (e.g., 09171234567)</div>
             </div>
             <div class="col-md-6">
               <label class="form-label fw-semibold">Date of Birth</label>
@@ -391,10 +392,17 @@ document.addEventListener('DOMContentLoaded', async function () {
     form.classList.add('was-validated');
     if (!form.checkValidity()) return;
 
+    const contactVal = document.getElementById('editContact').value.trim();
+    if (contactVal !== '' && !/^09\d{9}$/.test(contactVal)) {
+      showToast('Contact number must be an 11-digit number in format 09XXXXXXXXX.', 'warning');
+      document.getElementById('editContact').focus();
+      return;
+    }
+
     const updates = {
       full_name      : document.getElementById('editFullName').value.trim(),
       email          : document.getElementById('editEmail').value.trim(),
-      contact_number : document.getElementById('editContact').value.trim(),
+      contact_number : contactVal,
       date_of_birth  : document.getElementById('editDob').value,
       address        : document.getElementById('editAddress').value.trim()
     };

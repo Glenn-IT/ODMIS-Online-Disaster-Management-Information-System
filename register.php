@@ -242,9 +242,11 @@
               <div class="input-group">
                 <span class="input-group-text"><i class="fas fa-phone"></i></span>
                 <input type="tel" class="form-control" id="regContact"
-                       placeholder="09XXXXXXXXX" maxlength="11" required>
+                       placeholder="09XXXXXXXXX" maxlength="11" inputmode="numeric"
+                       pattern="^09\d{9}$"
+                       oninput="this.value = this.value.replace(/\D/g, '').slice(0, 11)" required>
               </div>
-              <div class="invalid-feedback" id="errContact"></div>
+              <div class="invalid-feedback" id="errContact">Contact number must be an 11-digit PH mobile number starting with 09.</div>
             </div>
             <div class="col-md-6">
               <label for="regDob" class="form-label">Date of Birth <span class="text-danger">*</span></label>
@@ -458,7 +460,7 @@
       if (!email) { setError('regEmail','errEmail','Email address is required.'); valid = false; }
       else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setError('regEmail','errEmail','Please enter a valid email address.'); valid = false; }
       if (!contact) { setError('regContact','errContact','Contact number is required.'); valid = false; }
-      else if (!/^09\d{9}$/.test(contact)) { setError('regContact','errContact','Enter a valid PH mobile number (09XXXXXXXXX).'); valid = false; }
+      else if (!/^09\d{9}$/.test(contact)) { setError('regContact','errContact','Contact number must be an 11-digit PH mobile number starting with 09 (e.g. 09XXXXXXXXX).'); valid = false; }
       if (!dob) { setError('regDob','errDob','Date of birth is required.'); valid = false; }
       if (!address) { setError('regAddress','errAddress','Address is required.'); valid = false; }
       if (!password) { setError('regPassword','errPassword','Password is required.'); valid = false; }

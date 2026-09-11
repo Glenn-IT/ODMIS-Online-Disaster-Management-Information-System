@@ -635,7 +635,8 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
             <!-- Contact Number -->
             <div class="col-md-6">
               <label class="form-label fw-semibold" for="fContactNumber">Contact Number</label>
-              <input type="text" class="form-control" id="fContactNumber" placeholder="e.g. 09171234567" />
+              <input type="tel" class="form-control" id="fContactNumber" placeholder="e.g. 09171234567" maxlength="11" inputmode="numeric" pattern="^09\d{9}$" oninput="this.value = this.value.replace(/\D/g, '').slice(0, 11)" />
+              <div class="form-text">Format: 11 digits starting with 09 (e.g., 09171234567)</div>
             </div>
           </div>
         </form>
@@ -1134,6 +1135,13 @@ async function saveCenter() {
     finalStatus = 'Closed';
   }
 
+  const contactNum = document.getElementById('fContactNumber').value.trim();
+  if (contactNum !== '' && !/^09\d{9}$/.test(contactNum)) {
+    showToast('Contact number must be an 11-digit number in format 09XXXXXXXXX.', 'danger');
+    document.getElementById('fContactNumber').focus();
+    return;
+  }
+
   const payload = {
     center_code   : document.getElementById('fCode') ? document.getElementById('fCode').value.trim() : '',
     center_name   : document.getElementById('fName').value.trim(),
@@ -1143,7 +1151,7 @@ async function saveCenter() {
     occupied_slots: occ,
     status        : finalStatus,
     contact_person: document.getElementById('fContactPerson').value.trim(),
-    contact_number: document.getElementById('fContactNumber').value.trim()
+    contact_number: contactNum
   };
 
   const btn = document.getElementById('btnSaveCenter');

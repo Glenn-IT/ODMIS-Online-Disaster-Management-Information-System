@@ -54,6 +54,9 @@ $occupied = (int) ($body['occupied_slots'] ?? 0);
 if ($capacity < 1)          error('Capacity must be greater than 0.');
 if ($occupied < 0)          error('Occupied slots cannot be negative.');
 if ($occupied > $capacity)  error('Occupied slots cannot exceed capacity.');
+if (!empty($body['contact_number']) && !preg_match('/^09\d{9}$/', trim((string)$body['contact_number']))) {
+    error('Contact number must be an 11-digit number in format 09XXXXXXXXX.');
+}
 
 // Automatically set status to Closed if occupied is equal to capacity
 $status = $body['status'] ?? 'Open';
