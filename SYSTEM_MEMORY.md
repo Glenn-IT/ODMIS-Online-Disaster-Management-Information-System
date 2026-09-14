@@ -28,6 +28,7 @@ graph TD
         API_RES[api/residents/]
         API_ANA[api/analytics/]
         API_PROF[api/profile/]
+        API_SMS[api/sms/]
     end
     
     subgraph Client ["Client Layer (assets/js/)"]
@@ -43,6 +44,7 @@ graph TD
         ADM_REL[relief.php]
         ADM_RES[residents.php]
         ADM_ANN[announcements.php]
+        ADM_SMS[sms.php]
         ADM_UREP[resident-reports.php]
         ADM_REP[reports.php]
         ADM_SET[settings.php]
@@ -228,6 +230,32 @@ graph TD
 > - DB: `database/migrations/001_create_tables.sql`, `002_add_user_reports_incident_fields.sql`
 > - API: `api/user-reports/index.php`, `show.php`, `store.php`, `update.php`, `update-status.php`, `api/uploads/serve.php`
 > - UI: `user/report-incident.php`, `user/dashboard.php` (`statMyReports`), `admin/resident-reports.php`
+
+---
+
+### 2.8 Entity: `sms_logs` (SMS Broadcast & Notifications)
+
+| Attribute | DB Column (`sms_logs`) | API JSON Key | Admin UI Reference (`admin/sms.php`) | Notes / Rules |
+| :--- | :--- | :--- | :--- | :--- |
+| **ID** | `id` (INT PK) | `id` | Table row key, details trigger | Primary key |
+| **Recipient** | `recipient_phone` (VARCHAR 20)| `recipient_phone` | Recipient phone column | Formatted `09XXXXXXXXX` |
+| **Resident ID**| `recipient_user_id` (INT FK)| `recipient_user_id`| Joined `users.full_name` display | Optional FK to `users.id` |
+| **Barangay** | `barangay` (VARCHAR 100) | `barangay` | Barangay filter & column badge | One of 31 official barangays |
+| **Message** | `message` (TEXT) | `message` | Message preview & modal details | Up to 160 chars / segment |
+| **Status** | `status` (ENUM) | `status` | Badge (`Sent`, `Failed`, `Simulated`)| ENUM: `'Sent'`,`'Failed'`,`'Simulated'` |
+| **Provider** | `provider` (VARCHAR 50) | `provider` | PhilSMS or Mock indicator | Default: `PhilSMS` |
+| **Ref ID** | `provider_message_id` (VARCHAR 100)| `provider_message_id`| Reference / UID column | PhilSMS returned message UID |
+| **Error** | `error_message` (TEXT) | `error_message` | Error popup/tooltip in modal | Detailed API error if failed |
+| **Sent By** | `sent_by` (INT FK) | `sent_by_name` | Joined `users.full_name` (Admin) | Officer who initiated dispatch |
+| **Timestamp**| `created_at` (DATETIME) | `created_at` | Formatted dispatch date & time | `NOW()` |
+
+> **Connected Files for `sms_logs`:**
+> - DB: `database/migrations/004_create_sms_logs_table.sql`
+> - Config: `config/env.php`, `config/env.example.php` (`PHILSMS_API_URL`, `PHILSMS_API_TOKEN`, `PHILSMS_SENDER_ID`, `SMS_PROVIDER`)
+> - Helpers: `api/helpers/sms.php` (`sms_send()`, `sms_broadcast()`, `sms_get_balance()`)
+> - API: `api/sms/send.php`, `api/sms/broadcast.php`, `api/sms/history.php`, `api/sms/balance.php`, `api/alerts/store.php` (optional trigger), `api/user-reports/update-status.php` (optional trigger)
+> - UI: `admin/sms.php`, all `admin/*.php` sidebars
+> - Docs: `docs/philsms-api-reference.md`
 
 ---
 

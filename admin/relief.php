@@ -188,6 +188,12 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
         </a>
       </li>
       <li class="sidebar-nav-item">
+        <a href="sms.php" class="sidebar-nav-link" data-page="sms">
+          <i class="fas fa-sms nav-icon"></i>
+          <span class="nav-label">SMS Broadcast</span>
+        </a>
+      </li>
+      <li class="sidebar-nav-item">
         <a href="reports.php" class="sidebar-nav-link" data-page="reports">
           <i class="fas fa-chart-bar nav-icon"></i>
           <span class="nav-label">Reports</span>

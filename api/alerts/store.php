@@ -33,10 +33,45 @@ try {
         $body['expires_at'] ?? null,
     ]);
 
+    $newId = (int) $pdo->lastInsertId();
     $new = $pdo->prepare('SELECT * FROM disaster_alerts WHERE id = ? LIMIT 1');
-    $new->execute([(int) $pdo->lastInsertId()]);
+    $new->execute([$newId]);
+    $alertRecord = $new->fetch();
 
-    success($new->fetch(), 'Alert issued.', 201);
+    // Optional SMS Broadcast to affected residents
+    if (!empty($body['broadcast_sms'])) {
+        try {
+            require_once __DIR__ . '/../../api/helpers/sms.php';
+            $affected = trim((string)($body['affected_areas'] ?? ''));
+            $alertMsg = "[ODMIS ALERT] " . strtoupper($body['severity']) . " - " . $body['alert_type'] . ": " . $body['title'] . ". Please stay alert and follow safety guidelines.";
+
+            $recipSql = "SELECT id, contact_number, address FROM users WHERE role = 'user' AND status = 'active' AND contact_number IS NOT NULL AND contact_number != ''";
+            $recipParams = [];
+            if (!empty($affected)) {
+                $areas = array_filter(array_map('trim', explode(',', $affected)));
+                if (!empty($areas)) {
+                    $clauses = [];
+                    foreach ($areas as $a) {
+                        $clauses[] = "address LIKE ?";
+                        $recipParams[] = '%' . $a . '%';
+                    }
+                    $recipSql .= " AND (" . implode(' OR ', $clauses) . ")";
+                }
+            }
+            $rStmt = $pdo->prepare($recipSql);
+            $rStmt->execute($recipParams);
+            $recips = $rStmt->fetchAll(PDO::FETCH_ASSOC);
+
+            if (!empty($recips)) {
+                $smsSummary = sms_broadcast($recips, $alertMsg, (int)$token_user->sub, $affected ?: null);
+                $alertRecord['sms_broadcast'] = $smsSummary;
+            }
+        } catch (Throwable $smsEx) {
+            error_log('SMS Broadcast Error: ' . $smsEx->getMessage());
+        }
+    }
+
+    success($alertRecord, 'Alert issued.', 201);
 } catch (PDOException $e) {
     error('Database error.', 500);
 }

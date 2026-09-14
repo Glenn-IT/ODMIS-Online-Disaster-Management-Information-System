@@ -15,3 +15,10 @@ define('UPLOAD_ALLOWED_TYPES', ['image/jpeg', 'image/png', 'image/webp']);
 define('APP_ENV', 'development');   // 'development' | 'production'
 define('APP_NAME', 'ODMIS');
 define('APP_URL', 'http://localhost/ODMIS-Online-Disaster-Management-Information-System');
+
+// SMS Gateway Configuration (PhilSMS API v3)
+define('SMS_ENABLED', false);
+define('SMS_PROVIDER', 'philsms'); // 'philsms' | 'mock'
+define('PHILSMS_API_URL', 'https://dashboard.philsms.com/api/v3');
+define('PHILSMS_API_TOKEN', 'your_philsms_api_token_here');
+define('PHILSMS_SENDER_ID', 'PhilSMS');

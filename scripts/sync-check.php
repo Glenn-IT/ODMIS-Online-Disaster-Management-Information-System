@@ -56,7 +56,7 @@ if (!file_exists("$rootDir/config/env.php")) {
 }
 
 // ── 2. Table Schema Verification ──────────────────────────────
-echo "\n2. Verifying Table Schemas (7 Required Tables):\n";
+echo "\n2. Verifying Table Schemas (8 Required Tables):\n";
 
 $expectedTables = [
     'users' => ['id', 'username', 'email', 'password_hash', 'role', 'full_name', 'contact_number', 'status'],
@@ -65,7 +65,8 @@ $expectedTables = [
     'relief_operations' => ['id', 'batch_number', 'operation_date', 'barangay', 'relief_type', 'quantity', 'status'],
     'announcements' => ['id', 'title', 'body', 'category', 'published_at', 'is_active'],
     'disaster_alerts' => ['id', 'alert_type', 'title', 'severity', 'status', 'issued_at'],
-    'user_reports' => ['id', 'user_id', 'incident_type', 'title', 'description', 'location', 'barangay', 'report_date', 'status']
+    'user_reports' => ['id', 'user_id', 'incident_type', 'title', 'description', 'location', 'barangay', 'report_date', 'status'],
+    'sms_logs' => ['id', 'recipient_phone', 'message', 'status', 'provider', 'created_at']
 ];
 
 foreach ($expectedTables as $table => $requiredCols) {

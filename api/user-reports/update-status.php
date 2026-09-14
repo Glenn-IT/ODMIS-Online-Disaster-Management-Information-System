@@ -25,7 +25,25 @@ try {
     $updated = $pdo->prepare('SELECT * FROM user_reports WHERE id = ? LIMIT 1');
     $updated->execute([$id]);
 
-    success($updated->fetch(), "Report marked as {$status}.");
+    $reportData = $updated->fetch();
+
+    if (!empty($body['notify_resident'])) {
+        try {
+            require_once __DIR__ . '/../../api/helpers/sms.php';
+            $uStmt = $pdo->prepare('SELECT contact_number, full_name, address FROM users WHERE id = ? LIMIT 1');
+            $uStmt->execute([(int)$reportData['user_id']]);
+            $resident = $uStmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($resident && !empty($resident['contact_number'])) {
+                $statusMsg = "Hello " . ($resident['full_name'] ?? 'Resident') . ", your incident report (#" . $id . " - " . $reportData['incident_type'] . ") has been marked as " . $status . " by MDRRMO Santo Niño.";
+                sms_send($resident['contact_number'], $statusMsg, (int)$reportData['user_id'], (int)$token_user->sub, $reportData['barangay'] ?? null);
+            }
+        } catch (Throwable $smsEx) {
+            error_log('Resident Report SMS Notification Error: ' . $smsEx->getMessage());
+        }
+    }
+
+    success($reportData, "Report marked as {$status}.");
 } catch (PDOException $e) {
     error('Database error.', 500);
 }
