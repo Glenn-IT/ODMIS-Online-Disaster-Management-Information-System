@@ -170,9 +170,7 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
 ══════════════════════════════════════════════════════════ -->
 <div id="sidebar">
   <div class="sidebar-logo-area">
-    <div class="sidebar-logo-placeholder">
-      <i class="fas fa-shield-alt"></i>
-    </div>
+    <img src="../img/odmis_logo.jpg" alt="ODMIS Logo" class="sidebar-logo-img">
     <div class="sidebar-brand-text">
       <span class="brand-title">ODMIS</span>
       <span class="brand-subtitle">Disaster Management</span>

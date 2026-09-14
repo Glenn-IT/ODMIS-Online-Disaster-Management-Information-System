@@ -78,15 +78,24 @@
     }
 
     .logo-icon {
-      width: 70px;
-      height: 70px;
+      width: 76px;
+      height: 76px;
       background: rgba(255,255,255,.12);
-      border: 2px solid rgba(255,255,255,.25);
+      border: 2px solid rgba(255,255,255,.35);
       border-radius: 50%;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       margin-bottom: .75rem;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+    }
+    .logo-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+      display: block;
     }
     .logo-icon i {
       font-size: 2rem;
@@ -246,7 +255,7 @@
       <!-- Header -->
       <div class="login-header">
         <div class="logo-icon">
-          <i class="fas fa-shield-halved"></i>
+          <img src="img/odmis_logo.jpg" alt="ODMIS Logo">
         </div>
         <h1>ODMIS</h1>
         <p class="subtitle">Online Disaster Management Information System</p>

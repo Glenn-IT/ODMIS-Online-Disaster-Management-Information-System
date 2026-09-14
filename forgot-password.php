@@ -69,14 +69,23 @@
       background: linear-gradient(90deg, #FFBF00, #FFF78D);
     }
     .logo-icon {
-      width: 60px; height: 60px;
+      width: 64px; height: 64px;
       background: rgba(255,255,255,.12);
-      border: 2px solid rgba(255,255,255,.25);
+      border: 2px solid rgba(255,255,255,.35);
       border-radius: 50%;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       margin-bottom: .6rem;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+    }
+    .logo-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+      display: block;
     }
     .logo-icon i { font-size: 1.6rem; color: #fff; }
     .fp-header h1 { color: #fff; font-size: 1.6rem; font-weight: 800; letter-spacing: 3px; margin: 0 0 .15rem; }
@@ -249,7 +258,7 @@
 
       <!-- Header -->
       <div class="fp-header">
-        <div class="logo-icon"><i class="fas fa-shield-halved"></i></div>
+        <div class="logo-icon"><img src="img/odmis_logo.jpg" alt="ODMIS Logo"></div>
         <h1>ODMIS</h1>
         <p class="subtitle">Online Disaster Management Information System</p>
         <span class="gov-label"><i class="fas fa-key me-1"></i>Password Recovery</span>
