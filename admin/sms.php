@@ -275,12 +275,11 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
     <form id="smsBroadcastForm" novalidate>
       <div class="row g-3">
         <!-- Target Selector -->
-        <div class="col-12 col-md-4">
+        <div class="col-12 col-md-6" id="targetWrapper">
           <label class="form-label fw-bold small text-muted">TARGET AUDIENCE</label>
           <select class="form-select" id="broadcastTarget" onchange="handleTargetChange()">
             <option value="all" selected>All Registered Residents (MDRRMO All)</option>
             <option value="barangay">Specific Barangay Residents</option>
-            <option value="custom">Single Number / Direct SMS</option>
           </select>
           <div class="form-text small" id="targetHelpText">Broadcasts to all registered residents in Santo Niño.</div>
         </div>
@@ -293,14 +292,8 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
           </select>
         </div>
 
-        <!-- Single Phone Input (Conditional) -->
-        <div class="col-12 col-md-4" id="customPhoneWrapper" style="display:none;">
-          <label class="form-label fw-bold small text-muted">MOBILE NUMBER (09XXXXXXXXX)</label>
-          <input type="text" class="form-control" id="customPhone" placeholder="09171234567" maxlength="13" />
-        </div>
-
         <!-- Template Selector -->
-        <div class="col-12 col-md-4" id="templateWrapper">
+        <div class="col-12 col-md-6" id="templateWrapper">
           <label class="form-label fw-bold small text-muted">QUICK DRRM TEMPLATES</label>
           <select class="form-select" id="templateSelect" onchange="applyTemplate()">
             <option value="">-- Choose Pre-defined Template --</option>
@@ -634,11 +627,6 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
     const barangay = document.getElementById('broadcastBarangay').value;
     const previewEl = document.getElementById('recipientCountPreview');
 
-    if (target === 'custom') {
-      previewEl.textContent = '1 Recipient (Direct)';
-      return;
-    }
-
     try {
       let path = '/sms/broadcast.php?preview_count=1&target=' + encodeURIComponent(target);
       if (target === 'barangay' && barangay) {
@@ -655,21 +643,20 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
   function handleTargetChange() {
     const target = document.getElementById('broadcastTarget').value;
     const bWrapper = document.getElementById('barangayWrapper');
-    const cWrapper = document.getElementById('customPhoneWrapper');
+    const tWrapper = document.getElementById('targetWrapper');
+    const tmplWrapper = document.getElementById('templateWrapper');
     const helpText = document.getElementById('targetHelpText');
 
     if (target === 'all') {
       bWrapper.style.display = 'none';
-      cWrapper.style.display = 'none';
+      if (tWrapper) tWrapper.className = 'col-12 col-md-6';
+      if (tmplWrapper) tmplWrapper.className = 'col-12 col-md-6';
       helpText.textContent = 'Broadcasts to all registered residents in Santo Niño.';
     } else if (target === 'barangay') {
       bWrapper.style.display = 'block';
-      cWrapper.style.display = 'none';
+      if (tWrapper) tWrapper.className = 'col-12 col-md-4';
+      if (tmplWrapper) tmplWrapper.className = 'col-12 col-md-4';
       helpText.textContent = 'Filter by resident address in the selected barangay.';
-    } else if (target === 'custom') {
-      bWrapper.style.display = 'none';
-      cWrapper.style.display = 'block';
-      helpText.textContent = 'Send directly to any single 11-digit mobile number.';
     }
     updateRecipientPreview();
   }
@@ -713,20 +700,14 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
 
     const target = document.getElementById('broadcastTarget').value;
     const barangay = document.getElementById('broadcastBarangay').value;
-    const phone = document.getElementById('customPhone').value.trim();
 
     if (target === 'barangay' && !barangay) {
       showToast('Please select a target barangay.', 'error');
       return;
     }
-    if (target === 'custom' && !phone) {
-      showToast('Please enter a valid mobile number.', 'error');
-      return;
-    }
 
     let targetDesc = 'All Registered Residents';
     if (target === 'barangay') targetDesc = 'Residents in ' + barangay;
-    if (target === 'custom') targetDesc = 'Direct to ' + phone;
 
     document.getElementById('confirmTargetText').textContent = targetDesc;
     document.getElementById('confirmCountText').textContent = document.getElementById('recipientCountPreview').textContent;
@@ -762,7 +743,6 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
 
     const target = document.getElementById('broadcastTarget').value;
     const barangay = document.getElementById('broadcastBarangay').value;
-    const customPhone = document.getElementById('customPhone').value.trim();
     const message = document.getElementById('smsMessage').value.trim();
 
     // 1. Hide confirmation modal and display full-screen blocking overlay
@@ -770,24 +750,15 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
 
     let targetDesc = 'all registered residents';
     if (target === 'barangay') targetDesc = 'residents in ' + barangay;
-    if (target === 'custom') targetDesc = customPhone;
 
     showLoadingScreen(`Transmitting SMS to ${targetDesc}... Please wait.`);
 
     try {
-      let res;
-      if (target === 'custom') {
-        res = await ApiClient.post('/sms/send.php', {
-          recipient: customPhone,
-          message: message
-        });
-      } else {
-        res = await ApiClient.post('/sms/broadcast.php', {
-          target: target,
-          barangay: barangay,
-          message: message
-        });
-      }
+      const res = await ApiClient.post('/sms/broadcast.php', {
+        target: target,
+        barangay: barangay,
+        message: message
+      });
 
       showToast(res.message || 'SMS broadcast completed successfully!', 'success');
       resetComposer();
