@@ -413,9 +413,42 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
 </main>
 
 <!-- ═══════════════════════════════════════════════════
+     DISPATCH LOADING SCREEN OVERLAY (PAGE FREEZE)
+═══════════════════════════════════════════════════ -->
+<div id="smsLoadingOverlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(15, 23, 42, 0.85); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); z-index:99999; flex-direction:column; align-items:center; justify-content:center; padding:1.5rem;">
+  <div style="background:#fff; color:#1e293b; border-radius:18px; padding:2.5rem 2rem; max-width:480px; width:92%; box-shadow:0 25px 50px -12px rgba(0,0,0,0.45); text-align:center;">
+    
+    <!-- Animated Transmission Icon -->
+    <div style="width:84px; height:84px; border-radius:50%; background:#e8f5e9; color:#2e7d32; display:flex; align-items:center; justify-content:center; margin:0 auto 1.5rem auto; font-size:2.4rem; position:relative;">
+      <i class="fas fa-tower-broadcast fa-fade"></i>
+      <span class="spinner-grow spinner-grow-sm position-absolute top-0 end-0 text-success" style="width:1.3rem; height:1.3rem;"></span>
+    </div>
+
+    <h4 style="font-weight:800; color:#1e293b; margin-bottom:0.4rem;">Dispatching SMS Broadcast</h4>
+    <p class="text-muted small mb-3" id="loadingOverlayStatus">Transmitting emergency advisory via PhilSMS Gateway...</p>
+
+    <!-- Animated Progress Bar -->
+    <div class="progress mb-3" style="height:7px; background:#e2e8f0; border-radius:4px; overflow:hidden;">
+      <div class="progress-bar progress-bar-striped progress-bar-animated bg-success" style="width:100%;"></div>
+    </div>
+
+    <!-- Critical Freeze Warning -->
+    <div class="alert alert-warning py-2 px-3 mb-0 text-start border-warning" style="font-size:0.82rem; border-radius:8px;">
+      <div class="d-flex align-items-start gap-2">
+        <i class="fas fa-triangle-exclamation text-warning fs-6 mt-1 flex-shrink-0"></i>
+        <div>
+          <strong>Please DO NOT refresh, navigate back, or close this page.</strong>
+          <div class="text-muted mt-1" style="font-size:0.75rem;">Messages are being delivered to residents' phones. The screen will automatically close when transmission is verified.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
      CONFIRMATION BROADCAST MODAL
 ═══════════════════════════════════════════════════ -->
-<div class="modal fade" id="confirmBroadcastModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="confirmBroadcastModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content border-0 shadow">
       <div class="modal-header bg-warning text-dark">
@@ -702,15 +735,44 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
     confirmModal.show();
   }
 
+  function preventUnload(e) {
+    e.preventDefault();
+    e.returnValue = 'An SMS broadcast is currently in progress. If you leave or reload, transmission may be incomplete.';
+    return e.returnValue;
+  }
+
+  function showLoadingScreen(statusText) {
+    const overlay = document.getElementById('smsLoadingOverlay');
+    if (statusText) {
+      document.getElementById('loadingOverlayStatus').textContent = statusText;
+    }
+    overlay.style.display = 'flex';
+    window.addEventListener('beforeunload', preventUnload);
+  }
+
+  function hideLoadingScreen() {
+    const overlay = document.getElementById('smsLoadingOverlay');
+    overlay.style.display = 'none';
+    window.removeEventListener('beforeunload', preventUnload);
+  }
+
   async function executeBroadcast() {
     const btn = document.getElementById('btnConfirmSend');
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Dispatching...';
 
     const target = document.getElementById('broadcastTarget').value;
     const barangay = document.getElementById('broadcastBarangay').value;
     const customPhone = document.getElementById('customPhone').value.trim();
     const message = document.getElementById('smsMessage').value.trim();
+
+    // 1. Hide confirmation modal and display full-screen blocking overlay
+    confirmModal.hide();
+
+    let targetDesc = 'all registered residents';
+    if (target === 'barangay') targetDesc = 'residents in ' + barangay;
+    if (target === 'custom') targetDesc = customPhone;
+
+    showLoadingScreen(`Transmitting SMS to ${targetDesc}... Please wait.`);
 
     try {
       let res;
@@ -727,7 +789,6 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
         });
       }
 
-      confirmModal.hide();
       showToast(res.message || 'SMS broadcast completed successfully!', 'success');
       resetComposer();
       await loadBalance();
@@ -735,6 +796,7 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
     } catch (err) {
       showToast(err.message || 'Failed to dispatch SMS broadcast.', 'error');
     } finally {
+      hideLoadingScreen();
       btn.disabled = false;
       btn.innerHTML = '<i class="fas fa-paper-plane me-1"></i> Yes, Dispatch SMS';
     }
