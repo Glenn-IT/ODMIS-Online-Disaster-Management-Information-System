@@ -29,8 +29,28 @@ $full_name       = sanitize($body['full_name']);
 $contact_number  = sanitize($body['contact_number']);
 $date_of_birth   = sanitize($body['date_of_birth'] ?? '');
 $address         = sanitize($body['address'] ?? '');
+$barangay        = sanitize($body['barangay'] ?? '');
+$purok           = sanitize($body['purok'] ?? '');
 $security_q      = sanitize($body['security_question']);
 $security_ans    = $body['security_answer'];
+
+// ── 31 Official Barangays of Sto. Niño ────────────────────────
+$official_barangays = [
+    'Abariongan Ruar', 'Abariongan Uneg', 'Balagan', 'Balanni', 'Cabayo',
+    'Calapangan', 'Calassitan', 'Campo', 'Centro Norte', 'Centro Sur',
+    'Dungao', 'Lattac', 'Lipatan', 'Lubo', 'Mabitbitnong',
+    'Masical', 'Matalao', 'Nag-uma', 'Namuccayan', 'Niug Norte',
+    'Niug Sur', 'Palusao', 'Poblacion', 'San Manuel', 'San Roque',
+    'Santa Felicitas', 'Santa Maria', 'Sidiran', 'Tabang', 'Tamucco', 'Virginia'
+];
+
+if (!empty($barangay)) {
+    if (!in_array($barangay, $official_barangays, true)) {
+        $errors['barangay'] = 'Please select a valid Barangay in Santo Niño.';
+    } else {
+        $address = ($purok ? $purok . ', ' : '') . $barangay . ', Santo Niño (Faire), Cagayan';
+    }
+}
 
 // ── Validation ────────────────────────────────────────────────
 $errors = [];
@@ -46,6 +66,9 @@ if (strlen($password) < 6) {
 }
 if (!preg_match('/^09\d{9}$/', $contact_number)) {
     $errors['contact_number'] = 'Contact number must be in format 09XXXXXXXXX.';
+}
+if (!empty($barangay) && !in_array($barangay, $official_barangays, true)) {
+    $errors['barangay'] = 'Please select a valid Barangay in Santo Niño.';
 }
 if ($errors) {
     error('Validation failed.', 422, $errors);

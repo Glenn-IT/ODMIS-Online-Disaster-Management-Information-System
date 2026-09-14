@@ -296,9 +296,66 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
               <label class="form-label fw-semibold">Date of Birth</label>
               <input type="date" class="form-control" id="editDob" />
             </div>
-            <div class="col-12">
-              <label class="form-label fw-semibold">Address</label>
-              <textarea class="form-control" id="editAddress" rows="2" placeholder="House/Lot, Street, Barangay, Municipality"></textarea>
+            <div class="col-md-7">
+              <label class="form-label fw-semibold">Barangay <span class="text-danger">*</span></label>
+              <select class="form-select" id="editBarangay" required>
+                <option value="">-- Select Barangay --</option>
+                <option value="Abariongan Ruar">Abariongan Ruar</option>
+                <option value="Abariongan Uneg">Abariongan Uneg</option>
+                <option value="Balagan">Balagan</option>
+                <option value="Balanni">Balanni</option>
+                <option value="Cabayo">Cabayo</option>
+                <option value="Calapangan">Calapangan</option>
+                <option value="Calassitan">Calassitan</option>
+                <option value="Campo">Campo</option>
+                <option value="Centro Norte">Centro Norte</option>
+                <option value="Centro Sur">Centro Sur</option>
+                <option value="Dungao">Dungao</option>
+                <option value="Lattac">Lattac</option>
+                <option value="Lipatan">Lipatan</option>
+                <option value="Lubo">Lubo</option>
+                <option value="Mabitbitnong">Mabitbitnong</option>
+                <option value="Masical">Masical</option>
+                <option value="Matalao">Matalao</option>
+                <option value="Nag-uma">Nag-uma</option>
+                <option value="Namuccayan">Namuccayan</option>
+                <option value="Niug Norte">Niug Norte</option>
+                <option value="Niug Sur">Niug Sur</option>
+                <option value="Palusao">Palusao</option>
+                <option value="Poblacion">Poblacion</option>
+                <option value="San Manuel">San Manuel</option>
+                <option value="San Roque">San Roque</option>
+                <option value="Santa Felicitas">Santa Felicitas</option>
+                <option value="Santa Maria">Santa Maria</option>
+                <option value="Sidiran">Sidiran</option>
+                <option value="Tabang">Tabang</option>
+                <option value="Tamucco">Tamucco</option>
+                <option value="Virginia">Virginia</option>
+              </select>
+              <div class="invalid-feedback">Please select a barangay.</div>
+            </div>
+            <div class="col-md-5">
+              <label class="form-label fw-semibold">Purok / Zone</label>
+              <select class="form-select" id="editPurok">
+                <option value="">-- Select Purok --</option>
+                <option value="Purok 1">Purok 1</option>
+                <option value="Purok 2">Purok 2</option>
+                <option value="Purok 3">Purok 3</option>
+                <option value="Purok 4">Purok 4</option>
+                <option value="Purok 5">Purok 5</option>
+                <option value="Purok 6">Purok 6</option>
+                <option value="Purok 7">Purok 7</option>
+                <option value="Zone 1">Zone 1</option>
+                <option value="Zone 2">Zone 2</option>
+                <option value="Zone 3">Zone 3</option>
+                <option value="Zone 4">Zone 4</option>
+                <option value="Zone 5">Zone 5</option>
+                <option value="Other">Other / Specific Area</option>
+              </select>
+            </div>
+            <div class="col-12" id="editCustomPurokWrap" style="display:none;">
+              <label class="form-label fw-semibold">Sitio / Street / Area Details</label>
+              <input type="text" class="form-control" id="editCustomPurok" placeholder="e.g. Sitio Minanga" />
             </div>
           </div>
         </form>
@@ -662,6 +719,18 @@ document.addEventListener('DOMContentLoaded', async function () {
   setupToggle('toggleNewPwd',     'newPassword');
   setupToggle('toggleConfirmPwd', 'confirmPassword');
 
+  // Toggle custom purok in edit modal
+  document.getElementById('editPurok').addEventListener('change', function() {
+    const wrap = document.getElementById('editCustomPurokWrap');
+    if (this.value === 'Other') {
+      wrap.style.display = 'block';
+      document.getElementById('editCustomPurok').focus();
+    } else {
+      wrap.style.display = 'none';
+      document.getElementById('editCustomPurok').value = '';
+    }
+  });
+
   // ── Edit Profile Modal: pre-fill ──────────────────────────
   document.getElementById('editProfileModal').addEventListener('show.bs.modal', function () {
     const u = _profileData;
@@ -670,7 +739,37 @@ document.addEventListener('DOMContentLoaded', async function () {
     document.getElementById('editEmail').value    = u.email    || '';
     document.getElementById('editContact').value  = u.contact_number || u.contactNumber || '';
     document.getElementById('editDob').value      = u.date_of_birth  || u.dateOfBirth   || '';
-    document.getElementById('editAddress').value  = u.address  || '';
+    
+    // Parse existing address
+    const rawAddr = u.address || '';
+    const bSelect = document.getElementById('editBarangay');
+    const pSelect = document.getElementById('editPurok');
+    const customP = document.getElementById('editCustomPurok');
+    const customWrap = document.getElementById('editCustomPurokWrap');
+
+    bSelect.value = '';
+    pSelect.value = '';
+    customP.value = '';
+    customWrap.style.display = 'none';
+
+    // Check barangay
+    for (let i = 0; i < bSelect.options.length; i++) {
+      const bOpt = bSelect.options[i].value;
+      if (bOpt && rawAddr.toLowerCase().includes(bOpt.toLowerCase())) {
+        bSelect.value = bOpt;
+        break;
+      }
+    }
+
+    // Check purok
+    for (let j = 0; j < pSelect.options.length; j++) {
+      const pOpt = pSelect.options[j].value;
+      if (pOpt && pOpt !== 'Other' && rawAddr.toLowerCase().includes(pOpt.toLowerCase())) {
+        pSelect.value = pOpt;
+        break;
+      }
+    }
+
     document.getElementById('editProfileForm').classList.remove('was-validated');
   });
 
@@ -687,12 +786,18 @@ document.addEventListener('DOMContentLoaded', async function () {
       return;
     }
 
+    const bVal = document.getElementById('editBarangay').value;
+    const pVal = document.getElementById('editPurok').value;
+    const customPVal = document.getElementById('editCustomPurok').value.trim();
+    const effectivePurok = (pVal === 'Other' && customPVal) ? customPVal : pVal;
+    const finalAddress = bVal ? `${effectivePurok ? effectivePurok + ', ' : ''}${bVal}, Santo Niño (Faire), Cagayan` : '';
+
     const updates = {
       full_name      : document.getElementById('editFullName').value.trim(),
       email          : document.getElementById('editEmail').value.trim(),
       contact_number : contactVal,
       date_of_birth  : document.getElementById('editDob').value,
-      address        : document.getElementById('editAddress').value.trim()
+      address        : finalAddress
     };
 
     this.disabled = true;

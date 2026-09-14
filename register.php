@@ -267,14 +267,81 @@
             </div>
           </div>
 
-          <div class="mb-3">
-            <label for="regAddress" class="form-label">Address <span class="text-danger">*</span></label>
-            <div class="input-group">
-              <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
-              <input type="text" class="form-control" id="regAddress"
-                     placeholder="Purok, Barangay, Municipality" required>
+          <div class="row g-2 mb-3">
+            <div class="col-md-7">
+              <label for="regBarangay" class="form-label">Barangay <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
+                <select class="form-select" id="regBarangay" required>
+                  <option value="">-- Select Barangay --</option>
+                  <option value="Abariongan Ruar">Abariongan Ruar</option>
+                  <option value="Abariongan Uneg">Abariongan Uneg</option>
+                  <option value="Balagan">Balagan</option>
+                  <option value="Balanni">Balanni</option>
+                  <option value="Cabayo">Cabayo</option>
+                  <option value="Calapangan">Calapangan</option>
+                  <option value="Calassitan">Calassitan</option>
+                  <option value="Campo">Campo</option>
+                  <option value="Centro Norte">Centro Norte</option>
+                  <option value="Centro Sur">Centro Sur</option>
+                  <option value="Dungao">Dungao</option>
+                  <option value="Lattac">Lattac</option>
+                  <option value="Lipatan">Lipatan</option>
+                  <option value="Lubo">Lubo</option>
+                  <option value="Mabitbitnong">Mabitbitnong</option>
+                  <option value="Masical">Masical</option>
+                  <option value="Matalao">Matalao</option>
+                  <option value="Nag-uma">Nag-uma</option>
+                  <option value="Namuccayan">Namuccayan</option>
+                  <option value="Niug Norte">Niug Norte</option>
+                  <option value="Niug Sur">Niug Sur</option>
+                  <option value="Palusao">Palusao</option>
+                  <option value="Poblacion">Poblacion</option>
+                  <option value="San Manuel">San Manuel</option>
+                  <option value="San Roque">San Roque</option>
+                  <option value="Santa Felicitas">Santa Felicitas</option>
+                  <option value="Santa Maria">Santa Maria</option>
+                  <option value="Sidiran">Sidiran</option>
+                  <option value="Tabang">Tabang</option>
+                  <option value="Tamucco">Tamucco</option>
+                  <option value="Virginia">Virginia</option>
+                </select>
+              </div>
+              <div class="invalid-feedback" id="errBarangay">Please select your barangay.</div>
             </div>
-            <div class="invalid-feedback" id="errAddress"></div>
+
+            <div class="col-md-5">
+              <label for="regPurok" class="form-label">Purok / Zone <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-home"></i></span>
+                <select class="form-select" id="regPurok" required>
+                  <option value="">-- Select Purok --</option>
+                  <option value="Purok 1">Purok 1</option>
+                  <option value="Purok 2">Purok 2</option>
+                  <option value="Purok 3">Purok 3</option>
+                  <option value="Purok 4">Purok 4</option>
+                  <option value="Purok 5">Purok 5</option>
+                  <option value="Purok 6">Purok 6</option>
+                  <option value="Purok 7">Purok 7</option>
+                  <option value="Zone 1">Zone 1</option>
+                  <option value="Zone 2">Zone 2</option>
+                  <option value="Zone 3">Zone 3</option>
+                  <option value="Zone 4">Zone 4</option>
+                  <option value="Zone 5">Zone 5</option>
+                  <option value="Other">Other / Sitio</option>
+                </select>
+              </div>
+              <div class="invalid-feedback" id="errPurok">Please select your purok.</div>
+            </div>
+          </div>
+
+          <!-- Optional custom sitio / street / area -->
+          <div class="mb-3" id="customPurokWrap" style="display:none;">
+            <label for="regCustomPurok" class="form-label">Specify Sitio / Street / Area</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="fas fa-location-arrow"></i></span>
+              <input type="text" class="form-control" id="regCustomPurok" placeholder="e.g. Sitio Minanga, Centro">
+            </div>
           </div>
 
           <!-- Password -->
@@ -440,13 +507,25 @@
       if (err)   { err.textContent = message; err.style.display = 'block'; }
     }
     function clearAllErrors() {
-      ['regFullName','regUsername','regEmail','regContact','regDob','regAddress',
+      ['regFullName','regUsername','regEmail','regContact','regDob','regBarangay','regPurok','regCustomPurok',
        'regPassword','regConfirmPassword','regSecQuestion','regSecAnswer'].forEach(function (id) {
         const el = document.getElementById(id);
         if (el) el.classList.remove('is-invalid');
       });
       document.querySelectorAll('.invalid-feedback').forEach(function (el) { el.style.display = 'none'; });
     }
+
+    // Toggle custom purok/sitio field
+    document.getElementById('regPurok').addEventListener('change', function() {
+      const customWrap = document.getElementById('customPurokWrap');
+      if (this.value === 'Other') {
+        customWrap.style.display = 'block';
+        document.getElementById('regCustomPurok').focus();
+      } else {
+        customWrap.style.display = 'none';
+        document.getElementById('regCustomPurok').value = '';
+      }
+    });
 
     // ── Validate ──────────────────────────────────────────────────
     function validate() {
@@ -457,7 +536,9 @@
       const email     = document.getElementById('regEmail').value.trim();
       const contact   = document.getElementById('regContact').value.trim();
       const dob       = document.getElementById('regDob').value;
-      const address   = document.getElementById('regAddress').value.trim();
+      const barangay  = document.getElementById('regBarangay').value;
+      const purok     = document.getElementById('regPurok').value;
+      const customP   = document.getElementById('regCustomPurok').value.trim();
       const password  = document.getElementById('regPassword').value;
       const confirmPw = document.getElementById('regConfirmPassword').value;
       const secQ      = document.getElementById('regSecQuestion').value;
@@ -471,7 +552,9 @@
       if (!contact) { setError('regContact','errContact','Contact number is required.'); valid = false; }
       else if (!/^09\d{9}$/.test(contact)) { setError('regContact','errContact','Contact number must be an 11-digit PH mobile number starting with 09 (e.g. 09XXXXXXXXX).'); valid = false; }
       if (!dob) { setError('regDob','errDob','Date of birth is required.'); valid = false; }
-      if (!address) { setError('regAddress','errAddress','Address is required.'); valid = false; }
+      if (!barangay) { setError('regBarangay','errBarangay','Please select your barangay.'); valid = false; }
+      if (!purok) { setError('regPurok','errPurok','Please select your purok / zone.'); valid = false; }
+      else if (purok === 'Other' && !customP) { setError('regCustomPurok','errPurok','Please specify your Sitio / Street / Area.'); valid = false; }
       if (!password) { setError('regPassword','errPassword','Password is required.'); valid = false; }
       else if (password.length < 6) { setError('regPassword','errPassword','Password must be at least 6 characters.'); valid = false; }
       if (!confirmPw) { setError('regConfirmPassword','errConfirmPassword','Please confirm your password.'); valid = false; }
@@ -490,6 +573,12 @@
       btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creating account…';
       btn.disabled  = true;
 
+      const selectedBarangay = document.getElementById('regBarangay').value;
+      const selectedPurok    = document.getElementById('regPurok').value;
+      const customPurokText  = document.getElementById('regCustomPurok').value.trim();
+      const effectivePurok   = (selectedPurok === 'Other' && customPurokText) ? customPurokText : selectedPurok;
+      const fullAddress      = `${effectivePurok}, ${selectedBarangay}, Santo Niño (Faire), Cagayan`;
+
       try {
         await ApiClient.post('/auth/register.php', {
           full_name        : document.getElementById('regFullName').value.trim(),
@@ -498,7 +587,9 @@
           password         : document.getElementById('regPassword').value,
           contact_number   : document.getElementById('regContact').value.trim(),
           date_of_birth    : document.getElementById('regDob').value,
-          address          : document.getElementById('regAddress').value.trim(),
+          barangay         : selectedBarangay,
+          purok            : effectivePurok,
+          address          : fullAddress,
           security_question: document.getElementById('regSecQuestion').value,
           security_answer  : document.getElementById('regSecAnswer').value.trim()
         });
@@ -509,7 +600,7 @@
         // Surface server-side field errors if present
         if (err.errors) {
           Object.entries(err.errors).forEach(function([field, msg]) {
-            const map = { username: 'errUsername', email: 'errEmail' };
+            const map = { username: 'errUsername', email: 'errEmail', barangay: 'errBarangay' };
             if (map[field]) setError('reg' + field.charAt(0).toUpperCase() + field.slice(1), map[field], msg);
           });
         }
