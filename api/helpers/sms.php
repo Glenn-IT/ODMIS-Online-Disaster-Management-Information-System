@@ -83,6 +83,8 @@ function sms_get_balance(): array {
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_TIMEOUT        => 10,
+        CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_SSL_VERIFYHOST => 0,
         CURLOPT_HTTPHEADER     => [
             'Authorization: Bearer ' . PHILSMS_API_TOKEN,
             'Accept: application/json'

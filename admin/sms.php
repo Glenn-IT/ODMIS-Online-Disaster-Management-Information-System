@@ -20,50 +20,6 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
   <link rel="stylesheet" href="../assets/css/style.css" />
 
   <style>
-    /* Stat cards */
-    .stat-card-sms {
-      background: #fff;
-      border-radius: var(--card-border-radius, 8px);
-      box-shadow: var(--card-shadow, 0 2px 10px rgba(0,0,0,0.05));
-      padding: 1.25rem 1.5rem;
-      display: flex;
-      align-items: center;
-      gap: 1.25rem;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    .stat-card-sms:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    }
-    .stat-icon-wrap {
-      width: 50px;
-      height: 50px;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.35rem;
-      flex-shrink: 0;
-    }
-    .stat-icon-green  { background: #e8f5e9; color: #2e7d32; }
-    .stat-icon-blue   { background: #e3f2fd; color: #1565c0; }
-    .stat-icon-gold   { background: #fff8e1; color: #f57f17; }
-    .stat-icon-purple { background: #f3e5f5; color: #7b1fa2; }
-    .stat-title {
-      font-size: 0.78rem;
-      font-weight: 700;
-      color: var(--color-gray, #6c757d);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 0.2rem;
-    }
-    .stat-value {
-      font-size: 1.45rem;
-      font-weight: 800;
-      color: var(--color-dark, #212529);
-      line-height: 1.2;
-    }
-
     /* Composer card */
     .composer-card {
       background: #fff;
@@ -306,66 +262,14 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
 ═══════════════════════════════════════════════════ -->
 <main id="mainContent">
 
-  <!-- ── 1. Stat Summary Cards ── -->
-  <div class="row g-3 mb-4">
-    <div class="col-12 col-md-6 col-xl-3">
-      <div class="stat-card-sms">
-        <div class="stat-icon-wrap stat-icon-green">
-          <i class="fas fa-wallet"></i>
-        </div>
-        <div>
-          <div class="stat-title">Remaining Balance</div>
-          <div class="stat-value" id="statBalance">Loading...</div>
-          <small class="text-muted" id="statProviderBadge">PhilSMS v3</small>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-12 col-md-6 col-xl-3">
-      <div class="stat-card-sms">
-        <div class="stat-icon-wrap stat-icon-blue">
-          <i class="fas fa-address-book"></i>
-        </div>
-        <div>
-          <div class="stat-title">Eligible Residents</div>
-          <div class="stat-value" id="statEligibleRecipients">--</div>
-          <small class="text-muted">Registered with mobile #</small>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-12 col-md-6 col-xl-3">
-      <div class="stat-card-sms">
-        <div class="stat-icon-wrap stat-icon-gold">
-          <i class="fas fa-paper-plane"></i>
-        </div>
-        <div>
-          <div class="stat-title">Total Dispatched</div>
-          <div class="stat-value" id="statTotalSent">--</div>
-          <small class="text-muted">Broadcast & Direct logs</small>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-12 col-md-6 col-xl-3">
-      <div class="stat-card-sms">
-        <div class="stat-icon-wrap stat-icon-purple">
-          <i class="fas fa-check-double"></i>
-        </div>
-        <div>
-          <div class="stat-title">System Status</div>
-          <div class="stat-value text-success" id="statStatus">Active</div>
-          <small class="text-muted">Gateway Ready</small>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── 2. SMS Broadcast Composer ── -->
+  <!-- ── SMS Broadcast Composer ── -->
   <div class="composer-card">
     <div class="composer-header">
       <h2 class="composer-title"><i class="fas fa-bullhorn text-warning"></i> Send Emergency DRRM SMS Broadcast</h2>
-      <button class="btn btn-sm btn-outline-secondary" onclick="loadBalance()"><i class="fas fa-sync-alt me-1"></i> Refresh Balance</button>
+      <div class="d-flex align-items-center gap-2">
+        <span class="badge bg-light text-dark border px-2 py-1"><i class="fas fa-wallet text-success me-1"></i> Balance: <strong id="balancePill">Loading...</strong></span>
+        <button class="btn btn-sm btn-outline-secondary" onclick="loadBalance()" title="Refresh Gateway Balance"><i class="fas fa-sync-alt"></i></button>
+      </div>
     </div>
 
     <form id="smsBroadcastForm" novalidate>
@@ -675,15 +579,19 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
   }
 
   async function loadBalance() {
+    const pill = document.getElementById('balancePill');
+    if (pill) pill.textContent = 'Checking...';
     try {
       const res = await ApiClient.get('/sms/balance.php');
       if (res.success && res.data) {
-        document.getElementById('statBalance').textContent = res.data.remaining_balance || 'N/A';
-        document.getElementById('statProviderBadge').textContent = (res.data.provider === 'philsms' ? 'PhilSMS v3 (' + res.data.sender_id + ')' : 'Simulation Mode');
-        document.getElementById('senderIdBadge').textContent = 'Sender ID: ' + (res.data.sender_id || 'PhilSMS');
+        if (pill) pill.textContent = res.data.remaining_balance || '₱0';
+        const senderBadge = document.getElementById('senderIdBadge');
+        if (senderBadge) {
+          senderBadge.textContent = 'Sender ID: ' + (res.data.sender_id || 'PhilSMS');
+        }
       }
     } catch (err) {
-      document.getElementById('statBalance').textContent = 'Error';
+      if (pill) pill.textContent = 'Unavailable';
       console.error('Balance error:', err);
     }
   }
@@ -706,9 +614,6 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
       const res = await ApiClient.get(path);
       const count = res.data ? res.data.count : 0;
       previewEl.textContent = count + ' Resident' + (count === 1 ? '' : 's');
-      if (target === 'all') {
-        document.getElementById('statEligibleRecipients').textContent = count;
-      }
     } catch (err) {
       previewEl.textContent = 'Unknown';
     }
@@ -850,7 +755,6 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
       const res = await ApiClient.get(path);
       const data = res.data;
       cachedLogs = data.logs || [];
-      document.getElementById('statTotalSent').textContent = data.total || 0;
 
       if (cachedLogs.length === 0) {
         tbody.innerHTML = `
