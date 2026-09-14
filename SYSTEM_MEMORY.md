@@ -83,14 +83,15 @@ graph TD
 | **Contact** | `contact_number` (VARCHAR 20)| `contact_number` | `row.contact_number` | Profile form | Validated `^09\d{9}$` (PH mobile format) |
 | **Birthdate**| `date_of_birth` (DATE)| `date_of_birth` | Details modal | Profile edit modal | Format `YYYY-MM-DD` |
 | **Address** | `address` (TEXT) | `address` | `row.address` | Profile edit modal | Barangay/Zone text |
+| **Profile Picture**| `profile_picture` (VARCHAR 300)| `profile_picture` | Avatar chip / View modal | Avatar, topbar, sidebar, edit modal | Path: `uploads/profiles/`, JPEG/PNG/WebP $\le$5MB |
 | **Status** | `status` (`active`,`inactive`)| `status` | Toggle switch in `residents.php`| Guard in `login.php` | **Note:** Lowercase ENUM (`active`/`inactive`) |
 | **Security Q**| `security_question` | `security_question`| — | Forgot password step 1 | Plain text question |
 | **Security A**| `security_answer_hash` | *(never exposed)* | — | Forgot password step 2 | `password_hash(strtolower($ans))` |
 
 > **Connected Files for `users`:**
-> - DB: `database/migrations/001_create_tables.sql`
-> - API: `api/auth/login.php`, `register.php`, `me.php`, `forgot-password.php`, `api/residents/index.php`, `show.php`, `update.php`, `toggle-status.php`, `api/profile/index.php`, `update.php`, `change-password.php`
-> - JS: `assets/js/auth.js` (`getSession()`, `requireAuth()`, `requireAdmin()`, `requireUser()`), `assets/js/api.js`
+> - DB: `database/migrations/001_create_tables.sql`, `003_add_profile_picture_to_users.sql`
+> - API: `api/auth/login.php`, `register.php`, `me.php`, `forgot-password.php`, `api/residents/index.php`, `show.php`, `update.php`, `toggle-status.php`, `api/profile/index.php`, `update.php`, `upload-picture.php`, `remove-picture.php`, `change-password.php`, `api/uploads/serve.php`
+> - JS: `assets/js/auth.js` (`getSession()`, `requireAuth()`, `requireAdmin()`, `requireUser()`), `assets/js/api.js`, `assets/js/app.js` (`resolveAssetUrl()`, `initNavbar()`)
 > - UI: `login.php`, `register.php`, `forgot-password.php`, `admin/residents.php`, `admin/settings.php`, `user/profile.php`
 
 ---

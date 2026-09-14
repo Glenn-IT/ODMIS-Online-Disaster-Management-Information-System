@@ -347,15 +347,32 @@ const App = (function () {
   /**
    * Populate navbar with the current user's name and notification count.
    */
+  function resolveAssetUrl(relPath) {
+    if (!relPath) return '';
+    if (relPath.startsWith('http://') || relPath.startsWith('https://') || relPath.startsWith('data:')) {
+      return relPath;
+    }
+    const p = window.location.pathname.toLowerCase();
+    const prefix = (p.includes('/admin/') || p.includes('/user/')) ? '../' : '';
+    return prefix + relPath.replace(/^\/+/, '');
+  }
+
   function initNavbar() {
     const session = (typeof Auth !== 'undefined') ? Auth.getSession() : null;
     if (session) {
       const displayName  = session.fullName || session.username || 'User';
       const initials     = _getInitials(displayName);
+      const pic          = session.profile_picture || session.profilePicture;
 
       ['navbarAvatar', 'navAvatar', 'sidebarUserAvatar', 'sidebarAvatar'].forEach(id => {
         const el = document.getElementById(id);
-        if (el) el.textContent = initials;
+        if (el) {
+          if (pic) {
+            el.innerHTML = `<img src="${resolveAssetUrl(pic)}" alt="${_escapeHtml(displayName)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;">`;
+          } else {
+            el.textContent = initials;
+          }
+        }
       });
 
       ['navbarUsername', 'navUsername', 'sidebarUserName', 'sidebarName'].forEach(id => {
@@ -1102,6 +1119,7 @@ const App = (function () {
     initDataTable   : initDataTable,
     printPage       : printPage,
     escapeHtml           : _escapeHtml,
+    resolveAssetUrl      : resolveAssetUrl,
     updateNotifications  : _updateNotificationCount,
     showNotificationModal: showNotificationModal,
     markNotificationRead : _markNotifAsRead,

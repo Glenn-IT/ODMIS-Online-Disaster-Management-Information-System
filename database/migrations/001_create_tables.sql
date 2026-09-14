@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS `users` (
     `contact_number`        VARCHAR(20)         NOT NULL,
     `date_of_birth`         DATE                    NULL,
     `address`               TEXT                    NULL,
+    `profile_picture`       VARCHAR(300)            NULL,
     `status`                ENUM('active','inactive') NOT NULL DEFAULT 'active',
     `security_question`     VARCHAR(255)            NULL,
     `security_answer_hash`  VARCHAR(255)            NULL,

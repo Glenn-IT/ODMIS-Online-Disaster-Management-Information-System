@@ -14,12 +14,48 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <link rel="stylesheet" href="../assets/css/style.css" />
   <style>
+    .avatar-wrapper {
+      position: relative;
+      display: inline-block;
+      margin: 0 auto 0.75rem;
+    }
     .profile-avatar-lg {
-      width: 90px; height: 90px; border-radius: 50%;
+      width: 96px; height: 96px; border-radius: 50%;
       background: var(--color-primary, #0d6efd);
-      color: #fff; font-size: 2.4rem; font-weight: 700;
+      color: #fff; font-size: 2.5rem; font-weight: 700;
       display: flex; align-items: center; justify-content: center;
-      margin: 0 auto 1rem;
+      margin: 0 auto;
+      overflow: hidden;
+      border: 3px solid #fff;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+      position: relative;
+    }
+    .profile-avatar-img {
+      width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block;
+    }
+    .avatar-camera-btn {
+      position: absolute;
+      bottom: 2px;
+      right: 2px;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--color-primary, #0d6efd);
+      color: #fff;
+      border: 2px solid #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+      transition: all 0.2s ease;
+      z-index: 2;
+    }
+    .avatar-camera-btn:hover {
+      background: #0b5ed7;
+      transform: scale(1.1);
+      color: #fff;
     }
     .info-row { display: flex; align-items: flex-start; padding: .6rem 0; border-bottom: 1px solid #f0f0f0; font-size: .875rem; }
     .info-row:last-child { border-bottom: none; }
@@ -98,12 +134,26 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
     <div class="col-lg-4">
       <div class="card shadow-sm text-center mb-3">
         <div class="card-body py-4">
-          <div class="profile-avatar-lg" id="profileAvatarLg">U</div>
+          <div class="avatar-wrapper">
+            <div class="profile-avatar-lg" id="profileAvatarLg">U</div>
+            <button type="button" class="avatar-camera-btn" id="avatarCameraBtn" title="Upload new photo">
+              <i class="fas fa-camera"></i>
+            </button>
+          </div>
           <h5 class="fw-bold mb-1" id="profileFullName">—</h5>
           <div class="mb-2">
             <span class="badge bg-secondary me-1" id="profileUsername">username</span>
             <span class="badge bg-primary">Resident</span>
           </div>
+          <div class="d-flex justify-content-center gap-2 mb-3">
+            <button type="button" class="btn btn-sm btn-outline-primary" id="btnChangePhoto">
+              <i class="fas fa-camera me-1"></i>Change Photo
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-danger" id="btnRemovePhoto" style="display:none;">
+              <i class="fas fa-trash-alt me-1"></i>Remove
+            </button>
+          </div>
+          <input type="file" id="avatarFileInput" accept="image/jpeg,image/png,image/webp" style="display:none;" />
           <p class="text-muted small mb-3">
             <i class="fas fa-calendar-alt me-1"></i>Member since <span id="profileMemberSince">—</span>
           </p>
@@ -207,6 +257,23 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
         <form id="editProfileForm" novalidate>
           <div class="row g-3">
             <div class="col-12">
+              <div class="d-flex align-items-center gap-3 p-3 bg-light rounded-3 border">
+                <div class="profile-avatar-lg shadow-sm" id="modalProfileAvatar" style="width:64px; height:64px; font-size:1.6rem; margin:0; flex-shrink:0;">U</div>
+                <div class="flex-grow-1">
+                  <h6 class="fw-bold mb-1">Profile Photo</h6>
+                  <p class="text-muted small mb-2">Upload JPG, PNG, or WebP (max 5MB).</p>
+                  <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-primary btn-sm py-1 px-3" id="modalBtnChangePhoto">
+                      <i class="fas fa-camera me-1"></i>Upload Photo
+                    </button>
+                    <button type="button" class="btn btn-outline-danger btn-sm py-1 px-2" id="modalBtnRemovePhoto" style="display:none;">
+                      <i class="fas fa-trash-alt me-1"></i>Remove
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-12">
               <label class="form-label fw-semibold">Username <span class="text-muted">(cannot be changed)</span></label>
               <input type="text" class="form-control" id="editUsername" readonly />
             </div>
@@ -239,6 +306,57 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
       <div class="modal-footer">
         <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
         <button class="btn btn-primary" id="saveProfileBtn"><i class="fas fa-save me-2"></i>Save Changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     PREVIEW AVATAR MODAL
+════════════════════════════════════════ -->
+<div class="modal fade" id="previewAvatarModal" tabindex="-1">
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white py-2">
+        <h6 class="modal-title mb-0"><i class="fas fa-camera me-2"></i>Profile Picture Preview</h6>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-center p-4">
+        <div class="mx-auto mb-3 shadow-sm rounded-circle overflow-hidden border border-3 border-light" style="width: 130px; height: 130px;">
+          <img id="avatarPreviewImg" src="" alt="Preview" style="width: 100%; height: 100%; object-fit: cover;" />
+        </div>
+        <p class="small text-muted mb-1 text-truncate" id="avatarPreviewName">—</p>
+        <span class="badge bg-light text-secondary border" id="avatarPreviewSize">0 KB</span>
+      </div>
+      <div class="modal-footer justify-content-between p-2">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary btn-sm" id="saveAvatarBtn">
+          <i class="fas fa-check me-1"></i>Save Picture
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     REMOVE AVATAR MODAL
+════════════════════════════════════════ -->
+<div class="modal fade" id="removeAvatarModal" tabindex="-1">
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white py-2">
+        <h6 class="modal-title mb-0"><i class="fas fa-trash-alt me-2"></i>Remove Picture</h6>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-center py-4">
+        <div class="text-danger mb-2"><i class="fas fa-exclamation-triangle fa-2x"></i></div>
+        <p class="mb-0">Are you sure you want to remove your profile picture? Your initials will be displayed instead.</p>
+      </div>
+      <div class="modal-footer justify-content-between p-2">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-danger btn-sm" id="confirmRemoveAvatarBtn">
+          <i class="fas fa-trash-alt me-1"></i>Remove
+        </button>
       </div>
     </div>
   </div>
@@ -292,19 +410,62 @@ document.addEventListener('DOMContentLoaded', async function () {
     new bootstrap.Toast(el, { delay: 3500 }).show();
   }
 
-  // ── Populate UI ────────────────────────────────────────────
+  // ── Populate UI & Avatars ──────────────────────────────────
   let _profileData = {};
+
+  function renderAvatars(picUrl, initial) {
+    const hasPic = !!picUrl;
+    const resolvedUrl = hasPic ? App.resolveAssetUrl(picUrl) : '';
+
+    const lgEl = document.getElementById('profileAvatarLg');
+    if (lgEl) {
+      if (hasPic) {
+        lgEl.innerHTML = `<img src="${resolvedUrl}" alt="Profile Avatar" class="profile-avatar-img">`;
+      } else {
+        lgEl.innerHTML = '';
+        lgEl.textContent = initial;
+      }
+    }
+
+    const modalEl = document.getElementById('modalProfileAvatar');
+    if (modalEl) {
+      if (hasPic) {
+        modalEl.innerHTML = `<img src="${resolvedUrl}" alt="Profile Avatar" class="profile-avatar-img">`;
+      } else {
+        modalEl.innerHTML = '';
+        modalEl.textContent = initial;
+      }
+    }
+
+    ['navAvatar', 'sidebarAvatar'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        if (hasPic) {
+          el.innerHTML = `<img src="${resolvedUrl}" alt="Avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;">`;
+        } else {
+          el.innerHTML = '';
+          el.textContent = initial;
+        }
+      }
+    });
+
+    const removeBtn = document.getElementById('btnRemovePhoto');
+    if (removeBtn) removeBtn.style.display = hasPic ? 'inline-flex' : 'none';
+
+    const modalRemoveBtn = document.getElementById('modalBtnRemovePhoto');
+    if (modalRemoveBtn) modalRemoveBtn.style.display = hasPic ? 'inline-flex' : 'none';
+  }
 
   function populateUI(user) {
     if (!user) return;
     const initial = (user.full_name || user.fullName || user.username || 'U')[0].toUpperCase();
+    const pic     = user.profile_picture || user.profilePicture || null;
+
+    renderAvatars(pic, initial);
 
     const els = {
-      sidebarAvatar:    initial,
       sidebarName:      user.full_name || user.fullName || user.username,
-      navAvatar:        initial,
       navUsername:      user.full_name || user.fullName || user.username,
-      profileAvatarLg:  initial,
       profileFullName:  user.full_name || user.fullName || '—',
       profileUsername:  '@' + user.username,
     };
@@ -352,6 +513,133 @@ document.addEventListener('DOMContentLoaded', async function () {
   }
 
   await loadProfile();
+
+  // ── Profile Photo Upload & Removal Handlers ────────────────
+  let _selectedAvatarFile = null;
+  const previewModalEl = document.getElementById('previewAvatarModal');
+  const previewModal   = previewModalEl ? new bootstrap.Modal(previewModalEl) : null;
+  const removeModalEl  = document.getElementById('removeAvatarModal');
+  const removeModal    = removeModalEl ? new bootstrap.Modal(removeModalEl) : null;
+
+  function triggerPhotoSelect() {
+    const input = document.getElementById('avatarFileInput');
+    if (input) {
+      input.value = '';
+      input.click();
+    }
+  }
+
+  const cameraBtn = document.getElementById('avatarCameraBtn');
+  if (cameraBtn) cameraBtn.addEventListener('click', triggerPhotoSelect);
+
+  const btnChangePhoto = document.getElementById('btnChangePhoto');
+  if (btnChangePhoto) btnChangePhoto.addEventListener('click', triggerPhotoSelect);
+
+  const modalBtnChange = document.getElementById('modalBtnChangePhoto');
+  if (modalBtnChange) modalBtnChange.addEventListener('click', triggerPhotoSelect);
+
+  const btnRemovePhoto = document.getElementById('btnRemovePhoto');
+  if (btnRemovePhoto) btnRemovePhoto.addEventListener('click', () => removeModal && removeModal.show());
+
+  const modalBtnRemove = document.getElementById('modalBtnRemovePhoto');
+  if (modalBtnRemove) modalBtnRemove.addEventListener('click', () => removeModal && removeModal.show());
+
+  const fileInput = document.getElementById('avatarFileInput');
+  if (fileInput) {
+    fileInput.addEventListener('change', function () {
+      const file = this.files && this.files[0];
+      if (!file) return;
+
+      const allowed = ['image/jpeg', 'image/png', 'image/webp'];
+      if (!allowed.includes(file.type)) {
+        showToast('Only JPG, PNG, and WebP images are allowed.', 'warning');
+        this.value = '';
+        return;
+      }
+
+      if (file.size > 5 * 1024 * 1024) {
+        showToast('Image size exceeds 5MB limit.', 'warning');
+        this.value = '';
+        return;
+      }
+
+      _selectedAvatarFile = file;
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const previewImg = document.getElementById('avatarPreviewImg');
+        if (previewImg) previewImg.src = e.target.result;
+        const nameEl = document.getElementById('avatarPreviewName');
+        if (nameEl) nameEl.textContent = file.name;
+        const sizeEl = document.getElementById('avatarPreviewSize');
+        if (sizeEl) sizeEl.textContent = (file.size / 1024).toFixed(1) + ' KB';
+        if (previewModal) previewModal.show();
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  const saveAvatarBtn = document.getElementById('saveAvatarBtn');
+  if (saveAvatarBtn) {
+    saveAvatarBtn.addEventListener('click', async function () {
+      if (!_selectedAvatarFile) return;
+
+      const btn = this;
+      const origHtml = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Saving...';
+
+      const fd = new FormData();
+      fd.append('profile_picture', _selectedAvatarFile);
+
+      try {
+        const res = await ApiClient.upload('/profile/upload-picture.php', fd);
+        const newPic = res.data && res.data.profile_picture;
+        _profileData.profile_picture = newPic;
+        if (res.data && res.data.token) {
+          ApiClient.setToken(res.data.token);
+        }
+        const initial = (_profileData.full_name || _profileData.username || 'U')[0].toUpperCase();
+        renderAvatars(newPic, initial);
+        if (previewModal) previewModal.hide();
+        showToast('Profile picture updated successfully!', 'success');
+      } catch (err) {
+        showToast(err.message || 'Failed to upload profile picture.', 'danger');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = origHtml;
+        if (fileInput) fileInput.value = '';
+        _selectedAvatarFile = null;
+      }
+    });
+  }
+
+  const confirmRemoveAvatarBtn = document.getElementById('confirmRemoveAvatarBtn');
+  if (confirmRemoveAvatarBtn) {
+    confirmRemoveAvatarBtn.addEventListener('click', async function () {
+      const btn = this;
+      const origHtml = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Removing...';
+
+      try {
+        const res = await ApiClient.post('/profile/remove-picture.php', {});
+        _profileData.profile_picture = null;
+        if (res.data && res.data.token) {
+          ApiClient.setToken(res.data.token);
+        }
+        const initial = (_profileData.full_name || _profileData.username || 'U')[0].toUpperCase();
+        renderAvatars(null, initial);
+        if (removeModal) removeModal.hide();
+        showToast('Profile picture removed successfully.', 'info');
+      } catch (err) {
+        showToast(err.message || 'Failed to remove profile picture.', 'danger');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = origHtml;
+      }
+    });
+  }
 
   // Sidebar/navbar toggle/logout
   document.getElementById('sidebarToggle').addEventListener('click', () => document.body.classList.toggle('sidebar-collapsed'));

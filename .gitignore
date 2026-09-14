@@ -11,6 +11,8 @@
 # Uploads
 /uploads/reports/*
 !/uploads/reports/.gitkeep
+/uploads/profiles/*
+!/uploads/profiles/.gitkeep
 
 # mPDF temp files
 /vendor/mpdf/mpdf/tmp/

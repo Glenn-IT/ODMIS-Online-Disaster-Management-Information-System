@@ -48,7 +48,7 @@ try {
     $stmt->execute($params);
 
     $updated = $pdo->prepare(
-        'SELECT id, username, email, full_name, contact_number, date_of_birth, address, status FROM users WHERE id = ? LIMIT 1'
+        'SELECT id, username, email, full_name, contact_number, date_of_birth, address, profile_picture, status FROM users WHERE id = ? LIMIT 1'
     );
     $updated->execute([$id]);
 

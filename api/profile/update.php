@@ -46,11 +46,12 @@ try {
     $fields = [];
     $params = [];
     $map = [
-        'full_name'      => 'sanitize',
-        'email'          => 'sanitize',
-        'contact_number' => 'sanitize',
-        'date_of_birth'  => fn($v) => $v,
-        'address'        => 'sanitize',
+        'full_name'       => 'sanitize',
+        'email'           => 'sanitize',
+        'contact_number'  => 'sanitize',
+        'date_of_birth'   => fn($v) => $v,
+        'address'         => 'sanitize',
+        'profile_picture' => fn($v) => !empty($v) ? sanitize($v) : null,
     ];
 
     foreach ($map as $col => $fn) {
@@ -74,7 +75,7 @@ try {
     $stmt->execute($params);
 
     $updated = $pdo->prepare(
-        'SELECT id, username, email, full_name, contact_number, date_of_birth, address, status FROM users WHERE id = ? LIMIT 1'
+        'SELECT id, username, email, full_name, contact_number, date_of_birth, address, profile_picture, status FROM users WHERE id = ? LIMIT 1'
     );
     $updated->execute([$token_user->sub]);
 

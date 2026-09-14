@@ -39,9 +39,11 @@ const Auth = (function () {
       email        : p.email        || '',
       role         : p.role         || '',
       fullName     : p.full_name    || p.username || '',
-      full_name    : p.full_name    || '',
-      contactNumber: p.contact_number || '',
-      address      : p.address      || ''
+      full_name      : p.full_name    || '',
+      contactNumber  : p.contact_number || '',
+      address        : p.address      || '',
+      profile_picture: p.profile_picture || null,
+      profilePicture : p.profile_picture || null
     };
   }
 

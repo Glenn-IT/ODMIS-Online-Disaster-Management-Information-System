@@ -611,7 +611,10 @@ function renderTable() {
         <td>${start + idx + 1}</td>
         <td>
           <div class="d-flex align-items-center gap-2">
-            <div class="user-avatar-chip">${escHtml(initLetter)}</div>
+            ${u.profile_picture ?
+              `<img src="../${escHtml(u.profile_picture)}" alt="${escHtml(u.full_name || 'Resident')}" class="user-avatar-chip" style="object-fit:cover;padding:0;">` :
+              `<div class="user-avatar-chip">${escHtml(initLetter)}</div>`
+            }
             <span class="fw-semibold">${escHtml(u.full_name || '—')}</span>
           </div>
         </td>
@@ -672,7 +675,13 @@ function viewResident(id) {
   const userStatus = u.status || 'Active';
   const isActive   = userStatus.toLowerCase() === 'active';
 
-  document.getElementById('vUserAvatar').textContent   = initLetter;
+  const vAvatar = document.getElementById('vUserAvatar');
+  if (u.profile_picture) {
+    vAvatar.innerHTML = `<img src="../${escHtml(u.profile_picture)}" alt="${escHtml(u.full_name || 'Resident')}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;">`;
+  } else {
+    vAvatar.innerHTML = '';
+    vAvatar.textContent = initLetter;
+  }
   document.getElementById('vFullName').textContent     = u.full_name     || '—';
   document.getElementById('vUsername').textContent     = u.username      || '—';
   document.getElementById('vEmail').textContent        = u.email         || '—';

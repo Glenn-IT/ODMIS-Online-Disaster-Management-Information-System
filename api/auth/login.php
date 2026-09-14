@@ -20,7 +20,7 @@ if ($username === '' || $password === '') {
 // ── Query user ────────────────────────────────────────────────
 try {
     $pdo  = Database::connect();
-    $stmt = $pdo->prepare('SELECT id, username, email, password_hash, role, full_name, status FROM users WHERE LOWER(username) = LOWER(?) OR LOWER(email) = LOWER(?) LIMIT 1');
+    $stmt = $pdo->prepare('SELECT id, username, email, password_hash, role, full_name, profile_picture, status FROM users WHERE LOWER(username) = LOWER(?) OR LOWER(email) = LOWER(?) LIMIT 1');
     $stmt->execute([$username, $username]);
     $user = $stmt->fetch();
 } catch (PDOException $e) {
@@ -39,20 +39,22 @@ if ($user['status'] !== 'active') {
 // ── Issue JWT ─────────────────────────────────────────────────
 $now     = time();
 $payload = [
-    'sub'       => $user['id'],
-    'username'  => $user['username'],
-    'role'      => $user['role'],
-    'full_name' => $user['full_name'],
-    'iat'       => $now,
-    'exp'       => $now + JWT_EXPIRY,
+    'sub'             => $user['id'],
+    'username'        => $user['username'],
+    'role'            => $user['role'],
+    'full_name'       => $user['full_name'],
+    'profile_picture' => $user['profile_picture'],
+    'iat'             => $now,
+    'exp'             => $now + JWT_EXPIRY,
 ];
 $token = JWT::encode($payload, JWT_SECRET, 'HS256');
 
 success([
-    'token'     => $token,
-    'role'      => $user['role'],
-    'username'  => $user['username'],
-    'full_name' => $user['full_name'],
-    'email'     => $user['email'],
-    'expires_in' => JWT_EXPIRY,
+    'token'           => $token,
+    'role'            => $user['role'],
+    'username'        => $user['username'],
+    'full_name'       => $user['full_name'],
+    'email'           => $user['email'],
+    'profile_picture' => $user['profile_picture'],
+    'expires_in'      => JWT_EXPIRY,
 ], 'Login successful.');

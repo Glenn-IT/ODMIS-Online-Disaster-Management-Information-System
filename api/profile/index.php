@@ -9,7 +9,7 @@ $token_user = require_auth();
 try {
     $pdo  = Database::connect();
     $stmt = $pdo->prepare(
-        'SELECT id, username, email, role, full_name, contact_number, date_of_birth, address, status, security_question, created_at
+        'SELECT id, username, email, role, full_name, contact_number, date_of_birth, address, profile_picture, status, security_question, created_at
          FROM users WHERE id = ? LIMIT 1'
     );
     $stmt->execute([$token_user->sub]);

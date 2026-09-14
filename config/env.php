@@ -12,6 +12,7 @@ define('JWT_EXPIRY', 86400);        // 24 hours in seconds
 
 define('UPLOAD_MAX_SIZE', 5 * 1024 * 1024);  // 5 MB
 define('UPLOAD_DIR', __DIR__ . '/../uploads/reports/');
+define('PROFILE_UPLOAD_DIR', __DIR__ . '/../uploads/profiles/');
 define('UPLOAD_ALLOWED_TYPES', ['image/jpeg', 'image/png', 'image/webp']);
 
 define('APP_ENV', 'development');   // 'development' | 'production'

@@ -21,7 +21,7 @@ try {
         $params   = array_merge($params, [$like, $like, $like]);
     }
 
-    $sql  = 'SELECT id, username, email, role, full_name, contact_number, date_of_birth, address, status, created_at FROM users';
+    $sql  = 'SELECT id, username, email, role, full_name, contact_number, date_of_birth, address, profile_picture, status, created_at FROM users';
     $sql .= ' WHERE ' . implode(' AND ', $where);
     $sql .= ' ORDER BY full_name ASC';
 

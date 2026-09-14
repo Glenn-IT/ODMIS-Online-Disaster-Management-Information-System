@@ -12,7 +12,7 @@ if ($id < 1) error('Invalid resident ID.');
 try {
     $pdo  = Database::connect();
     $stmt = $pdo->prepare(
-        "SELECT id, username, email, role, full_name, contact_number, date_of_birth, address, status, security_question, created_at
+        "SELECT id, username, email, role, full_name, contact_number, date_of_birth, address, profile_picture, status, security_question, created_at
          FROM users WHERE id = ? AND role = 'user' LIMIT 1"
     );
     $stmt->execute([$id]);

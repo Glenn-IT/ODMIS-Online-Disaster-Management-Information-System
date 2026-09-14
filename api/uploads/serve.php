@@ -18,6 +18,12 @@ if ($filename !== basename($filename) || str_contains($filename, '/') || str_con
 }
 
 $filepath = UPLOAD_DIR . $filename;
+if ((!file_exists($filepath) || !is_file($filepath)) && defined('PROFILE_UPLOAD_DIR')) {
+    $altPath = PROFILE_UPLOAD_DIR . $filename;
+    if (file_exists($altPath) && is_file($altPath)) {
+        $filepath = $altPath;
+    }
+}
 
 if (!file_exists($filepath) || !is_file($filepath)) {
     error('File not found.', 404);
