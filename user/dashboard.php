@@ -63,6 +63,11 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
         </a>
       </li>
       <li class="sidebar-nav-item">
+        <a href="relief.php" class="sidebar-nav-link" data-page="relief">
+          <i class="fas fa-box-open nav-icon"></i><span class="nav-label">Relief Operations</span>
+        </a>
+      </li>
+      <li class="sidebar-nav-item">
         <a href="profile.php" class="sidebar-nav-link" data-page="profile">
           <i class="fas fa-user nav-icon"></i><span class="nav-label">Profile</span>
         </a>
@@ -123,7 +128,7 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
 
   <!-- ROW 1 — Stat Cards -->
   <div class="row g-3 mb-4">
-    <div class="col-lg-4 col-sm-6">
+    <div class="col-lg-3 col-sm-6">
       <div class="stat-card stat-primary">
         <div class="stat-card-icon"><i class="fas fa-file-alt"></i></div>
         <div class="stat-card-body">
@@ -133,7 +138,7 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
         </div>
       </div>
     </div>
-    <div class="col-lg-4 col-sm-6">
+    <div class="col-lg-3 col-sm-6">
       <div class="stat-card stat-danger">
         <div class="stat-card-icon"><i class="fas fa-exclamation-triangle"></i></div>
         <div class="stat-card-body">
@@ -143,13 +148,23 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
         </div>
       </div>
     </div>
-    <div class="col-lg-4 col-sm-6">
+    <div class="col-lg-3 col-sm-6">
       <div class="stat-card stat-success">
         <div class="stat-card-icon"><i class="fas fa-house-damage"></i></div>
         <div class="stat-card-body">
           <div class="stat-card-value" id="statEvacCenters">0</div>
           <div class="stat-card-label">Evacuation Centers</div>
           <div class="stat-card-badge flat"><i class="fas fa-map-marker-alt me-1"></i>Available</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-3 col-sm-6">
+      <div class="stat-card stat-warning">
+        <div class="stat-card-icon"><i class="fas fa-box-open"></i></div>
+        <div class="stat-card-body">
+          <div class="stat-card-value" id="statReliefOps">0</div>
+          <div class="stat-card-label">Relief Operations</div>
+          <div class="stat-card-badge flat"><i class="fas fa-map-marker-alt me-1"></i>In your barangay</div>
         </div>
       </div>
     </div>
@@ -240,16 +255,18 @@ document.addEventListener('DOMContentLoaded', async function () {
   });
 
   // ── Load data ──────────────────────────────────────────────
-  let alerts = [], evacuationCtrs = [], myReports = [];
+  let alerts = [], evacuationCtrs = [], myReports = [], reliefOps = [];
   try {
-    const [aRes, evacRes, repRes] = await Promise.all([
+    const [aRes, evacRes, repRes, relRes] = await Promise.all([
       ApiClient.get('/alerts/index.php'),
       ApiClient.get('/evacuation/index.php'),
-      ApiClient.get('/user-reports/index.php')
+      ApiClient.get('/user-reports/index.php'),
+      ApiClient.get('/relief/index.php')
     ]);
     alerts        = Array.isArray(aRes.data)   ? aRes.data   : [];
     evacuationCtrs= Array.isArray(evacRes.data)? evacRes.data: [];
     myReports     = Array.isArray(repRes.data) ? repRes.data : [];
+    reliefOps     = Array.isArray(relRes.data) ? relRes.data : [];
   } catch (err) { console.error('Dashboard load error:', err.message); }
 
   // ── Stat Cards ─────────────────────────────────────────────
@@ -257,6 +274,7 @@ document.addEventListener('DOMContentLoaded', async function () {
   document.getElementById('statMyReports').textContent    = myReports.length;
   document.getElementById('statActiveAlerts').textContent = activeAlerts.length;
   document.getElementById('statEvacCenters').textContent  = evacuationCtrs.length;
+  document.getElementById('statReliefOps').textContent    = reliefOps.length;
   document.getElementById('notifBadge').textContent       = activeAlerts.length;
 
   // ── Severity helpers ───────────────────────────────────────

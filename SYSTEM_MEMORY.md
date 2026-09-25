@@ -148,23 +148,23 @@ graph TD
 
 ### 2.4 Entity: `relief_operations` (Relief Aid Tracking)
 
-| Attribute | DB Column (`relief_operations`) | API JSON Key | Admin UI (`admin/relief.php`) | Reports Module (`admin/reports.php`) |
-| :--- | :--- | :--- | :--- | :--- |
-| **ID** | `id` (INT PK) | `id` | Edit / delete action ID | Row identifier |
-| **Batch No** | `batch_number` (VARCHAR 20) | `batch_number` | Code chip (`REL-XXX`) | `row.batch_number` column |
-| **Date** | `operation_date` (DATE) | `operation_date` | Date picker & display | `formatDateDisplay(row.operation_date)` |
-| **Barangay** | `barangay` (VARCHAR 100) | `barangay` | Dropdown & filter | Filter & table column |
-| **Type** | `relief_type` (VARCHAR 100) | `relief_type` | Food packs, medical kits, etc. | Table column |
-| **Quantity** | `quantity` (INT UNSIGNED) | `quantity` | Quantity number input | Quantity column |
-| **Unit** | `unit` (VARCHAR 50) | `unit` | Boxes, bags, kits, etc. | Unit column |
-| **Status** | `status` (ENUM) | `status` | `'Pending'`, `'In Progress'`, `'Completed'` | Status badge & filter |
-| **Distributor**| `distributed_by` (VARCHAR 150)| `distributed_by` | Agency / Personnel name | Table / export column |
-| **Notes** | `notes` (TEXT) | `notes` | Remarks / distribution notes | Export remarks |
+| Attribute | DB Column (`relief_operations`) | API JSON Key | Admin UI (`admin/relief.php`) | User UI (`user/relief.php`) | Reports Module (`admin/reports.php`) |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **ID** | `id` (INT PK) | `id` | Edit / delete action ID | Card detail target (`viewDetails(id)`) | Row identifier |
+| **Batch No** | `batch_number` (VARCHAR 20) | `batch_number` | Code chip (`REL-XXX`) | Badge & detail code | `row.batch_number` column |
+| **Date** | `operation_date` (DATE) | `operation_date` | Date picker & display | Operation date display | `formatDateDisplay(row.operation_date)` |
+| **Barangay** | `barangay` (VARCHAR 100) | `barangay` | Dropdown & filter | Scoped strictly to resident's registered barangay | Filter & table column |
+| **Type** | `relief_type` (VARCHAR 100) | `relief_type` | Food packs, medical kits, etc. | Type badge & card header | Table column |
+| **Quantity** | `quantity` (INT UNSIGNED) | `quantity` | Quantity number input | Quantity text | Quantity column |
+| **Unit** | `unit` (VARCHAR 50) | `unit` | Boxes, bags, kits, etc. | Unit display | Unit column |
+| **Status** | `status` (ENUM) | `status` | `'Pending'`, `'In Progress'`, `'Completed'` | Status badge & filter pills | Status badge & filter |
+| **Distributor**| `distributed_by` (VARCHAR 150)| `distributed_by` | Agency / Personnel name | Distributed by agency badge | Table / export column |
+| **Notes** | `notes` (TEXT) | `notes` | Remarks / distribution notes | Distribution notes / remarks | Export remarks |
 
 > **Connected Files for `relief_operations`:**
 > - DB: `database/migrations/001_create_tables.sql`
-> - API: `api/relief/index.php`, `show.php`, `store.php`, `update.php`, `api/reports/relief.php`, `api/reports/export-csv.php`, `api/reports/export-pdf.php`
-> - UI: `admin/relief.php`, `admin/reports.php`
+> - API: `api/relief/index.php` (role-scoped: `admin` sees all, `user` strictly filtered by resident's registered barangay), `show.php` (role-scoped: 403 Forbidden if not resident's barangay), `store.php`, `update.php`, `api/reports/relief.php`, `api/reports/export-csv.php`, `api/reports/export-pdf.php`
+> - UI: `admin/relief.php`, `admin/reports.php`, `user/relief.php`, `user/dashboard.php` (`statReliefOps`)
 
 ---
 
