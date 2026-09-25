@@ -96,13 +96,13 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
     /* ── Batch Number chip ── */
     .batch-id-chip {
       font-family: monospace; font-weight: 700; color: var(--color-primary);
-      font-size: var(--font-size-sm); background: rgba(26,58,107,0.07);
-      padding: 2px 8px; border-radius: 4px; border: 1px solid rgba(26,58,107,0.15);
+      font-size: var(--font-size-sm); background: rgba(70,114,53,0.07);
+      padding: 2px 8px; border-radius: 4px; border: 1px solid rgba(70,114,53,0.15);
     }
 
     /* ── Status badges (relief) ── */
     .badge-pending    { background: #fff3cd; color: #856404; border: 1px solid #ffc107; }
-    .badge-progress   { background: #cfe2ff; color: #084298; border: 1px solid #b6d4fe; }
+    .badge-progress   { background: rgba(255,191,0,0.15); color: var(--color-accent-dark, #cc9900); border: 1px solid rgba(255,191,0,0.3); }
     .badge-completed  { background: #d1e7dd; color: #0a3622; border: 1px solid #a3cfbb; }
 
     /* ── Pagination ── */
@@ -283,7 +283,7 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
   <div class="row g-3 mb-4">
     <div class="col-md-3">
       <div class="stat-mini-card">
-        <div class="stat-mini-icon" style="background:rgba(26,58,107,0.1); color:var(--color-primary);">
+        <div class="stat-mini-icon" style="background:rgba(70,114,53,0.1); color:var(--color-primary);">
           <i class="fas fa-boxes"></i>
         </div>
         <div>
@@ -305,7 +305,7 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
     </div>
     <div class="col-md-3">
       <div class="stat-mini-card">
-        <div class="stat-mini-icon" style="background:rgba(13,110,253,0.12); color:#084298;">
+        <div class="stat-mini-icon" style="background:rgba(255,191,0,0.15); color:var(--color-accent-dark);">
           <i class="fas fa-spinner"></i>
         </div>
         <div>
@@ -669,7 +669,7 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
       <div class="modal-body">
 
         <!-- Header strip -->
-        <div class="d-flex align-items-center gap-3 mb-4 p-3 rounded-2" style="background:rgba(26,58,107,0.06);">
+        <div class="d-flex align-items-center gap-3 mb-4 p-3 rounded-2" style="background:rgba(70,114,53,0.06);">
           <div style="width:52px;height:52px;border-radius:12px;background:var(--color-primary);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
             <i class="fas fa-box-open fa-lg text-white"></i>
           </div>

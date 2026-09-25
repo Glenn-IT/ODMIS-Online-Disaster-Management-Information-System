@@ -15,7 +15,7 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
   <link rel="stylesheet" href="../assets/css/style.css" />
   <style>
     .status-badge-pending    { background: #ffc107; color: #333; }
-    .status-badge-review     { background: #0d6efd; color: #fff; }
+    .status-badge-review     { background: var(--color-primary, #467235); color: #fff; }
     .status-badge-resolved   { background: #198754; color: #fff; }
     .toast-container-fixed { position: fixed; top: 1.25rem; right: 1.25rem; z-index: 9999; }
   </style>

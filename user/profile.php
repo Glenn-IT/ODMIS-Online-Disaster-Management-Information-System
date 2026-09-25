@@ -21,7 +21,7 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
     }
     .profile-avatar-lg {
       width: 96px; height: 96px; border-radius: 50%;
-      background: var(--color-primary, #0d6efd);
+      background: var(--color-primary, #467235);
       color: #fff; font-size: 2.5rem; font-weight: 700;
       display: flex; align-items: center; justify-content: center;
       margin: 0 auto;
@@ -40,7 +40,7 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
       width: 32px;
       height: 32px;
       border-radius: 50%;
-      background: var(--color-primary, #0d6efd);
+      background: var(--color-primary, #467235);
       color: #fff;
       border: 2px solid #fff;
       display: flex;
@@ -53,7 +53,7 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
       z-index: 2;
     }
     .avatar-camera-btn:hover {
-      background: #0b5ed7;
+      background: var(--color-primary-dark, #283F24);
       transform: scale(1.1);
       color: #fff;
     }

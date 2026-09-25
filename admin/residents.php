@@ -667,7 +667,7 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
       <div class="modal-body">
 
         <!-- Header strip -->
-        <div class="view-user-header d-flex align-items-center gap-3 mb-4 p-3 rounded-2 flex-wrap" style="background:rgba(26,58,107,0.06);">
+        <div class="view-user-header d-flex align-items-center gap-3 mb-4 p-3 rounded-2 flex-wrap" style="background:rgba(70,114,53,0.06);">
           <div class="view-user-avatar" id="vUserAvatar">A</div>
           <div>
             <h5 class="mb-0 fw-bold" id="vFullName" style="color:var(--color-primary);"></h5>

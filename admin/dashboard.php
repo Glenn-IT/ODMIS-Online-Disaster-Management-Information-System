@@ -590,8 +590,8 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
     destroyChart('monthly');
     var ctx = document.getElementById('chartMonthly').getContext('2d');
     var gradient = ctx.createLinearGradient(0, 0, 0, 260);
-    gradient.addColorStop(0, 'rgba(26,58,107,0.3)');
-    gradient.addColorStop(1, 'rgba(26,58,107,0.02)');
+    gradient.addColorStop(0, 'rgba(70,114,53,0.3)');
+    gradient.addColorStop(1, 'rgba(70,114,53,0.02)');
 
     _charts['monthly'] = new Chart(ctx, {
       type: 'line',
@@ -657,7 +657,7 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
         datasets: [{
           label           : 'Incidents',
           data            : data,
-          backgroundColor : 'rgba(26,58,107,0.75)',
+          backgroundColor : 'rgba(70,114,53,0.75)',
           borderColor     : PALETTE.primary,
           borderWidth     : 1.5,
           borderRadius    : 4,

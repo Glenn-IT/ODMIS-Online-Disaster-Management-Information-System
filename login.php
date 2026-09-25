@@ -151,7 +151,7 @@
     }
     .nav-tabs .nav-link:hover {
       color: #467235;
-      border-bottom-color: rgba(26,58,107,.35);
+      border-bottom-color: rgba(70,114,53,.35);
     }
     .nav-tabs .nav-link.active {
       color: #467235;

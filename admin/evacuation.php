@@ -105,8 +105,8 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
     /* ── Center ID chip ── */
     .center-id-chip {
       font-family: monospace; font-weight: 700; color: var(--color-primary);
-      font-size: var(--font-size-sm); background: rgba(26,58,107,0.07);
-      padding: 2px 8px; border-radius: 4px; border: 1px solid rgba(26,58,107,0.15);
+      font-size: var(--font-size-sm); background: rgba(70,114,53,0.07);
+      padding: 2px 8px; border-radius: 4px; border: 1px solid rgba(70,114,53,0.15);
     }
 
     /* ── Capacity bar in table ── */
@@ -291,7 +291,7 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
   <div class="row g-3 mb-4" id="summaryStats">
     <div class="col-md-4">
       <div class="stat-mini-card">
-        <div class="stat-mini-icon" style="background:rgba(26,58,107,0.1); color:var(--color-primary);">
+        <div class="stat-mini-icon" style="background:rgba(70,114,53,0.1); color:var(--color-primary);">
           <i class="fas fa-building"></i>
         </div>
         <div>
@@ -672,7 +672,7 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
       <div class="modal-body">
 
         <!-- Header strip -->
-        <div class="d-flex align-items-center gap-3 mb-4 p-3 rounded-2" style="background:rgba(26,58,107,0.06);">
+        <div class="d-flex align-items-center gap-3 mb-4 p-3 rounded-2" style="background:rgba(70,114,53,0.06);">
           <div style="width:52px;height:52px;border-radius:12px;background:var(--color-primary);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
             <i class="fas fa-house-damage fa-lg text-white"></i>
           </div>

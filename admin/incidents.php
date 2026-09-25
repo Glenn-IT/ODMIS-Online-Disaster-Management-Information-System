@@ -120,10 +120,10 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
       font-weight: 700;
       color: var(--color-primary);
       font-size: var(--font-size-sm);
-      background: rgba(26,58,107,0.07);
+      background: rgba(70,114,53,0.07);
       padding: 2px 8px;
       border-radius: 4px;
-      border: 1px solid rgba(26,58,107,0.15);
+      border: 1px solid rgba(70,114,53,0.15);
     }
 
     /* ── Pagination ── */
@@ -675,7 +675,7 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
 
         <!-- ID + type header strip -->
         <div class="d-flex align-items-center gap-3 mb-4 p-3 rounded"
-             style="background:rgba(26,58,107,0.05); border:1px solid rgba(26,58,107,0.1);">
+             style="background:rgba(70,114,53,0.05); border:1px solid rgba(70,114,53,0.1);">
           <div>
             <div style="font-size:0.7rem; font-weight:700; text-transform:uppercase; color:var(--color-gray); letter-spacing:0.5px;">Incident ID</div>
             <div class="incident-id-chip mt-1" id="viewId">—</div>

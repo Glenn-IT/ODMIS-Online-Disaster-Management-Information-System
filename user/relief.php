@@ -92,6 +92,18 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
       font-size: 0.82rem;
       padding: 0.4rem 0.85rem;
       cursor: pointer;
+      color: var(--color-dark-gray);
+      border-radius: 20px;
+      transition: all var(--transition-fast);
+    }
+    .filter-tabs .nav-link.active {
+      background-color: var(--color-primary) !important;
+      color: #fff !important;
+      font-weight: 600;
+    }
+    .filter-tabs .nav-link:hover:not(.active) {
+      background-color: rgba(70,114,53,0.08);
+      color: var(--color-primary);
     }
   </style>
 </head>
@@ -201,14 +213,14 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
   <!-- Barangay Location Notice -->
   <div class="barangay-notice mb-4">
     <div class="d-flex align-items-center gap-2">
-      <div class="text-success fs-5"><i class="fas fa-map-marker-alt"></i></div>
+      <div class="fs-5" style="color:var(--color-primary);"><i class="fas fa-map-marker-alt"></i></div>
       <div>
         <span class="text-muted small d-block">Your Registered Community / Barangay:</span>
         <strong class="text-dark" id="residentBarangayDisplay">Checking profile…</strong>
       </div>
     </div>
     <div class="small text-muted">
-      <i class="fas fa-shield-alt text-primary me-1"></i>Showing operations dispatched exclusively to your barangay
+      <i class="fas fa-shield-alt me-1" style="color:var(--color-primary);"></i>Showing operations dispatched exclusively to your barangay
     </div>
   </div>
 
@@ -226,8 +238,8 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
       </div>
     </div>
     <div class="col-sm-4">
-      <div class="stat-mini-card" style="border-left-color: #0d6efd;">
-        <div class="stat-mini-icon" style="background: rgba(13,110,253,0.1); color: #0d6efd;">
+      <div class="stat-mini-card" style="border-left-color: var(--color-accent-dark);">
+        <div class="stat-mini-icon" style="background: rgba(255,191,0,0.15); color: var(--color-accent-dark);">
           <i class="fas fa-truck-moving"></i>
         </div>
         <div>
@@ -237,8 +249,8 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
       </div>
     </div>
     <div class="col-sm-4">
-      <div class="stat-mini-card" style="border-left-color: #198754;">
-        <div class="stat-mini-icon" style="background: rgba(25,135,84,0.1); color: #198754;">
+      <div class="stat-mini-card" style="border-left-color: var(--color-success);">
+        <div class="stat-mini-icon" style="background: rgba(39,174,96,0.1); color: var(--color-success);">
           <i class="fas fa-check-double"></i>
         </div>
         <div>
@@ -274,7 +286,7 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
   <!-- Relief Operations Cards Grid -->
   <div class="row g-3 mb-4" id="reliefGrid">
     <div class="col-12 text-center py-5 text-muted">
-      <span class="spinner-border spinner-border-sm me-2 text-primary"></span>Loading relief operations for your community…
+      <span class="spinner-border spinner-border-sm me-2" style="color:var(--color-primary);"></span>Loading relief operations for your community…
     </div>
   </div>
 </main>
@@ -283,9 +295,9 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
 <div class="modal fade" id="viewReliefModal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
-      <div class="modal-header bg-light">
-        <h5 class="modal-title fw-bold" id="modalBatchTitle"><i class="fas fa-box-open text-primary me-2"></i>Relief Batch Details</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      <div class="modal-header" style="background: var(--color-primary); color: #fff;">
+        <h5 class="modal-title fw-bold" id="modalBatchTitle" style="color: #fff;"><i class="fas fa-box-open me-2" style="color:var(--color-accent);"></i>Relief Batch Details</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body" id="modalReliefBody">
         <!-- Rendered via JS -->
@@ -405,9 +417,9 @@ document.addEventListener('DOMContentLoaded', async function () {
   // 4. Status helpers
   function statusBadge(status) {
     const s = (status || '').toLowerCase();
-    if (s === 'completed') return '<span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Completed</span>';
-    if (s === 'in progress') return '<span class="badge bg-primary"><i class="fas fa-spinner fa-spin me-1"></i>In Progress</span>';
-    return '<span class="badge bg-warning text-dark"><i class="fas fa-clock me-1"></i>Pending</span>';
+    if (s === 'completed') return '<span class="badge" style="background:var(--color-success);color:#fff;"><i class="fas fa-check-circle me-1"></i>Completed</span>';
+    if (s === 'in progress') return '<span class="badge" style="background:var(--color-accent-dark);color:#fff;"><i class="fas fa-spinner fa-spin me-1"></i>In Progress</span>';
+    return '<span class="badge" style="background:var(--color-warning);color:#fff;"><i class="fas fa-clock me-1"></i>Pending</span>';
   }
 
   function reliefIcon(type) {
@@ -457,7 +469,7 @@ document.addEventListener('DOMContentLoaded', async function () {
           </div>
           <div class="relief-card-body">
             <h5 class="fw-bold mb-2 text-dark d-flex align-items-center gap-2">
-              <i class="fas ${reliefIcon(r.relief_type)} text-primary"></i>
+              <i class="fas ${reliefIcon(r.relief_type)}" style="color:var(--color-primary);"></i>
               <span>${r.relief_type || 'Relief Goods'}</span>
             </h5>
             <div class="info-tag text-muted mb-2">
@@ -472,7 +484,7 @@ document.addEventListener('DOMContentLoaded', async function () {
               <i class="fas fa-user-shield text-secondary"></i>
               <span>In-charge: <strong>${r.distributed_by || 'LGU / DRRMO'}</strong></span>
             </div>
-            ${r.notes ? `<p class="small text-muted mb-0 bg-light p-2 rounded"><i class="fas fa-info-circle me-1 text-primary"></i>${r.notes.substring(0, 100)}${r.notes.length > 100 ? '…' : ''}</p>` : ''}
+            ${r.notes ? `<p class="small text-muted mb-0 bg-light p-2 rounded"><i class="fas fa-info-circle me-1" style="color:var(--color-primary);"></i>${r.notes.substring(0, 100)}${r.notes.length > 100 ? '…' : ''}</p>` : ''}
           </div>
           <div class="relief-card-footer">
             <span class="small text-muted"><i class="fas fa-map-marker-alt text-danger me-1"></i>${r.barangay}</span>
@@ -490,26 +502,28 @@ document.addEventListener('DOMContentLoaded', async function () {
     const r = allRelief.find(item => item.id == id);
     if (!r) return;
 
-    document.getElementById('modalBatchTitle').innerHTML = `<i class="fas fa-box-open text-primary me-2"></i>Batch ${r.batch_number}`;
+    document.getElementById('modalBatchTitle').innerHTML = `<i class="fas fa-box-open me-2" style="color:var(--color-accent);"></i>Batch ${r.batch_number}`;
     document.getElementById('modalReliefBody').innerHTML = `
       <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="fw-bold mb-0 text-primary">${r.relief_type || 'Relief Goods'}</h5>
+        <h5 class="fw-bold mb-0" style="color:var(--color-primary);">${r.relief_type || 'Relief Goods'}</h5>
         ${statusBadge(r.status)}
       </div>
       <table class="table table-sm table-bordered">
         <tbody>
           <tr><th class="bg-light" style="width:40%;">Batch Number</th><td><code>${r.batch_number}</code></td></tr>
           <tr><th class="bg-light">Target Barangay</th><td><i class="fas fa-map-marker-alt text-danger me-1"></i>${r.barangay}</td></tr>
-          <tr><th class="bg-light">Distribution Date</th><td><i class="fas fa-calendar-alt text-primary me-1"></i>${r.operation_date || '—'}</td></tr>
+          <tr><th class="bg-light">Distribution Date</th><td><i class="fas fa-calendar-alt me-1" style="color:var(--color-primary);"></i>${r.operation_date || '—'}</td></tr>
           <tr><th class="bg-light">Allocation / Quantity</th><td><strong>${r.quantity || 0} ${r.unit || 'units'}</strong></td></tr>
           <tr><th class="bg-light">Dispatched By</th><td>${r.distributed_by || 'LGU Sto. Niño / DRRMO'}</td></tr>
           <tr><th class="bg-light">Instructions / Remarks</th><td>${r.notes ? r.notes : '<em class="text-muted">None specified. Please coordinate with your Barangay Council.</em>'}</td></tr>
         </tbody>
       </table>
       <div class="alert alert-secondary small mb-0 py-2">
-        <i class="fas fa-info-circle me-1 text-primary"></i><strong>Resident Notice:</strong> For questions about claiming this batch, please proceed to your Barangay Hall or present your Resident ID during scheduled hours.
+        <i class="fas fa-info-circle me-1" style="color:var(--color-primary);"></i><strong>Resident Notice:</strong> For questions about claiming this batch, please proceed to your Barangay Hall or present your Resident ID during scheduled hours.
       </div>
     `;
+    new bootstrap.Modal(document.getElementById('viewReliefModal')).show();
+  };
     new bootstrap.Modal(document.getElementById('viewReliefModal')).show();
   };
 
