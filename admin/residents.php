@@ -12,9 +12,9 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
   <title>Residents Management — ODMIS Admin</title>
 
   <!-- Bootstrap 5 -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="../assets/vendor/bootstrap/css/bootstrap.min.css" />
   <!-- Font Awesome -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="../assets/vendor/fontawesome/css/all.min.css" />
   <!-- ODMIS Styles -->
   <link rel="stylesheet" href="../assets/css/style.css" />
 
@@ -32,101 +32,350 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
       align-items: flex-end;
     }
     .filter-bar .filter-group {
-      display: flex; flex-direction: column;
-      gap: 0.25rem; min-width: 140px; flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      min-width: 140px;
+      flex: 1;
     }
     .filter-bar .filter-label {
-      font-size: 0.7rem; font-weight: 700;
-      text-transform: uppercase; letter-spacing: 0.4px; color: var(--color-gray);
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: var(--color-gray);
     }
-    .filter-bar .search-group { flex: 2; min-width: 220px; }
+    .filter-bar .search-group {
+      flex: 2;
+      min-width: 220px;
+    }
 
     /* ── Info note ── */
     .info-note {
-      background: #e8f4fd; border: 1px solid #bee3f8; border-radius: 8px;
-      padding: 0.75rem 1rem; margin-bottom: 1.25rem;
-      display: flex; align-items: center; gap: 0.75rem;
-      font-size: var(--font-size-sm); color: #2c5f87;
+      background: #e8f4fd;
+      border: 1px solid #bee3f8;
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: var(--font-size-sm);
+      color: #2c5f87;
     }
-    .info-note i { font-size: 1rem; flex-shrink: 0; }
+    .info-note i {
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
 
     /* ── Table action buttons ── */
     .btn-action {
-      width: 30px; height: 30px; padding: 0;
-      display: inline-flex; align-items: center; justify-content: center;
-      border-radius: 6px; font-size: 0.8rem; border: none; cursor: pointer;
+      width: 34px;
+      height: 34px;
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      border: none;
+      cursor: pointer;
       transition: all 0.15s ease;
     }
-    .btn-view   { background: #d1ecf1; color: #0c5460; }
-    .btn-view:hover   { background: #2980b9; color: #fff; }
-    .btn-activate   { background: #d4edda; color: #155724; }
-    .btn-activate:hover   { background: #27ae60; color: #fff; }
-    .btn-deactivate { background: #fff3cd; color: #856404; }
-    .btn-deactivate:hover { background: #f39c12; color: #fff; }
+    .btn-view {
+      background: #d1ecf1;
+      color: #0c5460;
+    }
+    .btn-view:hover {
+      background: #2980b9;
+      color: #fff;
+    }
+    .btn-activate {
+      background: #d4edda;
+      color: #155724;
+    }
+    .btn-activate:hover {
+      background: #27ae60;
+      color: #fff;
+    }
+    .btn-deactivate {
+      background: #fff3cd;
+      color: #856404;
+    }
+    .btn-deactivate:hover {
+      background: #f39c12;
+      color: #fff;
+    }
 
     /* ── Record count badge ── */
     .record-count {
-      background: var(--color-primary); color: #fff;
-      font-size: 0.7rem; font-weight: 700;
-      padding: 2px 9px; border-radius: 20px; vertical-align: middle;
+      background: var(--color-primary);
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 2px 9px;
+      border-radius: 20px;
+      vertical-align: middle;
     }
 
     /* ── View modal detail rows ── */
     .view-field-label {
-      font-size: var(--font-size-xs); font-weight: 700;
-      text-transform: uppercase; letter-spacing: 0.4px;
-      color: var(--color-gray); min-width: 150px;
+      font-size: var(--font-size-xs);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: var(--color-gray);
     }
-    .view-field-value { font-size: var(--font-size-sm); color: var(--color-dark-gray); }
+    .view-field-value {
+      font-size: var(--font-size-sm);
+      color: var(--color-dark-gray);
+      word-break: break-word;
+    }
 
     /* ── Results bar ── */
     .results-bar {
-      display: flex; align-items: center; justify-content: space-between;
-      flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem;
-      font-size: var(--font-size-xs); color: var(--color-gray);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+      font-size: var(--font-size-xs);
+      color: var(--color-gray);
     }
 
     /* ── User avatar chip ── */
     .user-avatar-chip {
-      width: 34px; height: 34px; border-radius: 50%;
-      background: var(--color-primary); color: #fff;
-      display: inline-flex; align-items: center; justify-content: center;
-      font-size: 0.85rem; font-weight: 700; flex-shrink: 0;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: var(--color-primary);
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      font-weight: 700;
+      flex-shrink: 0;
     }
 
     /* ── Pagination ── */
-    .odmis-pagination { display: flex; gap: 4px; align-items: center; }
-    .odmis-pagination button {
-      width: 32px; height: 32px; border: 1px solid var(--color-mid-gray);
-      background: #fff; border-radius: 6px; font-size: var(--font-size-xs);
-      font-weight: 600; cursor: pointer; color: var(--color-dark-gray); transition: all 0.15s;
+    .odmis-pagination {
+      display: flex;
+      gap: 4px;
+      align-items: center;
     }
-    .odmis-pagination button:hover:not(:disabled) { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
-    .odmis-pagination button.active { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
-    .odmis-pagination button:disabled { opacity: 0.4; cursor: default; }
+    .odmis-pagination button {
+      width: 32px;
+      height: 32px;
+      border: 1px solid var(--color-mid-gray);
+      background: #fff;
+      border-radius: 6px;
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--color-dark-gray);
+      transition: all 0.15s;
+    }
+    .odmis-pagination button:hover:not(:disabled) {
+      background: var(--color-primary);
+      color: #fff;
+      border-color: var(--color-primary);
+    }
+    .odmis-pagination button.active {
+      background: var(--color-primary);
+      color: #fff;
+      border-color: var(--color-primary);
+    }
+    .odmis-pagination button:disabled {
+      opacity: 0.4;
+      cursor: default;
+    }
 
     /* ── View modal avatar ── */
     .view-user-avatar {
-      width: 60px; height: 60px; border-radius: 50%;
-      background: var(--color-primary); color: #fff;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.5rem; font-weight: 700; flex-shrink: 0;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: var(--color-primary);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: 700;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       MOBILE & RESPONSIVE REFINEMENTS
+       ══════════════════════════════════════════════════════════ */
+    .table-wrapper {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    @media (max-width: 991.98px) {
+      #sidebar {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        bottom: 0 !important;
+        height: 100vh !important;
+        width: 260px !important;
+        max-width: 82vw !important;
+        z-index: 1060 !important;
+        transform: translateX(-100%) !important;
+        transition: transform 0.25s ease-in-out !important;
+        box-shadow: 4px 0 20px rgba(0,0,0,0.3) !important;
+        display: flex !important;
+        flex-direction: column !important;
+      }
+
+      #sidebar.mobile-open {
+        transform: translateX(0) !important;
+        visibility: visible !important;
+      }
+
+      /* Force labels, logo brand text, and user info to be fully visible and readable on mobile */
+      #sidebar.mobile-open .nav-label,
+      #sidebar .nav-label,
+      body.sidebar-collapsed #sidebar.mobile-open .nav-label {
+        opacity: 1 !important;
+        width: auto !important;
+        overflow: visible !important;
+        white-space: normal !important;
+        pointer-events: auto !important;
+        display: inline-block !important;
+      }
+
+      #sidebar.mobile-open .sidebar-brand-text,
+      #sidebar .sidebar-brand-text,
+      body.sidebar-collapsed #sidebar.mobile-open .sidebar-brand-text {
+        opacity: 1 !important;
+        width: auto !important;
+        overflow: visible !important;
+        white-space: normal !important;
+        pointer-events: auto !important;
+        display: flex !important;
+      }
+
+      #sidebar.mobile-open .sidebar-user-info,
+      #sidebar .sidebar-user-info,
+      body.sidebar-collapsed #sidebar.mobile-open .sidebar-user-info {
+        opacity: 1 !important;
+        width: auto !important;
+        overflow: visible !important;
+        white-space: normal !important;
+        pointer-events: auto !important;
+        display: flex !important;
+      }
+
+      #sidebar.mobile-open .sidebar-nav-link,
+      body.sidebar-collapsed #sidebar.mobile-open .sidebar-nav-link {
+        justify-content: flex-start !important;
+        padding: 0.75rem 1.25rem !important;
+      }
+
+      #sidebar.mobile-open .sidebar-nav-link .nav-icon,
+      body.sidebar-collapsed #sidebar.mobile-open .sidebar-nav-link .nav-icon {
+        margin-right: 0.85rem !important;
+      }
+
+      #sidebarOverlay {
+        position: fixed !important;
+        inset: 0 !important;
+        background: rgba(0, 0, 0, 0.5) !important;
+        z-index: 1055 !important;
+        display: none;
+      }
+
+      #sidebarOverlay.show {
+        display: block !important;
+      }
+
+      #topNavbar {
+        left: 0 !important;
+        z-index: 1040 !important;
+      }
+
+      .navbar-hamburger {
+        cursor: pointer !important;
+        z-index: 1045 !important;
+        display: inline-flex !important;
+        padding: 0.45rem 0.6rem !important;
+      }
+
+      #mainContent {
+        margin-left: 0 !important;
+        padding: 1rem 0.85rem;
+      }
+    }
+
+    @media (max-width: 767.98px) {
+      .filter-bar {
+        padding: 0.85rem;
+        gap: 0.65rem;
+      }
+      .filter-bar .search-group {
+        min-width: 100%;
+        flex: 1 1 100%;
+      }
+      .filter-bar .filter-group:not(.search-group) {
+        min-width: calc(50% - 0.35rem);
+        flex: 1 1 calc(50% - 0.35rem);
+      }
+      .filter-bar .filter-actions {
+        min-width: 100%;
+        flex: 1 1 100%;
+      }
+      .filter-bar .filter-actions button {
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 575.98px) {
+      .navbar-user-name {
+        display: none !important;
+      }
+      .navbar-page-title {
+        font-size: 1rem;
+      }
+      .page-header h1 {
+        font-size: 1.35rem;
+      }
+      .page-header .page-subtitle {
+        font-size: 0.8rem;
+      }
+      .results-bar {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 0.4rem;
+      }
+      #paginationBar {
+        flex-direction: column;
+        gap: 0.75rem;
+        align-items: center !important;
+        text-align: center;
+        padding: 0.85rem 1rem !important;
+      }
+      .odmis-pagination {
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      .view-user-header {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 0.75rem !important;
+      }
+      .view-user-header .ms-auto {
+        margin-left: 0 !important;
+      }
     }
   </style>
 </head>
 <body>
-
-<!-- ══════════════════════════════════════════════════════════
-     MOBILE GUARD
-══════════════════════════════════════════════════════════ -->
-<div id="mobileGuard">
-  <div class="text-center text-white p-4">
-    <i class="fas fa-desktop mobile-guard-icon"></i>
-    <h4 class="mobile-guard-title">Desktop Required</h4>
-    <p class="mobile-guard-subtitle">This system is optimized for desktop devices (minimum 1366 px width). Please switch to a desktop or laptop computer.</p>
-    <span class="mobile-guard-badge"><i class="fas fa-expand-arrows-alt me-1"></i>Min. 1366 px</span>
-  </div>
-</div>
 
 <!-- ══════════════════════════════════════════════════════════
      SIDEBAR
@@ -138,6 +387,9 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
       <span class="brand-title">ODMIS</span>
       <span class="brand-subtitle">Disaster Management</span>
     </div>
+    <button type="button" class="sidebar-close-btn d-lg-none" id="sidebarClose" title="Close Menu">
+      <i class="fas fa-times"></i>
+    </button>
   </div>
 
   <nav class="sidebar-nav">
@@ -220,7 +472,7 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
      TOP NAVBAR
 ══════════════════════════════════════════════════════════ -->
 <nav id="topNavbar">
-  <button class="navbar-hamburger" id="sidebarToggle" title="Toggle Sidebar">
+  <button class="navbar-hamburger" id="sidebarToggle" title="Toggle Sidebar" type="button" aria-label="Toggle Sidebar Navigation">
     <i class="fas fa-bars"></i>
   </button>
 
@@ -299,8 +551,8 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
       </select>
     </div>
 
-    <div class="filter-group" style="flex:0; min-width:auto;">
-      <span class="filter-label">&nbsp;</span>
+    <div class="filter-group filter-actions" style="flex:0; min-width:auto;">
+      <span class="filter-label d-none d-md-inline">&nbsp;</span>
       <button class="btn btn-outline-secondary btn-sm" id="btnResetFilters" title="Clear all filters">
         <i class="fas fa-times me-1"></i>Clear
       </button>
@@ -335,19 +587,24 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
         </div>
       </div>
 
+      <!-- Mobile swipe hint -->
+      <div class="d-md-none px-3 py-2 text-muted" style="font-size:0.75rem; background:#f8fafc; border-top:1px solid #edf2f7; border-bottom:1px solid #edf2f7;">
+        <i class="fas fa-arrows-left-right me-1 text-primary"></i> Swipe horizontally to view full table details
+      </div>
+
       <div class="table-wrapper">
         <table class="table table-hover mb-0" id="residentsTable">
           <thead>
             <tr>
-              <th style="width:50px;">#</th>
-              <th>Full Name</th>
-              <th>Username</th>
-              <th>Email</th>
-              <th>Contact Number</th>
-              <th>Date of Birth</th>
-              <th>Address</th>
-              <th>Status</th>
-              <th class="text-center">Actions</th>
+              <th style="width:50px;" class="text-nowrap">#</th>
+              <th class="text-nowrap">Full Name</th>
+              <th class="text-nowrap">Username</th>
+              <th class="text-nowrap">Email</th>
+              <th class="text-nowrap">Contact Number</th>
+              <th class="text-nowrap">Date of Birth</th>
+              <th class="text-nowrap">Address</th>
+              <th class="text-nowrap">Status</th>
+              <th class="text-center text-nowrap">Actions</th>
             </tr>
           </thead>
           <tbody id="residentsTableBody">
@@ -410,7 +667,7 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
       <div class="modal-body">
 
         <!-- Header strip -->
-        <div class="d-flex align-items-center gap-3 mb-4 p-3 rounded-2" style="background:rgba(26,58,107,0.06);">
+        <div class="view-user-header d-flex align-items-center gap-3 mb-4 p-3 rounded-2 flex-wrap" style="background:rgba(26,58,107,0.06);">
           <div class="view-user-avatar" id="vUserAvatar">A</div>
           <div>
             <h5 class="mb-0 fw-bold" id="vFullName" style="color:var(--color-primary);"></h5>
@@ -423,19 +680,19 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
 
         <!-- Fields grid -->
         <div class="row g-3">
-          <div class="col-md-6">
+          <div class="col-12 col-sm-6">
             <div class="view-field-label">Email Address</div>
             <div class="view-field-value mt-1" id="vEmail">—</div>
           </div>
-          <div class="col-md-6">
+          <div class="col-12 col-sm-6">
             <div class="view-field-label">Contact Number</div>
             <div class="view-field-value mt-1" id="vContact">—</div>
           </div>
-          <div class="col-md-6">
+          <div class="col-12 col-sm-6">
             <div class="view-field-label">Date of Birth</div>
             <div class="view-field-value mt-1" id="vDob">—</div>
           </div>
-          <div class="col-md-6">
+          <div class="col-12 col-sm-6">
             <div class="view-field-label">Role</div>
             <div class="view-field-value mt-1">
               <span class="badge bg-primary" id="vRole">User</span>
@@ -445,17 +702,17 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
             <div class="view-field-label">Home Address</div>
             <div class="view-field-value mt-1" id="vAddress">—</div>
           </div>
-          <div class="col-md-6">
+          <div class="col-12 col-sm-6">
             <div class="view-field-label">Account Created</div>
             <div class="view-field-value mt-1" id="vCreatedAt">—</div>
           </div>
-          <div class="col-md-6">
+          <div class="col-12 col-sm-6">
             <div class="view-field-label">Account Status</div>
             <div class="view-field-value mt-1" id="vStatusText">—</div>
           </div>
         </div>
       </div>
-      <div class="modal-footer">
+      <div class="modal-footer d-flex flex-wrap gap-2 justify-content-end">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
         <button type="button" class="btn btn-warning text-dark" id="btnViewToggle">
           <i class="fas fa-toggle-off me-1"></i>Toggle Status
@@ -506,7 +763,7 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
 <!-- ══════════════════════════════════════════════════════════
      SCRIPTS
 ══════════════════════════════════════════════════════════ -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script src="../assets/js/api.js"></script>
 <script src="../assets/js/auth.js"></script>
 <script src="../assets/js/app.js"></script>
@@ -612,27 +869,27 @@ function renderTable() {
 
     return `
       <tr>
-        <td>${start + idx + 1}</td>
+        <td class="text-nowrap">${start + idx + 1}</td>
         <td>
           <div class="d-flex align-items-center gap-2">
             ${u.profile_picture ?
               `<img src="../${escHtml(u.profile_picture)}" alt="${escHtml(u.full_name || 'Resident')}" class="user-avatar-chip" style="object-fit:cover;padding:0;">` :
               `<div class="user-avatar-chip">${escHtml(initLetter)}</div>`
             }
-            <span class="fw-semibold">${escHtml(u.full_name || '—')}</span>
+            <span class="fw-semibold text-nowrap">${escHtml(u.full_name || '—')}</span>
           </div>
         </td>
-        <td><span class="font-monospace text-primary fw-semibold">@${escHtml(u.username)}</span></td>
-        <td>${escHtml(u.email || '—')}</td>
-        <td>${escHtml(u.contact_number || '—')}</td>
-        <td>${escHtml(u.date_of_birth || '—')}</td>
+        <td class="text-nowrap"><span class="font-monospace text-primary fw-semibold">@${escHtml(u.username)}</span></td>
+        <td class="text-nowrap">${escHtml(u.email || '—')}</td>
+        <td class="text-nowrap">${escHtml(u.contact_number || '—')}</td>
+        <td class="text-nowrap">${escHtml(u.date_of_birth || '—')}</td>
         <td>
-          <div style="max-width:200px; white-space:normal; line-height:1.3; font-size:var(--font-size-xs);">
+          <div style="min-width:140px; max-width:220px; white-space:normal; line-height:1.3; font-size:var(--font-size-xs);">
             ${escHtml(u.address || '—')}
           </div>
         </td>
-        <td>${statusBadge(userStatus)}</td>
-        <td class="text-center" style="white-space:nowrap;">
+        <td class="text-nowrap">${statusBadge(userStatus)}</td>
+        <td class="text-center text-nowrap" style="white-space:nowrap;">
           <button class="btn-action btn-view me-1" title="View Details" onclick="viewResident(${u.id})">
             <i class="fas fa-eye"></i>
           </button>
@@ -759,44 +1016,15 @@ async function toggleStatus() {
 document.addEventListener('DOMContentLoaded', async () => {
   if (!Auth.requireAdmin()) return;
 
-  const session = Auth.getSession();
-  if (session) {
-    const initLetter = session.fullName ? session.fullName[0].toUpperCase() : 'A';
-    const sa = document.getElementById('sidebarUserAvatar');
-    const sn = document.getElementById('sidebarUserName');
-    const na = document.getElementById('navbarAvatar');
-    const nu = document.getElementById('navbarUsername');
-    if (sa) sa.textContent = initLetter;
-    if (sn) sn.textContent = session.fullName || session.username;
-    if (na) na.textContent = initLetter;
-    if (nu) nu.textContent = session.fullName || session.username;
+  // Initialize ODMIS application core (responsive mobile sidebar, top navbar, notifications, auth guard)
+  if (typeof App !== 'undefined') {
+    App.initPage({ page: 'residents', adminPage: true, requireAdmin: true });
   }
 
   // Modal instances
   viewModalInst   = new bootstrap.Modal(document.getElementById('viewResidentModal'));
   toggleModalInst = new bootstrap.Modal(document.getElementById('toggleStatusModal'));
   logoutModalInst = new bootstrap.Modal(document.getElementById('logoutModal'));
-
-  // Sidebar toggle
-  document.getElementById('sidebarToggle').addEventListener('click', () => {
-    document.body.classList.toggle('sidebar-collapsed');
-  });
-  document.getElementById('sidebarOverlay')?.addEventListener('click', () => {
-    document.body.classList.remove('sidebar-collapsed');
-  });
-
-
-
-  // Mobile guard
-  function checkMobile() {
-    const guard = document.getElementById('mobileGuard');
-    if (guard) {
-      if (window.innerWidth < 1366) guard.classList.add('show');
-      else guard.classList.remove('show');
-    }
-  }
-  checkMobile();
-  window.addEventListener('resize', checkMobile);
 
   // Confirm toggle status
   document.getElementById('confirmToggleBtn').addEventListener('click', toggleStatus);
@@ -825,6 +1053,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     currentPage = 1;
     renderTable();
   });
+
+  // Expose handlers globally for HTML onclick attributes
+  window.viewResident       = viewResident;
+  window.promptToggleStatus = promptToggleStatus;
+  window.toggleStatus       = toggleStatus;
+  window.goPage             = goPage;
 
   // Initial load
   await loadResidents();

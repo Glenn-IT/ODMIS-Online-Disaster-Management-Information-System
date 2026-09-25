@@ -104,7 +104,11 @@ $requiredAssets = [
     'assets/js/api.js',
     'assets/js/auth.js',
     'assets/js/app.js',
-    'assets/css/style.css'
+    'assets/css/style.css',
+    'assets/vendor/bootstrap/css/bootstrap.min.css',
+    'assets/vendor/bootstrap/js/bootstrap.bundle.min.js',
+    'assets/vendor/fontawesome/css/all.min.css',
+    'assets/vendor/chartjs/chart.umd.min.js'
 ];
 foreach ($requiredAssets as $asset) {
     if (file_exists("$rootDir/$asset")) {

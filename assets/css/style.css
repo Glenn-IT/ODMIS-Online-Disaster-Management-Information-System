@@ -234,6 +234,33 @@ body.sidebar-collapsed #sidebar .sidebar-footer .sidebar-user-avatar {
   text-transform: uppercase;
 }
 
+.sidebar-close-btn {
+  display: none;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 1.15rem;
+  padding: 0.35rem 0.5rem;
+  margin-left: auto;
+  cursor: pointer;
+  border-radius: 4px;
+  line-height: 1;
+  transition: color var(--transition-fast), background var(--transition-fast);
+}
+
+.sidebar-close-btn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+@media (max-width: 991.98px) {
+  #sidebar.mobile-open .sidebar-close-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
 /* ── Navigation ── */
 .sidebar-nav {
   flex: 1;
@@ -1736,10 +1763,52 @@ hr.section-divider {
   #sidebar {
     transform: translateX(-100%);
     width: var(--sidebar-width) !important;
+    z-index: 1060 !important;
+    transition: transform 0.25s ease-in-out !important;
   }
 
   #sidebar.mobile-open {
-    transform: translateX(0);
+    transform: translateX(0) !important;
+    visibility: visible !important;
+  }
+
+  /* Ensure labels and menu items are fully visible on mobile even if body has sidebar-collapsed */
+  #sidebar.mobile-open .sidebar-brand-text,
+  #sidebar.mobile-open .nav-label,
+  #sidebar.mobile-open .sidebar-user-info,
+  #sidebar.mobile-open .sidebar-section-label,
+  body.sidebar-collapsed #sidebar.mobile-open .sidebar-brand-text,
+  body.sidebar-collapsed #sidebar.mobile-open .nav-label,
+  body.sidebar-collapsed #sidebar.mobile-open .sidebar-user-info,
+  body.sidebar-collapsed #sidebar.mobile-open .sidebar-section-label {
+    opacity: 1 !important;
+    width: auto !important;
+    overflow: visible !important;
+    white-space: normal !important;
+    pointer-events: auto !important;
+    display: inline-block !important;
+  }
+
+  #sidebar.mobile-open .sidebar-brand-text,
+  #sidebar.mobile-open .sidebar-user-info,
+  body.sidebar-collapsed #sidebar.mobile-open .sidebar-brand-text,
+  body.sidebar-collapsed #sidebar.mobile-open .sidebar-user-info {
+    display: flex !important;
+  }
+
+  #sidebar.mobile-open .sidebar-nav-link,
+  body.sidebar-collapsed #sidebar.mobile-open .sidebar-nav-link {
+    justify-content: flex-start !important;
+    padding: 0.75rem 1.25rem !important;
+  }
+
+  #sidebar.mobile-open .sidebar-nav-link .nav-icon,
+  body.sidebar-collapsed #sidebar.mobile-open .sidebar-nav-link .nav-icon {
+    margin-right: 0.85rem !important;
+  }
+
+  #sidebarOverlay {
+    z-index: 1055 !important;
   }
 
   #topNavbar {

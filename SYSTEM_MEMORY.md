@@ -364,6 +364,7 @@ flowchart TD
 - **API Helpers & Middleware:** `api/helpers/response.php`, `api/middleware/auth.php`
 - **Client Scripts:** `assets/js/api.js`, `assets/js/auth.js`, `assets/js/app.js`
 - **Global Styles:** `assets/css/style.css`
+- **Local Vendor Assets (Offline Capable):** `assets/vendor/` (Bootstrap 5.3.2, Font Awesome 6.5.0 + Webfonts, Bootstrap Icons, Chart.js 4.4.0, ChartDataLabels)
 - **Admin Pages:** `admin/`
 - **User Pages:** `user/`
 - **Sync Checker:** `scripts/sync-check.php`

@@ -10,8 +10,8 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard — ODMIS User</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="../assets/vendor/bootstrap/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="../assets/vendor/fontawesome/css/all.min.css" />
   <link rel="stylesheet" href="../assets/css/style.css" />
   <style>
     .alert-border-card { border-left: 5px solid #ccc; border-radius: 6px; background: #fff; padding: 1rem; margin-bottom: 0.75rem; box-shadow: 0 1px 4px rgba(0,0,0,.07); }
@@ -35,6 +35,9 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
       <span class="brand-title">ODMIS</span>
       <span class="brand-subtitle">Disaster Management</span>
     </div>
+    <button type="button" class="sidebar-close-btn d-lg-none" id="sidebarClose" title="Close Menu">
+      <i class="fas fa-times"></i>
+    </button>
   </div>
 
   <nav class="sidebar-nav">
@@ -207,7 +210,7 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
 </div>
 
 <!-- Scripts -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script src="../assets/js/api.js"></script>
 <script src="../assets/js/auth.js"></script>
 <script src="../assets/js/app.js"></script>
@@ -230,9 +233,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     if (wn) wn.textContent = session.fullName || session.username;
   }
 
-  document.getElementById('sidebarToggle').addEventListener('click', () => {
-    document.body.classList.toggle('sidebar-collapsed');
-  });
+  App.initSidebar();
   document.getElementById('confirmLogoutBtn').addEventListener('click', () => Auth.logout());
   document.querySelectorAll('[data-action="logout"]').forEach(el => {
     el.addEventListener('click', e => { e.preventDefault(); new bootstrap.Modal(document.getElementById('logoutModal')).show(); });

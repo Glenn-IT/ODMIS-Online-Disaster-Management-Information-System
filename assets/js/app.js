@@ -36,10 +36,10 @@ const App = (function () {
 
   // ── Toast icon map ───────────────────────────────────────────
   const _toastIcons = {
-    success : 'bi bi-check-circle-fill',
-    error   : 'bi bi-x-circle-fill',
-    warning : 'bi bi-exclamation-triangle-fill',
-    info    : 'bi bi-info-circle-fill'
+    success : 'fas fa-check-circle',
+    error   : 'fas fa-times-circle',
+    warning : 'fas fa-exclamation-triangle',
+    info    : 'fas fa-info-circle'
   };
 
   /**
@@ -64,7 +64,7 @@ const App = (function () {
         '<div class="toast-message">' + _escapeHtml(message) + '</div>' +
       '</div>' +
       '<button class="toast-close" type="button" title="Dismiss">' +
-        '<i class="bi bi-x"></i>' +
+        '<i class="fas fa-times"></i>' +
       '</button>' +
       (duration > 0 ? '<div class="toast-progress" style="animation-duration:' + duration + 'ms"></div>' : '');
 
@@ -224,25 +224,34 @@ const App = (function () {
     const overlay   = document.getElementById('sidebarOverlay');
 
     if (!hamburger || !sidebar) return;
+    if (hamburger.dataset.sidebarBound === 'true') return;
+    hamburger.dataset.sidebarBound = 'true';
 
-    // Restore collapsed state from session storage
-    const isCollapsed = sessionStorage.getItem('odmis_sidebar_collapsed') === 'true';
-    if (isCollapsed) {
-      document.body.classList.add('sidebar-collapsed');
+    // Restore collapsed state from session storage (desktop only)
+    if (window.innerWidth >= 992) {
+      const isCollapsed = sessionStorage.getItem('odmis_sidebar_collapsed') === 'true';
+      if (isCollapsed) {
+        document.body.classList.add('sidebar-collapsed');
+      }
+    } else {
+      document.body.classList.remove('sidebar-collapsed');
     }
 
-    hamburger.addEventListener('click', function () {
+    hamburger.addEventListener('click', function (e) {
+      if (e) e.preventDefault();
       const isMobile = window.innerWidth < 992;
 
       if (isMobile) {
         // On mobile: slide sidebar in/out with overlay
-        sidebar.classList.toggle('mobile-open');
-        if (overlay) overlay.classList.toggle('show');
+        document.body.classList.remove('sidebar-collapsed');
+        const willOpen = !sidebar.classList.contains('mobile-open');
+        sidebar.classList.toggle('mobile-open', willOpen);
+        if (overlay) overlay.classList.toggle('show', willOpen);
       } else {
         // On desktop: collapse/expand icon-only mode
         document.body.classList.toggle('sidebar-collapsed');
         const collapsed = document.body.classList.contains('sidebar-collapsed');
-        sessionStorage.setItem('odmis_sidebar_collapsed', String(collapsed));
+        try { sessionStorage.setItem('odmis_sidebar_collapsed', String(collapsed)); } catch(_) {}
       }
     });
 
@@ -263,6 +272,30 @@ const App = (function () {
           if (overlay) overlay.classList.remove('show');
         }
       });
+    });
+
+    // Close buttons inside sidebar (e.g. mobile 'X' button)
+    const closeBtns = sidebar.querySelectorAll('#sidebarClose, .sidebar-close-btn');
+    closeBtns.forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        if (e) e.preventDefault();
+        sidebar.classList.remove('mobile-open');
+        if (overlay) overlay.classList.remove('show');
+      });
+    });
+
+    // Handle window resize cleanly
+    window.addEventListener('resize', function () {
+      if (window.innerWidth >= 992) {
+        sidebar.classList.remove('mobile-open');
+        if (overlay) overlay.classList.remove('show');
+        const isCollapsed = sessionStorage.getItem('odmis_sidebar_collapsed') === 'true';
+        if (isCollapsed) {
+          document.body.classList.add('sidebar-collapsed');
+        }
+      } else {
+        document.body.classList.remove('sidebar-collapsed');
+      }
     });
   }
 
@@ -1084,8 +1117,9 @@ const App = (function () {
     }
   }
 
-  // Auto-run navbar and notification initialization on DOM content loaded
+  // Auto-run sidebar, navbar and notification initialization on DOM content loaded
   document.addEventListener('DOMContentLoaded', function () {
+    initSidebar();
     initNavbar();
     setInterval(_updateNotificationCount, 30000);
   });
