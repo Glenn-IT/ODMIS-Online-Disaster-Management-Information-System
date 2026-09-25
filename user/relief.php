@@ -524,8 +524,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     `;
     new bootstrap.Modal(document.getElementById('viewReliefModal')).show();
   };
-    new bootstrap.Modal(document.getElementById('viewReliefModal')).show();
-  };
 
   // 7. Event listeners
   document.getElementById('statusFilter').addEventListener('click', function(e) {
