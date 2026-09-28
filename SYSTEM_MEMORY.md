@@ -163,7 +163,7 @@ graph TD
 
 > **Connected Files for `relief_operations`:**
 > - DB: `database/migrations/001_create_tables.sql`
-> - API: `api/relief/index.php` (role-scoped: `admin` sees all, `user` strictly filtered by resident's registered barangay), `show.php` (role-scoped: 403 Forbidden if not resident's barangay), `store.php`, `update.php`, `api/reports/relief.php`, `api/reports/export-csv.php`, `api/reports/export-pdf.php`
+> - API: `api/relief/index.php` (role-scoped: `admin` sees all, `user` strictly filtered by resident's registered barangay), `show.php` (role-scoped: 403 Forbidden if not resident's barangay), `store.php`, `update.php`, `destroy.php`, `api/reports/relief.php`, `api/reports/export-csv.php`, `api/reports/export-pdf.php`
 > - UI: `admin/relief.php`, `admin/reports.php`, `user/relief.php`, `user/dashboard.php` (`statReliefOps`)
 
 ---
