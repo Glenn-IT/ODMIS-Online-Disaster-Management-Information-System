@@ -11,6 +11,11 @@ method_required('POST');
 $body = get_json_body();
 
 // ── Required fields ───────────────────────────────────────────
+// If separate name fields are provided, compose full_name
+if (empty(trim($body['full_name'] ?? '')) && (!empty($body['first_name']) || !empty($body['last_name']))) {
+    $body['full_name'] = trim(preg_replace('/\s+/', ' ', ($body['first_name'] ?? '') . ' ' . ($body['middle_name'] ?? '') . ' ' . ($body['last_name'] ?? '')));
+}
+
 $required = ['username', 'email', 'password', 'full_name', 'contact_number', 'security_question', 'security_answer'];
 $missing  = [];
 foreach ($required as $field) {

@@ -363,8 +363,15 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
 
     <div class="filter-group" style="flex:0 0 auto;">
       <button class="btn btn-outline-secondary" onclick="resetFilters()"><i class="fas fa-undo me-1"></i> Reset</button>
+      <button class="btn btn-outline-primary no-print" onclick="window.print()"><i class="fas fa-print me-1"></i> Print</button>
     </div>
   </div>
+
+  <?php 
+    $docTitle = 'DRRM Emergency SMS Broadcast Transmission Logs';
+    $docSubtitle = 'MDRRMO Santo Niño (Faire), Cagayan — Notification Dispatch Records';
+    include __DIR__ . '/../components/print-header.php'; 
+  ?>
 
   <!-- Table Card -->
   <div class="card border-0 shadow-sm rounded-3 overflow-hidden">

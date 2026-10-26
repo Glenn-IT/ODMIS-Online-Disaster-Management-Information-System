@@ -52,6 +52,16 @@ if ($missing) error('Missing required fields: ' . implode(', ', array_values($mi
 $capacity = (int) $body['capacity'];
 $occupied = (int) ($body['occupied_slots'] ?? 0);
 if ($capacity < 1)          error('Capacity must be greater than 0.');
+if ($capacity > 500)        error('Capacity cannot exceed 500.');
+
+// Ensure total capacity for the barangay does not exceed 500
+$stmtCap = $pdo->prepare('SELECT IFNULL(SUM(capacity), 0) FROM evacuation_centers WHERE barangay = ?');
+$stmtCap->execute([sanitize($body['barangay'])]);
+$currentBrgyCap = (int) $stmtCap->fetchColumn();
+if (($currentBrgyCap + $capacity) > 500) {
+    $maxRemaining = max(0, 500 - $currentBrgyCap);
+    error("Total evacuation capacity for {$body['barangay']} cannot exceed 500. Currently allocated: {$currentBrgyCap} (maximum additional capacity allowed: {$maxRemaining}).", 422);
+}
 if ($occupied < 0)          error('Occupied slots cannot be negative.');
 if ($occupied > $capacity)  error('Occupied slots cannot exceed capacity.');
 if (!empty($body['contact_number']) && !preg_match('/^09\d{9}$/', trim((string)$body['contact_number']))) {

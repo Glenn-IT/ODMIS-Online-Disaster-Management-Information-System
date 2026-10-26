@@ -549,8 +549,84 @@
       }
     }
 
+    // ── Failed-attempt lockout (3 attempts → 30s lock) ─────────────
+    const MAX_ATTEMPTS    = 3;
+    const LOCKOUT_SECONDS = 30;
+
+    function attemptKey(formKey) {
+      return 'fpAttempts_' + formKey;
+    }
+
+    function getAttemptState(formKey) {
+      try {
+        return JSON.parse(sessionStorage.getItem(attemptKey(formKey))) || { count: 0, lockUntil: 0 };
+      } catch (e) {
+        return { count: 0, lockUntil: 0 };
+      }
+    }
+
+    function setAttemptState(formKey, state) {
+      sessionStorage.setItem(attemptKey(formKey), JSON.stringify(state));
+    }
+
+    function clearAttemptState(formKey) {
+      sessionStorage.removeItem(attemptKey(formKey));
+    }
+
+    function isLocked(formKey) {
+      const state = getAttemptState(formKey);
+      return state.lockUntil > Date.now();
+    }
+
+    function startLockCountdown(btnId, formKey, inputId) {
+      const btn = document.getElementById(btnId);
+      const input = inputId ? document.getElementById(inputId) : null;
+      if (!btn.dataset.original) btn.dataset.original = btn.innerHTML;
+      btn.disabled = true;
+      if (input) input.disabled = true;
+
+      const tick = function () {
+        const state     = getAttemptState(formKey);
+        const remaining = Math.max(0, Math.ceil((state.lockUntil - Date.now()) / 1000));
+        if (remaining <= 0) {
+          clearAttemptState(formKey);
+          btn.disabled = false;
+          btn.innerHTML = btn.dataset.original;
+          if (input) {
+            input.disabled = false;
+            input.focus();
+          }
+          return;
+        }
+        btn.innerHTML = '<i class="fas fa-lock me-2"></i>Locked (' + remaining + 's)';
+        setTimeout(tick, 1000);
+      };
+      tick();
+    }
+
+    function registerFailedAttempt(btnId, formKey, inputId, baseMessage) {
+      const state = getAttemptState(formKey);
+      state.count += 1;
+      if (state.count >= MAX_ATTEMPTS) {
+        state.lockUntil = Date.now() + LOCKOUT_SECONDS * 1000;
+        state.count = 0;
+        setAttemptState(formKey, state);
+        startLockCountdown(btnId, formKey, inputId);
+        showToast('Too many failed attempts. Verification locked for ' + LOCKOUT_SECONDS + ' seconds.', 'error');
+      } else {
+        setAttemptState(formKey, state);
+        const remainingAttempts = MAX_ATTEMPTS - state.count;
+        const attemptsMsg = remainingAttempts + ' attempt' + (remainingAttempts === 1 ? '' : 's') + ' remaining before lockout.';
+        showToast((baseMessage ? baseMessage + ' ' : '') + attemptsMsg, 'error');
+      }
+    }
+
     // ── STEP 1 handler ────────────────────────────────────────────
     async function handleStep1() {
+      if (isLocked('fp_username')) {
+        startLockCountdown('btnStep1', 'fp_username', 'fpUsername');
+        return;
+      }
       clearFieldError('fpUsername', 'errFpUsername');
       var username = document.getElementById('fpUsername').value.trim();
       if (!username) {
@@ -560,6 +636,7 @@
       setBtnLoading('btnStep1', true, '<i class="fas fa-arrow-right me-2"></i>Continue');
       try {
         var res = await ApiClient.post('/auth/forgot-password.php', { step: 1, username: username });
+        clearAttemptState('fp_username');
         _resolvedUsername = username;
         document.getElementById('fpSecQuestion').value = res.data.security_question;
         document.getElementById('fpSecAnswer').value   = '';
@@ -567,14 +644,20 @@
         goToStep(2);
       } catch (err) {
         setFieldError('fpUsername', 'errFpUsername', err.message || 'Username not found.');
-        showToast(err.message || 'No account found with that username.', 'error');
+        registerFailedAttempt('btnStep1', 'fp_username', 'fpUsername', err.message || 'No account found with that username.');
       } finally {
-        setBtnLoading('btnStep1', false, '<i class="fas fa-arrow-right me-2"></i>Continue');
+        if (!isLocked('fp_username')) {
+          setBtnLoading('btnStep1', false, '<i class="fas fa-arrow-right me-2"></i>Continue');
+        }
       }
     }
 
     // ── STEP 2 handler ────────────────────────────────────────────
     async function handleStep2() {
+      if (isLocked('fp_sec_answer')) {
+        startLockCountdown('btnStep2', 'fp_sec_answer', 'fpSecAnswer');
+        return;
+      }
       clearFieldError('fpSecAnswer', 'errFpSecAnswer');
       var answer = document.getElementById('fpSecAnswer').value.trim();
       if (!answer) {
@@ -586,6 +669,7 @@
         var res = await ApiClient.post('/auth/forgot-password.php', {
           step: 2, username: _resolvedUsername, security_answer: answer
         });
+        clearAttemptState('fp_sec_answer');
         _resolvedUserId = res.data.user_id;
         document.getElementById('fpNewPassword').value     = '';
         document.getElementById('fpConfirmPassword').value = '';
@@ -595,9 +679,11 @@
         goToStep(3);
       } catch (err) {
         setFieldError('fpSecAnswer', 'errFpSecAnswer', 'Incorrect answer. Please try again.');
-        showToast(err.message || 'Security answer does not match our records.', 'error');
+        registerFailedAttempt('btnStep2', 'fp_sec_answer', 'fpSecAnswer', err.message || 'Incorrect security answer.');
       } finally {
-        setBtnLoading('btnStep2', false, '<i class="fas fa-check me-2"></i>Verify Answer');
+        if (!isLocked('fp_sec_answer')) {
+          setBtnLoading('btnStep2', false, '<i class="fas fa-check me-2"></i>Verify Answer');
+        }
       }
     }
 
@@ -644,6 +730,11 @@
     document.getElementById('fpConfirmPassword').addEventListener('keydown', function (e) {
       if (e.key === 'Enter') handleStep3();
     });
+    // ── Resume lockout countdown if page reloaded mid-lock ─────────
+    (function () {
+      if (isLocked('fp_sec_answer')) startLockCountdown('btnStep2', 'fp_sec_answer', 'fpSecAnswer');
+      if (isLocked('fp_username'))   startLockCountdown('btnStep1', 'fp_username', 'fpUsername');
+    })();
   </script>
 </body>
 </html>

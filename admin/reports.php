@@ -428,8 +428,25 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
 
       <!-- Report header (hidden until generated) -->
       <div id="reportHeaderBlock" class="report-header-block" style="display:none;">
-        <div class="report-sys-name">ODMIS - Online Disaster Management Information System</div>
-        <div class="report-office">MDRRMO &mdash; Municipality of Santo Niño (Faire), Cagayan, Region II</div>
+        <div class="odmis-letterhead-wrap position-relative mb-2">
+          <div class="d-flex align-items-center justify-content-between pb-2" style="border-bottom: 2px solid #283F24;">
+            <div style="width:65px;">
+              <img src="../img/seal_stonino.png" alt="Sto. Niño Seal" style="width:58px; height:58px; object-fit:contain;" />
+            </div>
+            <div class="text-center flex-grow-1 px-2" style="line-height:1.25;">
+              <div class="text-muted" style="font-size:0.85rem;">Republic of the Philippines</div>
+              <div class="text-muted" style="font-size:0.85rem;">Province of Cagayan</div>
+              <div class="fw-bold text-dark" style="font-size:0.95rem;">Municipality of Sto. Niño</div>
+              <div class="fw-bold mt-1" style="font-size:1.05rem; color:#1c3d1c; letter-spacing:0.5px; text-transform:uppercase;">
+                OFFICE OF THE MUNICIPAL DISASTER RISK REDUCTION AND MANAGEMENT
+              </div>
+            </div>
+            <div style="width:75px; text-align:right;">
+              <img src="../img/logo_mdrrmo.jpg" alt="MDRRMO Logo" style="width:72px; height:44px; object-fit:contain;" />
+            </div>
+          </div>
+        </div>
+
         <div class="report-title-text" id="reportTitleText">Report</div>
         <div class="report-meta" id="reportMeta"></div>
       </div>
@@ -443,6 +460,7 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
           </table>
         </div>
         <div class="report-summary" id="reportSummary"></div>
+        <?php include __DIR__ . '/../components/print-footer.php'; ?>
       </div>
 
       <!-- Charts (incidents only) -->

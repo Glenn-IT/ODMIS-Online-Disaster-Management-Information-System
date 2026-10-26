@@ -561,6 +561,10 @@ document.addEventListener('DOMContentLoaded', async function () {
       ]);
       _profileData = profileRes.data || {};
       populateUI(_profileData);
+      const initial = (_profileData.full_name || _profileData.username || 'U')[0].toUpperCase();
+      renderAvatars(_profileData.profile_picture, initial);
+      const navUser = document.getElementById('navbarUserName');
+      if (navUser) navUser.textContent = _profileData.full_name || _profileData.username;
 
       const myReports  = Array.isArray(reportRes.data) ? reportRes.data : [];
       const activeAlerts = (Array.isArray(alertRes.data) ? alertRes.data : []).filter(a => a.status !== 'Resolved');
@@ -807,8 +811,15 @@ document.addEventListener('DOMContentLoaded', async function () {
     this.disabled = true;
     try {
       const res = await ApiClient.put('/profile/update.php', updates);
+      if (res.data && res.data.token) {
+        ApiClient.setToken(res.data.token);
+      }
       _profileData = { ..._profileData, ...updates };
       populateUI(_profileData);
+      const initial = (_profileData.full_name || _profileData.username || 'U')[0].toUpperCase();
+      renderAvatars(_profileData.profile_picture, initial);
+      const navUser = document.getElementById('navbarUserName');
+      if (navUser) navUser.textContent = _profileData.full_name || _profileData.username;
       bootstrap.Modal.getInstance(document.getElementById('editProfileModal')).hide();
       showToast('Profile updated successfully!', 'success');
     } catch (err) {

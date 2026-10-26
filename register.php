@@ -47,7 +47,7 @@
 
     .register-card {
       width: 100%;
-      max-width: 520px;
+      max-width: 560px;
       background: #fff;
       border-radius: .75rem;
       box-shadow: 0 20px 60px rgba(0,0,0,.35), 0 4px 16px rgba(0,0,0,.2);
@@ -119,6 +119,7 @@
     }
 
     .form-label { font-size: .82rem; font-weight: 600; color: #343a40; margin-bottom: .3rem; }
+    .name-label { min-height: 1.35rem; display: flex; align-items: center; white-space: nowrap; }
     .input-group-text { background: #f4f6f9; border-right: none; color: #6c757d; font-size: .85rem; }
     .form-control { border-left: none; font-size: .875rem; }
     .form-control:focus { box-shadow: 0 0 0 .2rem rgba(70,114,53,.2); border-color: #467235; }
@@ -214,14 +215,34 @@
           <!-- Personal Information -->
           <div class="section-divider"><i class="fas fa-id-card me-1"></i>Personal Information</div>
 
-          <div class="mb-3">
-            <label for="regFullName" class="form-label">Full Name <span class="text-danger">*</span></label>
-            <div class="input-group">
-              <span class="input-group-text"><i class="fas fa-id-badge"></i></span>
-              <input type="text" class="form-control" id="regFullName"
-                     placeholder="e.g. Juan Dela Cruz" required>
+          <div class="row g-2 mb-3">
+            <div class="col-md-4 col-12">
+              <label for="regFirstName" class="form-label name-label">First Name <span class="text-danger ms-1">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text px-2"><i class="fas fa-user"></i></span>
+                <input type="text" class="form-control px-2" id="regFirstName"
+                       placeholder="First name" required>
+              </div>
+              <div class="invalid-feedback" id="errFirstName">First name is required.</div>
             </div>
-            <div class="invalid-feedback" id="errFullName"></div>
+            <div class="col-md-4 col-12">
+              <label for="regMiddleName" class="form-label name-label">Middle Name <span class="text-muted fw-normal ms-1" style="font-size:0.75rem;">(Optional)</span></label>
+              <div class="input-group">
+                <span class="input-group-text px-2"><i class="fas fa-user-tag"></i></span>
+                <input type="text" class="form-control px-2" id="regMiddleName"
+                       placeholder="Middle name">
+              </div>
+              <div class="invalid-feedback" id="errMiddleName"></div>
+            </div>
+            <div class="col-md-4 col-12">
+              <label for="regLastName" class="form-label name-label">Last Name <span class="text-danger ms-1">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text px-2"><i class="fas fa-id-badge"></i></span>
+                <input type="text" class="form-control px-2" id="regLastName"
+                       placeholder="Last name" required>
+              </div>
+              <div class="invalid-feedback" id="errLastName">Last name is required.</div>
+            </div>
           </div>
 
           <div class="row g-2 mb-3">
@@ -507,7 +528,7 @@
       if (err)   { err.textContent = message; err.style.display = 'block'; }
     }
     function clearAllErrors() {
-      ['regFullName','regUsername','regEmail','regContact','regDob','regBarangay','regPurok','regCustomPurok',
+      ['regFirstName','regMiddleName','regLastName','regUsername','regEmail','regContact','regDob','regBarangay','regPurok','regCustomPurok',
        'regPassword','regConfirmPassword','regSecQuestion','regSecAnswer'].forEach(function (id) {
         const el = document.getElementById(id);
         if (el) el.classList.remove('is-invalid');
@@ -531,7 +552,9 @@
     function validate() {
       clearAllErrors();
       let valid    = true;
-      const fullName  = document.getElementById('regFullName').value.trim();
+      const firstName = document.getElementById('regFirstName').value.trim();
+      const middleName = document.getElementById('regMiddleName').value.trim();
+      const lastName  = document.getElementById('regLastName').value.trim();
       const username  = document.getElementById('regUsername').value.trim();
       const email     = document.getElementById('regEmail').value.trim();
       const contact   = document.getElementById('regContact').value.trim();
@@ -544,7 +567,8 @@
       const secQ      = document.getElementById('regSecQuestion').value;
       const secA      = document.getElementById('regSecAnswer').value.trim();
 
-      if (!fullName) { setError('regFullName','errFullName','Full name is required.'); valid = false; }
+      if (!firstName) { setError('regFirstName','errFirstName','First name is required.'); valid = false; }
+      if (!lastName)  { setError('regLastName','errLastName','Last name is required.'); valid = false; }
       if (!username) { setError('regUsername','errUsername','Username is required.'); valid = false; }
       else if (username.length < 3) { setError('regUsername','errUsername','Username must be at least 3 characters.'); valid = false; }
       if (!email) { setError('regEmail','errEmail','Email address is required.'); valid = false; }
@@ -581,7 +605,10 @@
 
       try {
         await ApiClient.post('/auth/register.php', {
-          full_name        : document.getElementById('regFullName').value.trim(),
+          full_name        : [document.getElementById('regFirstName').value.trim(), document.getElementById('regMiddleName').value.trim(), document.getElementById('regLastName').value.trim()].filter(Boolean).join(' '),
+          first_name       : document.getElementById('regFirstName').value.trim(),
+          middle_name      : document.getElementById('regMiddleName').value.trim(),
+          last_name        : document.getElementById('regLastName').value.trim(),
           username         : document.getElementById('regUsername').value.trim(),
           email            : document.getElementById('regEmail').value.trim(),
           password         : document.getElementById('regPassword').value,

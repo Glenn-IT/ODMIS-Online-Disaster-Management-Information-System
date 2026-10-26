@@ -356,6 +356,12 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
     </div>
   </div>
 
+  <?php 
+    $docTitle = 'Resident Incident Submissions & Action Logs';
+    $docSubtitle = 'MDRRMO Santo Niño (Faire), Cagayan — Citizen Reports Review';
+    include __DIR__ . '/../components/print-header.php'; 
+  ?>
+
   <!-- ── REPORTS TABLE CARD ── -->
   <div class="content-card">
     <div class="content-card-header">
@@ -364,6 +370,11 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
         Submitted Reports
         <span class="record-count ms-2" id="recordCount">0</span>
       </h5>
+      <div class="d-flex align-items-center gap-2">
+        <button class="btn btn-outline-primary btn-sm no-print" onclick="window.print()">
+          <i class="fas fa-print me-1"></i>Print
+        </button>
+      </div>
     </div>
 
     <div class="content-card-body p-0">
@@ -416,6 +427,7 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
     </div>
   </div>
 
+  <?php include __DIR__ . '/../components/print-footer.php'; ?>
 </main>
 
 <!-- ══════════════════════════════════════════════════════════

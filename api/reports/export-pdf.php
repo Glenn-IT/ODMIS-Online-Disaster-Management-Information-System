@@ -151,57 +151,142 @@ foreach ($rows as $row) {
     $tr_html .= '</tr>';
 }
 
+$is_landscape     = count($headers) > 6;
+$header_pdf_path  = __DIR__ . '/../../docs/HEADER.pdf';
+$use_pdf_template = (!$is_landscape && file_exists($header_pdf_path));
+
+$seal_path    = str_replace('\\', '/', realpath(__DIR__ . '/../../img/seal_stonino.png'));
+$mdrrmo_path  = str_replace('\\', '/', realpath(__DIR__ . '/../../img/logo_mdrrmo.jpg'));
+$header_bg    = str_replace('\\', '/', realpath(__DIR__ . '/../../img/header_bg.png'));
+$bp_path      = str_replace('\\', '/', realpath(__DIR__ . '/../../img/logo_bagong_pilipinas.png'));
+$partner_path = str_replace('\\', '/', realpath(__DIR__ . '/../../img/logo_partner.png'));
+
+$landscape_header = '';
+$footer_content   = '';
+
+if ($is_landscape) {
+    $landscape_header = <<<HTML
+<htmlpageheader name="ReportHeader">
+  <div style="position:relative; width:100%; border-bottom:2px solid #283F24; padding-bottom:4px;">
+    <div style="position:absolute; top:0; left:0; width:100%; height:32mm; z-index:-1;">
+      <img src="{$header_bg}" style="width:100%; height:32mm; opacity:0.85;" />
+    </div>
+    <table style="width:100%; border-collapse:collapse;">
+      <tr>
+        <td style="width:60px; vertical-align:middle; text-align:center;">
+          <img src="{$seal_path}" style="width:54px; height:54px;" />
+        </td>
+        <td style="vertical-align:middle; text-align:center; line-height:1.2;">
+          <div style="font-size:9.5pt; color:#333;">Republic of the Philippines</div>
+          <div style="font-size:9.5pt; color:#333;">Province of Cagayan</div>
+          <div style="font-size:9.5pt; font-weight:bold; color:#111;">Municipality of Sto. Niño</div>
+          <div style="font-size:11.5pt; font-weight:bold; color:#1c3d1c; letter-spacing:0.5px;">
+            OFFICE OF THE MUNICIPAL DISASTER RISK REDUCTION AND MANAGEMENT
+          </div>
+        </td>
+        <td style="width:75px; vertical-align:middle; text-align:center;">
+          <img src="{$mdrrmo_path}" style="width:70px; height:42px;" />
+        </td>
+      </tr>
+    </table>
+  </div>
+</htmlpageheader>
+HTML;
+
+    $footer_content = <<<HTML
+<htmlpagefooter name="ReportFooter">
+  <div style="width:100%; border-top:1px solid #ccc; padding-top:4px; font-size:7.5pt; color:#555;">
+    <table style="width:100%; border-collapse:collapse;">
+      <tr>
+        <td style="width:120px; vertical-align:middle;">
+          <img src="{$bp_path}" style="height:18px;" />
+          &nbsp;
+          <img src="{$partner_path}" style="height:18px;" />
+        </td>
+        <td style="vertical-align:middle; text-align:center;">
+          Email: <strong>ldrrmosto.nino@gmail.com</strong> &nbsp;|&nbsp; Contact: <strong>0917 5448880</strong><br>
+          <em>Online Disaster Management Information System (ODMIS) — Official Report</em>
+        </td>
+        <td style="width:70px; vertical-align:middle; text-align:right;">
+          Page {PAGENO} of {nbpg}
+        </td>
+      </tr>
+    </table>
+  </div>
+</htmlpagefooter>
+HTML;
+} else {
+    // Portrait footer (header and footer graphic are drawn by HEADER.pdf template)
+    $footer_content = <<<HTML
+<htmlpagefooter name="ReportFooter">
+  <div style="text-align:right; font-size:7.5pt; color:#666; padding-right:12mm; margin-bottom:5mm;">
+    Page {PAGENO} of {nbpg}
+  </div>
+</htmlpagefooter>
+HTML;
+}
+
+$page_rules = $is_landscape
+    ? "@page { margin-top: 46mm; margin-bottom: 22mm; margin-left: 12mm; margin-right: 12mm; header: html_ReportHeader; footer: html_ReportFooter; }"
+    : "@page { margin-top: 48mm; margin-bottom: 26mm; margin-left: 12mm; margin-right: 12mm; footer: html_ReportFooter; }";
+
 $html = <<<HTML
 <!DOCTYPE html>
 <html>
 <head>
 <style>
-  body        { font-family: Arial, sans-serif; font-size: 10pt; color: #222; }
-  .header     { text-align: center; margin-bottom: 16px; border-bottom: 2px solid #467235; padding-bottom: 10px; }
-  .header h2  { margin: 0; font-size: 14pt; color: #283F24; }
-  .header h3  { margin: 4px 0 0; font-size: 11pt; color: #467235; }
-  .header p   { margin: 2px 0; font-size: 9pt; color: #555; }
-  .meta       { font-size: 9pt; color: #555; margin-bottom: 10px; }
-  .summary    { font-size: 9pt; font-weight: bold; color: #283F24; margin-bottom: 8px; }
-  table       { width: 100%; border-collapse: collapse; font-size: 8.5pt; }
-  th          { background-color: #467235; color: #fff; padding: 5px 4px; text-align: left; }
+  {$page_rules}
+  body        { font-family: Arial, sans-serif; font-size: 9.5pt; color: #222; }
+  .report-heading { text-align: center; margin-bottom: 12px; }
+  .report-heading h2 { margin: 0; font-size: 13pt; color: #283F24; text-transform: uppercase; letter-spacing: 0.5px; }
+  .report-heading h3 { margin: 3px 0 0; font-size: 10pt; color: #467235; font-weight: 600; }
+  .meta       { font-size: 8.5pt; color: #555; margin-bottom: 8px; }
+  .summary    { font-size: 8.5pt; font-weight: bold; color: #283F24; margin-bottom: 8px; background: #f0f7ee; padding: 4px 8px; border-left: 3px solid #467235; }
+  table       { width: 100%; border-collapse: collapse; font-size: 8pt; }
+  th          { background-color: #467235; color: #fff; padding: 5px 4px; text-align: left; font-weight: bold; }
   td          { padding: 4px; border-bottom: 1px solid #ddd; vertical-align: top; }
   tr:nth-child(even) td { background-color: #f5f9f4; }
-  .footer     { text-align: center; font-size: 8pt; color: #888; margin-top: 16px; }
 </style>
 </head>
 <body>
-<div class="header">
-  <h2>Municipal Disaster Risk Reduction &amp; Management Office</h2>
-  <h3>ODMIS — $title</h3>
-  <p>Santo Niño (Faire), Cagayan, Philippines</p>
+{$landscape_header}
+{$footer_content}
+
+<div class="report-heading">
+  <h2>ODMIS &mdash; {$title}</h2>
+  <h3>Municipality of Santo Niño (Faire), Cagayan</h3>
 </div>
 <div class="meta">
-  <strong>Generated:</strong> $generated &nbsp;&nbsp;
-  $filter_str
+  <strong>Generated:</strong> {$generated} &nbsp;&nbsp;
+  {$filter_str}
 </div>
-<div class="summary">$summary</div>
+<div class="summary">{$summary}</div>
 <table>
-  <thead><tr>$th_html</tr></thead>
-  <tbody>$tr_html</tbody>
+  <thead><tr>{$th_html}</tr></thead>
+  <tbody>{$tr_html}</tbody>
 </table>
-<div class="footer">
-  This report was generated by the Online Disaster Management Information System (ODMIS).<br>
-  For official use only — MDRRMO, Municipal Government of Santo Niño (Faire).
-</div>
 </body>
 </html>
 HTML;
 
 // ── Generate PDF ──────────────────────────────────────────────
 try {
+    $orientation = $is_landscape ? 'L' : 'P';
+    $marginTop   = $is_landscape ? 46 : 48;
+    $marginBottom = $is_landscape ? 22 : 26;
+
     $mpdf = new \Mpdf\Mpdf([
-        'margin_top'    => 10,
-        'margin_bottom' => 15,
+        'margin_top'    => $marginTop,
+        'margin_bottom' => $marginBottom,
         'margin_left'   => 12,
         'margin_right'  => 12,
-        'orientation'   => count($headers) > 6 ? 'L' : 'P',
+        'orientation'   => $orientation,
     ]);
+
+    if ($use_pdf_template) {
+        $mpdf->SetDocTemplate($header_pdf_path, true);
+    }
+
     $mpdf->SetTitle("ODMIS — $title");
     $mpdf->SetAuthor('MDRRMO ODMIS');
     $mpdf->WriteHTML($html);

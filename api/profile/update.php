@@ -1,5 +1,7 @@
 <?php
+require_once __DIR__ . '/../../vendor/autoload.php';
 require_once __DIR__ . '/../../config/database.php';
+require_once __DIR__ . '/../../config/env.php';
 require_once __DIR__ . '/../../api/helpers/response.php';
 require_once __DIR__ . '/../../api/middleware/auth.php';
 
@@ -75,11 +77,24 @@ try {
     $stmt->execute($params);
 
     $updated = $pdo->prepare(
-        'SELECT id, username, email, full_name, contact_number, date_of_birth, address, profile_picture, status FROM users WHERE id = ? LIMIT 1'
+        'SELECT id, username, email, role, full_name, contact_number, date_of_birth, address, profile_picture, status FROM users WHERE id = ? LIMIT 1'
     );
     $updated->execute([$token_user->sub]);
 
-    success($updated->fetch(), 'Profile updated.');
+    $user = $updated->fetch();
+    $now = time();
+    $payload = [
+        'sub'             => $user['id'],
+        'username'        => $user['username'],
+        'role'            => $user['role'],
+        'full_name'       => $user['full_name'],
+        'profile_picture' => $user['profile_picture'],
+        'iat'             => $now,
+        'exp'             => $now + JWT_EXPIRY,
+    ];
+    $user['token'] = \Firebase\JWT\JWT::encode($payload, JWT_SECRET, 'HS256');
+
+    success($user, 'Profile updated.');
 } catch (PDOException $e) {
     error('Database error.', 500);
 }

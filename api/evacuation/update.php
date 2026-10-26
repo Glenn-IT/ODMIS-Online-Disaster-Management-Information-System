@@ -13,7 +13,7 @@ $body = get_json_body();
 
 try {
     $pdo   = Database::connect();
-    $check = $pdo->prepare('SELECT capacity, occupied_slots, status FROM evacuation_centers WHERE id = ? LIMIT 1');
+    $check = $pdo->prepare('SELECT barangay, capacity, occupied_slots, status FROM evacuation_centers WHERE id = ? LIMIT 1');
     $check->execute([$id]);
     $existing = $check->fetch();
     if (!$existing) error('Evacuation center not found.', 404);
@@ -22,6 +22,18 @@ try {
     $occupied = isset($body['occupied_slots']) ? (int) $body['occupied_slots'] : (int) $existing['occupied_slots'];
 
     if ($capacity < 1)         error('Capacity must be greater than 0.');
+    if ($capacity > 500)       error('Capacity cannot exceed 500.');
+
+    $targetBarangay = !empty($body['barangay']) ? sanitize($body['barangay']) : ($existing['barangay'] ?? '');
+    if ($targetBarangay) {
+        $stmtCap = $pdo->prepare('SELECT IFNULL(SUM(capacity), 0) FROM evacuation_centers WHERE barangay = ? AND id != ?');
+        $stmtCap->execute([$targetBarangay, $id]);
+        $currentBrgyCap = (int) $stmtCap->fetchColumn();
+        if (($currentBrgyCap + $capacity) > 500) {
+            $maxRemaining = max(0, 500 - $currentBrgyCap);
+            error("Total evacuation capacity for {$targetBarangay} cannot exceed 500. Currently allocated to other centers: {$currentBrgyCap} (maximum capacity allowed for this center: {$maxRemaining}).", 422);
+        }
+    }
     if ($occupied < 0)         error('Occupied slots cannot be negative.');
     if ($occupied > $capacity) error('Occupied slots cannot exceed capacity.');
     if (!empty($body['contact_number']) && !preg_match('/^09\d{9}$/', trim((string)$body['contact_number']))) {

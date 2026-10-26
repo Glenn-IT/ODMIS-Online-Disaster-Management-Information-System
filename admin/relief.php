@@ -407,6 +407,12 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
     </div>
   </div>
 
+  <?php 
+    $docTitle = 'Relief Aid Operations & Distribution Records';
+    $docSubtitle = 'MDRRMO Santo Niño (Faire), Cagayan — Official Relief Operations';
+    include __DIR__ . '/../components/print-header.php'; 
+  ?>
+
   <!-- ── TABLE CARD ── -->
   <div class="content-card">
     <div class="content-card-header">
@@ -473,6 +479,8 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
       </div>
     </div>
   </div>
+
+  <?php include __DIR__ . '/../components/print-footer.php'; ?>
 
 </main><!-- /mainContent -->
 

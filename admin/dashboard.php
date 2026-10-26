@@ -227,6 +227,12 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
 ══════════════════════════════════════════════════════════ -->
 <main id="mainContent">
 
+  <?php 
+    $docTitle = 'Executive DRRM Dashboard Summary';
+    $docSubtitle = 'Comprehensive Disaster & Readiness Overview';
+    include __DIR__ . '/../components/print-header.php'; 
+  ?>
+
   <!-- Page Header -->
   <div class="page-header d-flex align-items-center justify-content-between flex-wrap gap-2">
     <div>
@@ -400,6 +406,8 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
       </div>
     </div>
   </div>
+
+  <?php include __DIR__ . '/../components/print-footer.php'; ?>
 
 </main><!-- /mainContent -->
 

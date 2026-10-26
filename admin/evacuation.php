@@ -404,6 +404,12 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
     </div>
   </div>
 
+  <?php 
+    $docTitle = 'Evacuation Centers & Capacity Directory';
+    $docSubtitle = 'MDRRMO Santo Niño (Faire), Cagayan — Official Evacuation Facilities';
+    include __DIR__ . '/../components/print-header.php'; 
+  ?>
+
   <!-- ── TABLE CARD ── -->
   <div class="content-card">
     <div class="content-card-header">
@@ -473,6 +479,8 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
     </div>
   </div>
 
+  <?php include __DIR__ . '/../components/print-footer.php'; ?>
+
 </main><!-- /mainContent -->
 
 
@@ -536,7 +544,7 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
               <label class="form-label fw-semibold" for="fName">
                 Center Name <small class="text-muted">(Auto-Generated)</small> <span class="text-danger">*</span>
               </label>
-              <input type="text" class="form-control bg-light" id="fName" placeholder="e.g. Elementary School - Abariongan Uneg" readonly required />
+              <input type="text" class="form-control" id="fName" placeholder="e.g. Elementary School - Abariongan Uneg" required />
               <div class="invalid-feedback">Center name is required. Please select building and barangay.</div>
             </div>
 
@@ -605,7 +613,8 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
               <label class="form-label fw-semibold" for="fCapacity">
                 Capacity <span class="text-danger">*</span>
               </label>
-              <input type="number" class="form-control" id="fCapacity" min="1" placeholder="e.g. 500" required />
+              <input type="number" class="form-control" id="fCapacity" min="1" max="500" placeholder="e.g. 500" required />
+              <div class="form-text text-muted" id="fCapacityHelp" style="font-size:0.75rem;"><i class="fas fa-info-circle me-1"></i>Max 500 capacity limit per barangay across all centers.</div>
               <div class="invalid-feedback">Capacity must be at least 1.</div>
             </div>
 
@@ -1049,6 +1058,30 @@ function updateGeneratedCenterName() {
   }
 }
 
+// ── Update Capacity Limit Help Text per Barangay ────────────
+function updateCapacityHelpText() {
+  const brgy = document.getElementById('fBarangay').value;
+  const dbId = document.getElementById('evacId').value.trim();
+  const help = document.getElementById('fCapacityHelp');
+  if (!help) return;
+  if (!brgy) {
+    help.innerHTML = '<i class="fas fa-info-circle me-1"></i>Max 500 capacity limit per barangay across all centers.';
+    help.className = 'form-text text-muted';
+    return;
+  }
+  const currentTotal = allCenters
+    .filter(c => c.barangay === brgy && Number(c.id) !== Number(dbId))
+    .reduce((sum, c) => sum + (parseInt(c.capacity, 10) || 0), 0);
+  const remaining = Math.max(0, 500 - currentTotal);
+  if (remaining === 0) {
+    help.innerHTML = `<i class="fas fa-exclamation-triangle me-1"></i>${brgy} has reached the maximum total capacity limit (500/500).`;
+    help.className = 'form-text text-danger fw-semibold';
+  } else {
+    help.innerHTML = `<i class="fas fa-info-circle me-1"></i>${brgy}: ${currentTotal}/500 allocated (Maximum allowed for this center: <strong>${remaining}</strong>).`;
+    help.className = 'form-text text-primary';
+  }
+}
+
 // ── Open Add modal ─────────────────────────────────────────
 function openAddModal() {
   document.getElementById('evacModalTitle').innerHTML =
@@ -1067,6 +1100,7 @@ function openAddModal() {
   document.getElementById('fOccupied').setCustomValidity('');
   document.getElementById('evacForm').classList.remove('was-validated');
   syncCapacityAndStatus();
+  updateCapacityHelpText();
   evacModalInst.show();
 }
 
@@ -1101,6 +1135,7 @@ function editCenter(id) {
   document.getElementById('fContactNumber').value  = c.contact_number  || '';
   document.getElementById('evacForm').classList.remove('was-validated');
   syncCapacityAndStatus();
+  updateCapacityHelpText();
   evacModalInst.show();
 }
 
@@ -1108,6 +1143,7 @@ function editCenter(id) {
 async function saveCenter() {
   const form = document.getElementById('evacForm');
   syncCapacityAndStatus();
+  updateCapacityHelpText();
   form.classList.add('was-validated');
   if (!form.checkValidity()) return;
 
@@ -1119,6 +1155,22 @@ async function saveCenter() {
     showToast('Capacity must be at least 1.', 'danger');
     return;
   }
+
+  if (cap > 500) {
+    showToast('Capacity cannot exceed 500.', 'danger');
+    return;
+  }
+
+  const selectedBrgy = document.getElementById('fBarangay').value;
+  const currentTotal = allCenters
+    .filter(c => c.barangay === selectedBrgy && Number(c.id) !== Number(dbId))
+    .reduce((sum, c) => sum + (parseInt(c.capacity, 10) || 0), 0);
+  if (currentTotal + cap > 500) {
+    const remaining = Math.max(0, 500 - currentTotal);
+    showToast(`Total evacuation capacity for ${selectedBrgy} cannot exceed 500. Currently allocated to other centers: ${currentTotal} (maximum capacity allowed for this center: ${remaining}).`, 'danger');
+    return;
+  }
+    
 
   if (occ < 0) {
     showToast('Occupied slots cannot be negative.', 'danger');
@@ -1298,7 +1350,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Real-time center name generation
   document.getElementById('fBuildingType')?.addEventListener('change', updateGeneratedCenterName);
-  document.getElementById('fBarangay')?.addEventListener('change', updateGeneratedCenterName);
+  document.getElementById('fBarangay')?.addEventListener('change', () => {
+    updateGeneratedCenterName();
+    updateCapacityHelpText();
+  });
 
   // "Edit" from View modal
   document.getElementById('btnViewToEdit').addEventListener('click', () => {

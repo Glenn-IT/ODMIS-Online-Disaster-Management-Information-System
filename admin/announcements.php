@@ -291,11 +291,22 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
     </div>
   </div>
 
+  <?php 
+    $docTitle = 'DRRM Public Advisories & Announcements';
+    $docSubtitle = 'MDRRMO Santo Niño (Faire), Cagayan — Official Bulletins';
+    include __DIR__ . '/../components/print-header.php'; 
+  ?>
+
   <!-- Announcements Table Card -->
   <div class="card card-table shadow-sm">
     <div class="card-header d-flex justify-content-between align-items-center py-3">
       <h6 class="mb-0 fw-bold"><i class="fas fa-list me-2"></i>Announcements List</h6>
-      <span class="badge bg-primary rounded-pill" id="recordCount">0</span>
+      <div class="d-flex align-items-center gap-2">
+        <span class="badge bg-primary rounded-pill" id="recordCount">0</span>
+        <button class="btn btn-outline-primary btn-sm no-print" onclick="window.print()">
+          <i class="fas fa-print me-1"></i>Print
+        </button>
+      </div>
     </div>
     <div class="table-responsive">
       <table class="table table-hover align-middle mb-0">
@@ -322,6 +333,7 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
     </div>
   </div>
 
+  <?php include __DIR__ . '/../components/print-footer.php'; ?>
 </main>
 
 <!-- ══════════════════════════════════════════════════════════

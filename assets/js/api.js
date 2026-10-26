@@ -27,11 +27,19 @@ const ApiClient = (function () {
     if (token) headers['Authorization'] = 'Bearer ' + token;
     if (!isFormData && body) headers['Content-Type'] = 'application/json';
 
-    const opts = { method: method, headers: headers };
+    // Prevent caching for all API requests to ensure fresh data
+    headers['Cache-Control'] = 'no-cache, no-store, must-revalidate';
+    headers['Pragma'] = 'no-cache';
+
+    const opts = { method: method, headers: headers, cache: 'no-store' };
     if (body) opts.body = isFormData ? body : JSON.stringify(body);
 
     const baseUrl = getBase();
-    const cleanPath = path.startsWith('/') ? path : '/' + path;
+    let cleanPath = path.startsWith('/') ? path : '/' + path;
+    if (method === 'GET') {
+      const sep = cleanPath.includes('?') ? '&' : '?';
+      cleanPath += sep + '_t=' + Date.now();
+    }
 
     let res;
     try {
@@ -72,7 +80,11 @@ const ApiClient = (function () {
   async function download(path) {
     const token = getToken();
     const baseUrl = getBase();
-    const cleanPath = path.startsWith('/') ? path : '/' + path;
+    let cleanPath = path.startsWith('/') ? path : '/' + path;
+    if (method === 'GET') {
+      const sep = cleanPath.includes('?') ? '&' : '?';
+      cleanPath += sep + '_t=' + Date.now();
+    }
     const res   = await fetch(baseUrl + cleanPath, {
       headers: token ? { 'Authorization': 'Bearer ' + token } : {}
     });
